@@ -1,5 +1,16 @@
+'use client';
+
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// Note: react-router-dom's useNavigate doesn't work in Next.js App Router. Replace with next/navigation.
+import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import Image from 'next/image';
+import Link from 'next/link';
+
 
 const Login = ({ handleLogin }) => {
   const [email, setEmail] = useState("");
@@ -15,14 +26,15 @@ const Login = ({ handleLogin }) => {
   const [channelId, setChannelId] = useState("");
   const [channelURL, setChannelURL] = useState("");
 
-  const navigate = useNavigate();
+  const router = useRouter(); // Use Next.js router
 
   // Handle Login
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
+    setError(""); // Clear previous errors
 
     try {
-      const response = await fetch("http://localhost:3001/api/users/login", {
+      const response = await fetch("http://localhost:3001/api/users/login", { // Consider using environment variables for API URLs
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -32,23 +44,28 @@ const Login = ({ handleLogin }) => {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("id", data.user.id);
-        localStorage.setItem("username", data.user.username);
-        navigate("/");
-        window.location.reload();
+        // Use localStorage carefully in Next.js, ensure it only runs client-side
+        if (typeof window !== 'undefined') {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("id", data.user.id);
+          localStorage.setItem("username", data.user.username);
+        }
+        router.push("/"); // Use Next.js router for navigation
+        // Avoid window.location.reload(); let Next.js handle state updates
       } else {
         const data = await response.json();
         setError(data.message || "Login failed. Please try again.");
       }
     } catch (error) {
-      setError("Error logging in. Please try again.");
+       console.error("Login error:", error); // Log the actual error
+      setError("Error logging in. Please check your connection and try again.");
     }
   };
 
   // Handle Send OTP
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
+     setError("");
 
     try {
       const response = await fetch(
@@ -70,13 +87,15 @@ const Login = ({ handleLogin }) => {
         setError(data.message || "Error sending OTP. Please try again.");
       }
     } catch (error) {
-      setError("Error sending OTP. Please try again.");
+       console.error("OTP Send error:", error);
+      setError("Error sending OTP. Please check your connection and try again.");
     }
   };
 
   // Handle Verify OTP
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
+     setError("");
 
     try {
       const response = await fetch(
@@ -98,13 +117,20 @@ const Login = ({ handleLogin }) => {
         setError(data.message || "Invalid OTP. Please try again.");
       }
     } catch (error) {
-      setError("Error verifying OTP. Please try again.");
+      console.error("OTP Verify error:", error);
+      setError("Error verifying OTP. Please check your connection and try again.");
     }
   };
 
   // Handle Registration
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
+     setError("");
+
+    if (!userType) {
+      setError("Please select a user type.");
+      return;
+    }
 
     try {
       const response = await fetch("http://localhost:3001/api/users/register", {
@@ -125,194 +151,243 @@ const Login = ({ handleLogin }) => {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("id", data.user.id);
-        localStorage.setItem("username", data.user.username);
-        setIsRegistering(false);
-        navigate("/");
-        window.location.reload();
+         if (typeof window !== 'undefined') {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("id", data.user.id);
+            localStorage.setItem("username", data.user.username);
+         }
+        setIsRegistering(false); // Switch back to login view after successful registration
+        router.push("/"); // Navigate to home
       } else {
         const data = await response.json();
         setError(data.message || "Registration failed. Please try again.");
       }
     } catch (error) {
-      setError("Error registering. Please try again.");
+      console.error("Registration error:", error);
+      setError("Error registering. Please check your connection and try again.");
     }
   };
 
+  const toggleMode = () => {
+    setIsRegistering(!isRegistering);
+    // Reset state when toggling modes
+    setEmail("");
+    setPassword("");
+    setOtp("");
+    setIsOtpSent(false);
+    setIsOtpVerified(false);
+    setUsername("");
+    setUserType("");
+    setChannelName("");
+    setChannelId("");
+    setChannelURL("");
+    setError("");
+  };
+
+
   return (
-    <div className="login-container">
-      {/* Left Side */}
-      <div className="left-side">
-        <div className="content">
-          <h1>Welcome to Our Platform</h1>
-          <p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-primary/10 p-4">
+      <div className="w-full max-w-4xl grid md:grid-cols-2 gap-0 bg-card text-card-foreground rounded-xl shadow-2xl overflow-hidden border border-border">
+
+        {/* Left Side - Illustration and Welcome */}
+        <div className="hidden md:flex flex-col justify-center items-center p-8 lg:p-12 bg-gradient-to-br from-primary/50 via-primary/30 to-primary/50 text-primary-foreground">
+          <h1 className="text-3xl font-bold mb-4 text-center">Welcome to WContent Lite</h1>
+          <p className="text-center mb-8 text-primary-foreground/80">
             Join us today to explore amazing features and take your career to
             the next level. Whether you're a content creator or a role seeker,
             we've got you covered.
           </p>
-          <img
-            src="https://png.pngtree.com/png-vector/20220525/ourmid/pngtree-content-creator-background-vector-illustration-of-freelancer-blogger-and-video-vlogger-png-image_4726845.png"
-            alt="Illustration"
+          <Image
+            src="https://picsum.photos/400/300?random=auth" // Use picsum for placeholder
+            alt="Content Creation Illustration"
+            data-ai-hint="team collaboration digital content"
+            width={400}
+            height={300}
+            className="rounded-lg object-cover shadow-lg"
           />
         </div>
-      </div>
 
-      {/* Right Side */}
-      <div className="right-side">
-        <div className="form-container">
-          <h2>{isRegistering ? "Sign Up" : "Login"}</h2>
-          {error && <p className="error-message">{error}</p>}
+        {/* Right Side - Form */}
+        <div className="p-8 lg:p-12 flex flex-col justify-center">
+          <Card className="w-full border-0 shadow-none bg-transparent">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-bold">{isRegistering ? "Sign Up" : "Login"}</CardTitle>
+              <CardDescription>
+                {isRegistering ? "Create your account" : "Access your dashboard"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {error && <p className="text-destructive text-sm mb-4 text-center bg-destructive/10 p-2 rounded-md border border-destructive/50">{error}</p>}
 
-          {/* Conditional Rendering for Login */}
-          {!isRegistering && !isOtpSent && (
-            <form onSubmit={handleLoginSubmit}>
-              <div className="input-container">
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="input"
-                />
-              </div>
-              <div className="input-container">
-                <label>Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="input"
-                />
-              </div>
-              <button type="submit" className="submit-button">
-                Login
-              </button>
-            </form>
-          )}
+              {/* Login Form */}
+              {!isRegistering && (
+                <form onSubmit={handleLoginSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="login-email">Email</Label>
+                    <Input
+                      id="login-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="login-password">Password</Label>
+                    <Input
+                      id="login-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    Login
+                  </Button>
+                </form>
+              )}
 
-          {/* Conditional Rendering for Email */}
-          {isRegistering && !isOtpSent && (
-            <form onSubmit={handleEmailSubmit}>
-              <div className="input-container">
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="input"
-                />
-              </div>
-              <button type="submit" className="submit-button">
-                Send OTP
-              </button>
-            </form>
-          )}
+              {/* Registration Flow */}
+              {isRegistering && (
+                <>
+                  {/* Step 1: Email Input */}
+                  {!isOtpSent && (
+                    <form onSubmit={handleEmailSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="register-email">Email</Label>
+                        <Input
+                          id="register-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          placeholder="you@example.com"
+                        />
+                         <p className="text-xs text-muted-foreground mt-1">We'll send an OTP to verify your email.</p>
+                      </div>
+                      <Button type="submit" className="w-full">
+                        Send OTP
+                      </Button>
+                    </form>
+                  )}
 
-          {/* Conditional Rendering for OTP Verification */}
-          {isOtpSent && !isOtpVerified && (
-            <form onSubmit={handleOtpSubmit}>
-              <div className="input-container">
-                <label>Enter OTP</label>
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  required
-                  className="input"
-                />
-              </div>
-              <button type="submit" className="submit-button">
-                Verify OTP
-              </button>
-            </form>
-          )}
+                  {/* Step 2: OTP Verification */}
+                  {isOtpSent && !isOtpVerified && (
+                    <form onSubmit={handleOtpSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="otp">Enter OTP</Label>
+                        <Input
+                          id="otp"
+                          type="text"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          required
+                          placeholder="Enter the 6-digit code"
+                          maxLength={6}
+                        />
+                         <p className="text-xs text-muted-foreground mt-1">Check your email for the verification code.</p>
+                      </div>
+                      <Button type="submit" className="w-full">
+                        Verify OTP
+                      </Button>
+                    </form>
+                  )}
 
-          {/* Conditional Rendering for Register Form */}
-          {isOtpVerified && isRegistering && (
-            <form onSubmit={handleRegisterSubmit}>
-              <div className="input-container">
-                <label>Username</label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  className="input"
-                />
-              </div>
-              <div className="input-container">
-                <label>Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="input"
-                />
-              </div>
-              <div className="input-container">
-                <label>User Type</label>
-                <select
-                  value={userType}
-                  onChange={(e) => setUserType(e.target.value)}
-                  required
-                  className="input"
-                >
-                  <option value="ChannelOwner">Channel Owner</option>
-                  <option value="RoleSeeker">Role Seeker</option>
-                </select>
-              </div>
-              <div className="input-container">
-                <label>Channel Name</label>
-                <input
-                  type="text"
-                  value={channelName}
-                  onChange={(e) => setChannelName(e.target.value)}
-                  required
-                  className="input"
-                />
-              </div>
-              <div className="input-container">
-                <label>Channel ID</label>
-                <input
-                  type="text"
-                  value={channelId}
-                  onChange={(e) => setChannelId(e.target.value)}
-                  required
-                  className="input"
-                />
-              </div>
-              <div className="input-container">
-                <label>Channel URL</label>
-                <input
-                  type="url"
-                  value={channelURL}
-                  onChange={(e) => setChannelURL(e.target.value)}
-                  required
-                  className="input"
-                />
-              </div>
-              <button type="submit" className="submit-button">
-                Sign Up
-              </button>
-            </form>
-          )}
-
-          <div className="toggle-link">
-            <p>
-              {isRegistering ? "Already have an account?" : "No account? "}
-              <span
-                onClick={() => setIsRegistering(!isRegistering)}
-                className="link"
-              >
-                {isRegistering ? "Login" : "Sign Up"}
-              </span>
-            </p>
-          </div>
+                  {/* Step 3: Registration Details */}
+                  {isOtpVerified && (
+                    <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="username">Username</Label>
+                        <Input
+                          id="username"
+                          type="text"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          required
+                          placeholder="Choose a username"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="register-password">Password</Label>
+                        <Input
+                          id="register-password"
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                           placeholder="Choose a strong password"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="userType">User Type</Label>
+                         <Select onValueChange={setUserType} value={userType} required>
+                            <SelectTrigger id="userType">
+                              <SelectValue placeholder="Select your role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ChannelOwner">Channel Owner</SelectItem>
+                              <SelectItem value="RoleSeeker">Role Seeker</SelectItem>
+                           </SelectContent>
+                          </Select>
+                      </div>
+                       {/* Conditionally show Channel fields only if ChannelOwner is selected */}
+                        {userType === 'ChannelOwner' && (
+                           <>
+                               <div>
+                                  <Label htmlFor="channelName">Channel Name</Label>
+                                  <Input
+                                     id="channelName"
+                                     type="text"
+                                     value={channelName}
+                                     onChange={(e) => setChannelName(e.target.value)}
+                                     required={userType === 'ChannelOwner'}
+                                     placeholder="Your YouTube Channel Name"
+                                   />
+                               </div>
+                               <div>
+                                  <Label htmlFor="channelId">Channel ID</Label>
+                                  <Input
+                                     id="channelId"
+                                     type="text"
+                                     value={channelId}
+                                     onChange={(e) => setChannelId(e.target.value)}
+                                     required={userType === 'ChannelOwner'}
+                                      placeholder="Your YouTube Channel ID"
+                                   />
+                               </div>
+                               <div>
+                                 <Label htmlFor="channelURL">Channel URL</Label>
+                                  <Input
+                                     id="channelURL"
+                                     type="url"
+                                     value={channelURL}
+                                     onChange={(e) => setChannelURL(e.target.value)}
+                                     required={userType === 'ChannelOwner'}
+                                     placeholder="https://youtube.com/..."
+                                  />
+                               </div>
+                           </>
+                        )}
+                      <Button type="submit" className="w-full">
+                        Sign Up
+                      </Button>
+                    </form>
+                  )}
+                </>
+              )}
+            </CardContent>
+            <CardFooter className="flex justify-center">
+               <p className="text-sm text-muted-foreground">
+                {isRegistering ? "Already have an account?" : "No account?"}{" "}
+                <Button variant="link" className="p-0 h-auto text-primary" onClick={toggleMode}>
+                  {isRegistering ? "Login" : "Sign Up"}
+                </Button>
+              </p>
+            </CardFooter>
+          </Card>
         </div>
       </div>
     </div>
