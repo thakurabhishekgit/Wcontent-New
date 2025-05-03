@@ -21,6 +21,7 @@ import { Bell, Settings, User, Edit3, PlusCircle, Mail, FileText, LogOut, BarCha
 import { useRouter, usePathname } from 'next/navigation'; // For navigation, added usePathname
 import Link from 'next/link'; // For internal links
 import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile hook
+import { cn } from '@/lib/utils'; // Import cn utility function
 
 // Placeholder components for different dashboard sections - These will eventually be separate pages or components
 // We pass the main page content via `children` now.
