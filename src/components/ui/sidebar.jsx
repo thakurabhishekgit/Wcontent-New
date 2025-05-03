@@ -16,221 +16,168 @@ import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
+  TooltipProvider, // Keep TooltipProvider for internal tooltips
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-const SIDEBAR_COOKIE_NAME = "sidebar_state"
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
-const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
+// Context Setup for Sidebar State Management (can be simplified if provider is always external)
 const SidebarContext = React.createContext(null)
 
 function useSidebar() {
   const context = React.useContext(SidebarContext)
   if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider.")
+    // Allow usage without provider for basic rendering, but stateful features might break
+    // console.warn("useSidebar used outside of a SidebarProvider. State features might not work.");
+    // Return a default/dummy state if needed, or let it throw if provider is mandatory
+     throw new Error("useSidebar must be used within a Sidebar structure managed by a layout.");
   }
-
-  return context
+  return context;
 }
 
-const SidebarProvider = React.forwardRef(
-  (
-    {
-      defaultOpen = true,
-      open: openProp,
-      onOpenChange: setOpenProp,
-      className,
-      style,
-      children,
-      ...props
-    },
-    ref
-  ) => {
-    const isMobile = useIsMobile()
-    const [openMobile, setOpenMobile] = React.useState(false)
+// Note: The SidebarProvider component itself is removed from this file.
+// It should be used in a layout component (e.g., src/app/dashboard/layout.jsx)
+// to wrap the Sidebar and SidebarInset components.
 
-    // This is the internal state of the sidebar.
-    // We use openProp and setOpenProp for control from outside the component.
-    const [_open, _setOpen] = React.useState(defaultOpen)
-    const open = openProp ?? _open
-    const setOpen = React.useCallback(
-      (value) => {
-        const openState = typeof value === "function" ? value(open) : value
-        if (setOpenProp) {
-          setOpenProp(openState)
-        } else {
-          _setOpen(openState)
-        }
-
-        // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
-      },
-      [setOpenProp, open]
-    )
-
-    // Helper to toggle the sidebar.
-    const toggleSidebar = React.useCallback(() => {
-      return isMobile
-        ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open)
-    }, [isMobile, setOpen, setOpenMobile])
-
-    // Adds a keyboard shortcut to toggle the sidebar.
-    React.useEffect(() => {
-      const handleKeyDown = (event) => {
-        if (
-          event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-          (event.metaKey || event.ctrlKey)
-        ) {
-          event.preventDefault()
-          toggleSidebar()
-        }
-      }
-
-      window.addEventListener("keydown", handleKeyDown)
-      return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [toggleSidebar])
-
-    // We add a state so that we can do data-state="expanded" or "collapsed".
-    // This makes it easier to style the sidebar with Tailwind classes.
-    const state = open ? "expanded" : "collapsed"
-
-    const contextValue = React.useMemo(
-      () => ({
-        state,
-        open,
-        setOpen,
-        isMobile,
-        openMobile,
-        setOpenMobile,
-        toggleSidebar,
-      }),
-      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
-    )
-
-    return (
-      <SidebarContext.Provider value={contextValue}>
-        <TooltipProvider delayDuration={0}>
-          <div
-            style={
-              {
-                "--sidebar-width": SIDEBAR_WIDTH,
-                "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
-                ...style,
-              }
-            }
-            className={cn(
-              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
-              className
-            )}
-            ref={ref}
-            {...props}
-          >
-            {children}
-          </div>
-        </TooltipProvider>
-      </SidebarContext.Provider>
-    )
-  }
-)
-SidebarProvider.displayName = "SidebarProvider"
+// --- Sidebar Components ---
 
 const Sidebar = React.forwardRef(
   (
     {
       side = "left",
       variant = "sidebar",
-      collapsible = "offcanvas",
+      collapsible = "offcanvas", // Default to offcanvas for mobile-first
       className,
       children,
       ...props
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    // Attempt to get context, but handle potential absence if used standalone (not recommended for full functionality)
+    const context = React.useContext(SidebarContext);
+    const isMobile = useIsMobile(); // Use hook directly
+    const [open, setOpen] = React.useState(true); // Local state for standalone use (limited)
+    const [openMobile, setOpenMobile] = React.useState(false);
+
+    // Prefer context state if available
+    const effectiveIsMobile = context?.isMobile ?? isMobile;
+    const effectiveOpen = context?.open ?? open;
+    const effectiveSetOpen = context?.setOpen ?? setOpen;
+    const effectiveOpenMobile = context?.openMobile ?? openMobile;
+    const effectiveSetOpenMobile = context?.setOpenMobile ?? setOpenMobile;
+
+    const state = effectiveOpen ? "expanded" : "collapsed";
+
+    const contextValue = React.useMemo(
+      () => ({
+        state,
+        open: effectiveOpen,
+        setOpen: effectiveSetOpen,
+        isMobile: effectiveIsMobile,
+        openMobile: effectiveOpenMobile,
+        setOpenMobile: effectiveSetOpenMobile,
+        // toggleSidebar might be missing if no provider
+        toggleSidebar: context?.toggleSidebar || (() => {
+           if (effectiveIsMobile) effectiveSetOpenMobile(prev => !prev);
+           else effectiveSetOpen(prev => !prev);
+        }),
+      }),
+      [state, effectiveOpen, effectiveSetOpen, effectiveIsMobile, effectiveOpenMobile, effectiveSetOpenMobile, context?.toggleSidebar]
+    );
+
 
     if (collapsible === "none") {
       return (
-        <div
-          className={cn(
-            "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
-            className
-          )}
-          ref={ref}
-          {...props}
-        >
-          {children}
-        </div>
-      )
-    }
-
-    if (isMobile) {
-      return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-          <SheetContent
-            data-sidebar="sidebar"
-            data-mobile="true"
-            className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-            style={
-              {
-                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-              }
-            }
-            side={side}
-          >
-            <div className="flex h-full w-full flex-col">{children}</div>
-          </SheetContent>
-        </Sheet>
-      )
-    }
-
-    return (
-      <div
-        ref={ref}
-        className="group peer hidden md:block text-sidebar-foreground"
-        data-state={state}
-        data-collapsible={state === "collapsed" ? collapsible : ""}
-        data-variant={variant}
-        data-side={side}
-      >
-        {/* This is what handles the sidebar gap on desktop */}
-        <div
-          className={cn(
-            "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
-            "group-data-[collapsible=offcanvas]:w-0",
-            "group-data-[side=right]:rotate-180",
-            variant === "floating" || variant === "inset"
-              ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]"
-          )}
-        />
-        <div
-          className={cn(
-            "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
-            side === "left"
-              ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
-              : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
-            // Adjust the padding for floating and inset variants.
-            variant === "floating" || variant === "inset"
-              ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
-            className
-          )}
-          {...props}
-        >
-          <div
-            data-sidebar="sidebar"
-            className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
-          >
+         <SidebarContext.Provider value={contextValue}>
+            <div
+            className={cn(
+                "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
+                className
+            )}
+            ref={ref}
+            style={{ '--sidebar-width': SIDEBAR_WIDTH, '--sidebar-width-icon': SIDEBAR_WIDTH_ICON, ...props.style }}
+            {...props}
+            >
             {children}
-          </div>
-        </div>
-      </div>
+            </div>
+         </SidebarContext.Provider>
+      )
+    }
+
+    if (effectiveIsMobile) {
+      return (
+         <SidebarContext.Provider value={contextValue}>
+             <Sheet open={effectiveOpenMobile} onOpenChange={effectiveSetOpenMobile} {...props}>
+             <SheetContent
+                data-sidebar="sidebar"
+                data-mobile="true"
+                className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+                style={
+                {
+                    "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+                }
+                }
+                side={side}
+             >
+                <div className="flex h-full w-full flex-col">{children}</div>
+             </SheetContent>
+             </Sheet>
+         </SidebarContext.Provider>
+      )
+    }
+
+    // Desktop rendering remains similar, relies on context potentially provided by layout
+    return (
+      // Provide context for children even if the parent provider is external
+       <SidebarContext.Provider value={contextValue}>
+         <TooltipProvider delayDuration={0}>
+           <div
+            ref={ref}
+            className="group peer hidden md:block text-sidebar-foreground"
+            data-state={state}
+            data-collapsible={state === "collapsed" ? collapsible : ""}
+            data-variant={variant}
+            data-side={side}
+             style={{ '--sidebar-width': SIDEBAR_WIDTH, '--sidebar-width-icon': SIDEBAR_WIDTH_ICON, ...props.style }}
+           >
+            {/* This is what handles the sidebar gap on desktop */}
+            <div
+               className={cn(
+                "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
+                "group-data-[collapsible=offcanvas]:w-0",
+                "group-data-[side=right]:rotate-180",
+                variant === "floating" || variant === "inset"
+                  ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
+                  : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]"
+               )}
+            />
+            <div
+               className={cn(
+                "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
+                side === "left"
+                  ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
+                  : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
+                // Adjust the padding for floating and inset variants.
+                variant === "floating" || variant === "inset"
+                  ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
+                  : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
+                className
+               )}
+               {...props}
+            >
+               <div
+                data-sidebar="sidebar"
+                className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
+               >
+                {children}
+               </div>
+            </div>
+           </div>
+         </TooltipProvider>
+       </SidebarContext.Provider>
     )
   }
 )
@@ -291,9 +238,23 @@ const SidebarInset = React.forwardRef(({ className, ...props }, ref) => {
       ref={ref}
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background",
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        // Adjustments for inset variant based on sibling `peer` data attributes
+        "md:peer-data-[state=expanded]:peer-data-[variant=inset]:ml-[--sidebar-width]",
+         "md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
+         // Ensure proper margin handling based on side
+         "md:peer-data-[side=right]:peer-data-[state=expanded]:peer-data-[variant=inset]:mr-[--sidebar-width]",
+         "md:peer-data-[side=right]:peer-data-[state=collapsed]:peer-data-[variant=inset]:mr-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
+        // General inset styles
+         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+         // Reset margin if not inset or collapsed icon state doesn't apply
+         "md:peer-data-[state=expanded]:peer-data-[variant=sidebar]:ml-[--sidebar-width]", // Standard sidebar expanded
+         "md:peer-data-[state=collapsed]:peer-data-[variant=sidebar]:ml-[--sidebar-width-icon]", // Standard sidebar collapsed
+         "md:peer-data-[side=right]:peer-data-[state=expanded]:peer-data-[variant=sidebar]:mr-[--sidebar-width]",
+         "md:peer-data-[side=right]:peer-data-[state=collapsed]:peer-data-[variant=sidebar]:mr-[--sidebar-width-icon]",
+
         className
       )}
+       style={{ '--sidebar-width': SIDEBAR_WIDTH, '--sidebar-width-icon': SIDEBAR_WIDTH_ICON, ...props.style }}
       {...props}
     />
   )
@@ -481,8 +442,10 @@ const SidebarMenuButton = React.forwardRef(
     },
     ref
   ) => {
-    const Comp = asChild ? Slot : "button"
-    const { isMobile, state } = useSidebar()
+    const Comp = asChild ? Slot : "button";
+    const context = React.useContext(SidebarContext);
+    const isMobile = context?.isMobile ?? useIsMobile(); // Fallback if no context
+    const state = context?.state ?? 'expanded'; // Fallback if no context
 
     const button = (
       <Comp
@@ -499,11 +462,9 @@ const SidebarMenuButton = React.forwardRef(
       return button
     }
 
-    if (typeof tooltip === "string") {
-      tooltip = {
-        children: tooltip,
-      }
-    }
+    // Ensure tooltip is an object for TooltipContent props
+    const tooltipProps = typeof tooltip === "string" ? { children: tooltip } : tooltip;
+
 
     return (
       <Tooltip>
@@ -511,8 +472,9 @@ const SidebarMenuButton = React.forwardRef(
         <TooltipContent
           side="right"
           align="center"
+          // Use explicit check for collapsed state, avoid showing on mobile
           hidden={state !== "collapsed" || isMobile}
-          {...tooltip}
+          {...tooltipProps} // Spread tooltip props here
         />
       </Tooltip>
     )
@@ -614,7 +576,7 @@ const SidebarMenuSubItem = React.forwardRef(({ ...props }, ref) => <li ref={ref}
 SidebarMenuSubItem.displayName = "SidebarMenuSubItem"
 
 const SidebarMenuSubButton = React.forwardRef(({ asChild = false, size = "md", isActive, className, ...props }, ref) => {
-  const Comp = asChild ? Slot : "a"
+  const Comp = asChild ? Slot : "a" // Use 'a' for links, or allow Slot
 
   return (
     <Comp
@@ -656,9 +618,9 @@ export {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarProvider,
+  // SidebarProvider, // Removed from exports
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
-  useSidebar,
+  useSidebar, // Keep useSidebar export if needed by consumers
 }

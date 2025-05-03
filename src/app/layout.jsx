@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
 import { Providers } from './providers'; // Import Providers
+// Removed SidebarProvider import
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -33,9 +34,12 @@ export default function RootLayout({ children }) {
         )}
       >
         <Providers> {/* Wrap content with Providers */}
+          {/* Removed SidebarProvider wrapping */}
           <Navbar />
+          {/* The main content area can occupy the space between navbar and footer */}
+          {/* The dashboard layout will handle its specific structure */}
           <main className="flex-grow container mx-auto px-4 py-8">
-            {children}
+             {children}
           </main>
           <Footer />
           <Toaster />
