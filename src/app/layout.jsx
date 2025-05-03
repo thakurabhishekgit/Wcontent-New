@@ -24,7 +24,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark"> {/* Apply dark class here */}
+    <html lang="en" className="dark">
       <body
         className={cn(
           geistSans.variable,
@@ -44,3 +44,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
