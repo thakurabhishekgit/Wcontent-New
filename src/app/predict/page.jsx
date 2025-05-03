@@ -1,14 +1,49 @@
-
 'use client'; // Add this directive
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Import useEffect
+import { Button } from '@/components/ui/button'; // Import Shadcn Button
+import { Input } from '@/components/ui/input'; // Import Shadcn Input
+import { Textarea } from '@/components/ui/textarea'; // Import Shadcn Textarea
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'; // Import Shadcn Card
+import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Import Alert
+import { Terminal, Youtube, Lightbulb, Loader2, LogIn } from "lucide-react"; // Import icons
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 function Ml() {
   const [url, setUrl] = useState("");
   const [summary, setSummary] = useState("");
   const [loading, setLoading] = useState(false);
+  const [geminiLoading, setGeminiLoading] = useState(false); // Separate loading state for Gemini
   const [error, setError] = useState("");
   const [geminiResponse, setGeminiResponse] = useState("");
+  const [isClient, setIsClient] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [predictionCount, setPredictionCount] = useState(0);
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    setIsClient(true);
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+    // Load prediction count from localStorage if available
+    const storedCount = localStorage.getItem('predictionCount');
+    if (storedCount) {
+      setPredictionCount(parseInt(storedCount, 10));
+    }
+  }, []);
+
 
   const isValidYouTubeUrl = (url) => {
     const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
@@ -16,6 +51,12 @@ function Ml() {
   };
 
   const handleAnalyze = async () => {
+     // Check login status and prediction count before analysis
+     if (!isLoggedIn && predictionCount >= 1) {
+       setShowLoginAlert(true);
+       return; // Stop analysis
+     }
+
     if (!isValidYouTubeUrl(url)) {
       setError("Please enter a valid YouTube URL");
       return;
@@ -27,67 +68,70 @@ function Ml() {
     setGeminiResponse("");
 
     try {
-      const response = await fetch(
-        `http://127.0.0.1:5000/get_comments_summary?videoLink=${encodeURIComponent(
-          url
-        )}`
-      );
+      // TODO: Replace with actual backend endpoint when available
+      // Simulate fetching summary for now
+      // const response = await fetch(
+      //   `http://127.0.0.1:5000/get_comments_summary?videoLink=${encodeURIComponent(url)}`
+      // );
+      // if (!response.ok) {
+      //   throw new Error("Failed to analyze comments");
+      // }
+      // const data = await response.json();
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
+      const placeholderSummary = `Placeholder summary for ${url}: Comments generally positive, mentioning good editing but some found the intro too long. Several users asked for a follow-up video on topic X.`;
+      setSummary(placeholderSummary); // Use placeholder
 
-      if (!response.ok) {
-        throw new Error("Failed to analyze comments");
-      }
+      // Increment prediction count only on successful analysis
+      const newCount = predictionCount + 1;
+      setPredictionCount(newCount);
+       if (typeof window !== 'undefined') {
+         localStorage.setItem('predictionCount', newCount.toString());
+       }
 
-      const data = await response.json();
-      setSummary(data.summary);
     } catch (err) {
-      setError(err.message || "An error occurred during analysis");
+       const message = err instanceof Error ? err.message : "An error occurred during analysis";
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleGeminiRequest = async () => {
+     // Check login status and prediction count before Gemini request
+     if (!isLoggedIn && predictionCount >= 1) { // Allow Gemini if analysis was the free one
+       setShowLoginAlert(true);
+       return; // Stop request
+     }
+
     if (!summary) {
       setError("Please analyze comments first.");
       return;
     }
 
-    setLoading(true);
+    setGeminiLoading(true);
     setError("");
     setGeminiResponse("");
 
     try {
-      const prompt = `How can I improve my YouTube video performance based on the following summary? Summary: ${summary}`;
-      const apiKey = "AIzaSyAFXOKE8qMD6tECr9A9JT9OMPKFcrQIvp4"; // Your Gemini API key
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+      // --- IMPORTANT: Replace with your Genkit Flow call ---
+      // This is a placeholder for the Gemini API call.
+      // You should replace this with a call to a Genkit flow that takes the summary
+      // and returns improvement suggestions.
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: prompt,
-                },
-              ],
-            },
-          ],
-        }),
-      });
+      // Example structure (replace with actual Genkit flow):
+      // import { getImprovementSuggestions } from '@/ai/flows/get-suggestions-flow'; // Assuming you create this flow
+      // const suggestionsResult = await getImprovementSuggestions({ commentSummary: summary });
+      // setGeminiResponse(suggestionsResult.suggestions); // Adjust based on your flow's output schema
 
-      const data = await response.json();
-      const geminiText =
-        data.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "No response from Gemini.";
-      setGeminiResponse(geminiText);
+       await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API delay
+       const placeholderSuggestions = `Based on the summary:\n- Consider shortening the intro sequence.\n- Address the requests for a follow-up video on topic X in your next content plan.\n- Highlight the positive feedback on editing in your channel metrics.`;
+       setGeminiResponse(placeholderSuggestions); // Use placeholder
+
     } catch (err) {
-      setError("Failed to fetch suggestions from Gemini.");
+       const message = err instanceof Error ? err.message : "Failed to fetch suggestions.";
+      setError(message);
     } finally {
-      setLoading(false);
+      setGeminiLoading(false);
     }
   };
 
@@ -96,262 +140,139 @@ function Ml() {
     const droppedUrl = e.dataTransfer.getData("text/plain");
     if (isValidYouTubeUrl(droppedUrl)) {
       setUrl(droppedUrl);
+       setError(""); // Clear error on valid drop
+    } else {
+        setError("Dropped item is not a valid YouTube URL");
     }
   };
 
+   if (!isClient) {
+     // Render skeleton or null during SSR/hydration
+     return null; // Or a loading skeleton component
+   }
+
   return (
-    <div className="app-container">
-      <style>{`
-  .app-container {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
-    padding: 2rem;
-    overflow: hidden;
-    color: #fff;
-  }
+    <div className="container mx-auto px-4 py-8 space-y-8">
+       <Card>
+         <CardHeader className="text-center">
+           <Youtube className="h-12 w-12 mx-auto text-primary mb-2" />
+           <CardTitle className="text-3xl font-bold">YouTube Comment Analyzer</CardTitle>
+           <CardDescription className="text-lg text-muted-foreground">
+             Paste a YouTube video URL to get an AI-powered summary of the comments and suggestions for improvement.
+             {!isLoggedIn && <span className="text-sm block text-primary">(First analysis is free! Login for unlimited access.)</span>}
+           </CardDescription>
+         </CardHeader>
+         <CardContent className="max-w-2xl mx-auto space-y-6">
+           <div
+             className="border-2 border-dashed border-border rounded-lg p-6 text-center bg-muted/30 hover:border-primary transition-colors cursor-copy"
+             onDragOver={(e) => e.preventDefault()}
+             onDrop={handleDrop}
+           >
+             <Input
+               type="url" // Use url type for better semantics
+               value={url}
+               onChange={(e) => { setUrl(e.target.value); setError(""); }} // Clear error on change
+               placeholder="Paste or drop YouTube URL here"
+               className="text-center text-base" // Adjusted text size
+             />
+             <p className="text-xs text-muted-foreground mt-2">Drag and drop works too!</p>
+           </div>
 
-  .content-wrapper {
-    max-width: 1300px;
-    background: #2a2a2a;
-    border-radius: 24px;
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+           {error && (
+              <Alert variant="destructive">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+           )}
 
-  .image-container {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
+           <Button
+             onClick={handleAnalyze}
+             className="w-full"
+             disabled={loading || geminiLoading} // Disable if either is loading
+           >
+             {loading ? (
+               <>
+                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...
+               </>
+             ) : (
+               'Analyze Comments'
+             )}
+             {!isLoggedIn && predictionCount > 0 && <span className="ml-2 text-xs">(Login Required)</span>}
+           </Button>
 
-  .image-container img {
-    width: 100%;
-    max-width: 400px;
-    border-radius: 16px;
-    border: 2px solid #444;
-  }
+           {/* Results Section */}
+           {loading && (
+             <div className="space-y-4 pt-4">
+               <Skeleton className="h-6 w-1/4" />
+               <Skeleton className="h-4 w-full" />
+               <Skeleton className="h-4 w-5/6" />
+               <Skeleton className="h-10 w-1/2" />
+             </div>
+           )}
 
-  .title {
-    color: #fff;
-    font-size: 2.2rem;
-    margin-bottom: 1rem;
-    text-align: center;
-  }
+           {summary && !loading && (
+             <Card className="bg-muted/30">
+                <CardHeader>
+                  <CardTitle className="text-xl">AI Analysis Summary</CardTitle>
+                </CardHeader>
+               <CardContent className="space-y-4">
+                 <p className="text-sm text-foreground/90 whitespace-pre-wrap">{summary}</p>
+                 <Button
+                   onClick={handleGeminiRequest}
+                   variant="outline"
+                   className="w-full"
+                   disabled={geminiLoading || loading} // Disable if either is loading
+                 >
+                   {geminiLoading ? (
+                     <>
+                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating Suggestions...
+                     </>
+                   ) : (
+                     <>
+                       <Lightbulb className="mr-2 h-4 w-4" /> Get Improvement Suggestions
+                     </>
+                   )}
+                    {!isLoggedIn && predictionCount > 0 && <span className="ml-2 text-xs">(Login Required)</span>}
+                 </Button>
 
-  .description {
-    color: #ccc;
-    font-size: 1.1rem;
-    line-height: 1.6;
-    margin-bottom: 2rem;
-    text-align: center;
-  }
+                 {geminiLoading && (
+                   <div className="space-y-2 pt-2">
+                     <Skeleton className="h-5 w-1/3" />
+                     <Skeleton className="h-4 w-full" />
+                     <Skeleton className="h-4 w-full" />
+                     <Skeleton className="h-4 w-4/5" />
+                   </div>
+                 )}
 
-  .url-input-container {
-    border: 2px dashed #444;
-    border-radius: 10px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    transition: all 0.3s ease;
-    width: 100%;
-    background-color: #333;
-  }
+                 {geminiResponse && !geminiLoading && (
+                   <div className="pt-4">
+                     <h3 className="text-lg font-semibold mb-2 flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary"/> Improvement Suggestions</h3>
+                     <p className="text-sm text-foreground/90 whitespace-pre-wrap">{geminiResponse}</p>
+                   </div>
+                 )}
+               </CardContent>
+             </Card>
+           )}
+         </CardContent>
+       </Card>
 
-  .url-input-container:hover {
-    border-color: #3b82f6;
-    background-color: #3a3a3a;
-  }
+        {/* Login Required Alert Dialog */}
+        <AlertDialog open={showLoginAlert} onOpenChange={setShowLoginAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2"><LogIn className="h-5 w-5"/> Login Required</AlertDialogTitle>
+              <AlertDialogDescription>
+                 You've used your free analysis/suggestion request. Please log in or sign up to continue using this feature without limits.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => router.push('/auth')}>Login / Sign Up</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-  .url-input {
-    width: 100%;
-    border: none;
-    outline: none;
-    font-size: 1.1rem;
-    padding: 0.5rem;
-    text-align: center;
-    color: #fff;
-    background-color: transparent;
-  }
-
-  .url-input::placeholder {
-    color: #888;
-  }
-
-  .analyze-button {
-    width: 100%;
-    padding: 1rem;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .analyze-button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-  }
-
-  .analyze-button:disabled {
-    background: #93c5fd;
-    cursor: not-allowed;
-  }
-
-  .loading-container {
-    display: flex;
-    justify-content: center;
-    margin: 2rem 0;
-  }
-
-  .loader {
-    border: 4px solid #444;
-    border-top: 4px solid #3b82f6;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  .error-message {
-    color: #ff4d4f;
-    background: #2a2a2a;
-    padding: 1rem;
-    border-radius: 8px;
-    margin: 1rem 0;
-    text-align: center;
-    border: 1px solid #444;
-  }
-
-  .results-container {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    background: #333;
-    border-radius: 12px;
-    width: 100%;
-    border: 1px solid #444;
-  }
-
-  .results-container h2 {
-    color: #3b82f6;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-  }
-
-  .summary-text {
-    color: #ccc;
-    line-height: 1.6;
-    white-space: pre-wrap;
-  }
-
-  .gemini-response {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: #3a3a3a;
-    border-radius: 8px;
-    color: #fff;
-    border: 1px solid #444;
-  }
-
-  @media (max-width: 768px) {
-    .app-container {
-      padding: 1rem;
-    }
-
-    .content-wrapper {
-      padding: 1rem;
-    }
-
-    .title {
-      font-size: 1.8rem;
-    }
-
-    .description {
-      font-size: 1rem;
-    }
-  }
-`}</style>
-
-      <div className="content-wrapper">
-        {/* Image Section */}
-        <div className="image-container">
-          <img
-            src="https://img.freepik.com/premium-photo/youtube-logo-video-player-3d-design-video-media-player-interface_41204-12379.jpg?ga=GA1.1.696049277.1738259953&semt=ais_hybrid"
-            alt="YouTube Creator"
-          />
-        </div>
-
-        {/* Title and Description */}
-        <h1 className="title">YouTube Comment AI Analyzer</h1>
-        <p className="description">
-          Transform raw YouTube comments into meaningful insights with our
-          AI-powered analysis. Get instant sentiment analysis, key themes, and
-          comprehensive summaries of any video's comment section.
-        </p>
-
-        {/* URL Input and Analyze Button */}
-        <div
-          className="url-input-container"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleDrop}
-        >
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="Paste or drop YouTube URL here"
-            className="url-input"
-          />
-        </div>
-        <button
-          onClick={handleAnalyze}
-          className="analyze-button"
-          disabled={loading}
-        >
-          {loading ? "Analyzing..." : "Analyze Comments"}
-        </button>
-
-        {/* Error Message */}
-        {error && <div className="error-message">{error}</div>}
-
-        {/* Loading Spinner */}
-        {loading && (
-          <div className="loading-container">
-            <div className="loader"></div>
-          </div>
-        )}
-
-        {/* Results Section */}
-        {summary && (
-          <div className="results-container">
-            <h2>AI Analysis Results</h2>
-            <div className="summary-text">{summary}</div>
-            <button
-              onClick={handleGeminiRequest}
-              className="analyze-button"
-              disabled={loading}
-            >
-              Get Improvement Suggestions
-            </button>
-            {geminiResponse && (
-              <div className="gemini-response">
-                <h3>Improvement Suggestions:</h3>
-                <p>{geminiResponse}</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

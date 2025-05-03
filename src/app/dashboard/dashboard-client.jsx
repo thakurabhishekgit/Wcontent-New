@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react'; // Added useEffect, useMemo
@@ -44,6 +43,7 @@ export default function DashboardClient({ children }) {
   const pathname = usePathname(); // Get current path
   const [username, setUsername] = useState('User'); // Default username
   const [isClient, setIsClient] = useState(false); // To avoid hydration issues
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login status
 
   // Sidebar state management lifted here
   const isMobile = useIsMobile();
@@ -54,12 +54,21 @@ export default function DashboardClient({ children }) {
   useEffect(() => {
     setIsClient(true); // Component has mounted on the client
     const storedUsername = localStorage.getItem("username");
-    if (storedUsername) {
-      setUsername(storedUsername);
+    const token = localStorage.getItem("token");
+
+    if (token) {
+        setIsLoggedIn(true);
+        if (storedUsername) {
+            setUsername(storedUsername);
+        }
+    } else {
+        // If no token, redirect to login page
+        router.push('/auth');
     }
+
      // Close mobile sidebar on navigation if it's open
      // setOpenMobile(false); // Removed this line to keep mobile sidebar state persistent across navigations unless explicitly closed
-  }, []); // Removed pathname dependency to avoid closing sidebar on every route change
+  }, [router]); // Add router to dependency array
 
   // Add effect to close mobile sidebar specifically on pathname change if it's open
   useEffect(() => {
@@ -76,6 +85,7 @@ export default function DashboardClient({ children }) {
         localStorage.removeItem("id");
         localStorage.removeItem("username");
      }
+     setIsLoggedIn(false); // Update login state
     // Redirect to login page
     router.push('/auth');
      // Optionally force refresh or use state management to update globally
@@ -112,14 +122,12 @@ export default function DashboardClient({ children }) {
 
 
   // Prevent rendering potentially mismatching content on the server
-   if (!isClient) {
-     // Return a basic layout skeleton or null
+   if (!isClient || !isLoggedIn) { // Also check isLoggedIn
+     // Return a basic layout skeleton or null while checking login/redirecting
       return (
-        <div className="flex min-h-screen">
-          {/* Placeholder Sidebar */}
-          <div className="hidden md:block w-16 md:w-64 bg-muted border-r"></div>
-          {/* Placeholder Main Content */}
-          <div className="flex-1 p-6">Loading...</div>
+        <div className="flex min-h-screen items-center justify-center">
+          {/* Placeholder Loading/Redirecting */}
+          <p>Loading...</p> {/* Or a spinner */}
         </div>
       );
    }
@@ -129,7 +137,7 @@ export default function DashboardClient({ children }) {
     <TooltipProvider delayDuration={0}>
     <SidebarContext.Provider value={contextValue}>
         {/* Use flex container for overall layout */}
-        <div className="flex min-h-screen">
+        <div className="flex h-screen overflow-hidden"> {/* Changed min-h-screen to h-screen and added overflow-hidden */}
             {/* Render Sidebar - it will consume the context */}
             <Sidebar>
                 <SidebarHeader className="border-b border-sidebar-border">
@@ -190,9 +198,10 @@ export default function DashboardClient({ children }) {
             </Sidebar>
 
             {/* Main Content Area - Renders the actual page content */}
-            <SidebarInset className="flex flex-col h-full">
+             {/* Ensure SidebarInset handles the margin correctly */}
+            <SidebarInset className="flex flex-col flex-1 overflow-y-auto"> {/* Added flex-1 and overflow-y-auto */}
                 {/* Header for main content area, including the mobile trigger */}
-                <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0">
+                <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0 sticky top-0 bg-background z-10"> {/* Make header sticky on mobile */}
                     {/* Find the current page title */}
                 <h2 className="text-xl font-semibold capitalize">
                     {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
@@ -201,8 +210,8 @@ export default function DashboardClient({ children }) {
                 <SidebarTrigger />
                 </header>
                 {/* Render the specific page component passed as children */}
-                <div className="flex-1 p-4 md:p-6 overflow-auto"> {/* Ensure this grows and scrolls */}
-                {children}
+                <div className="flex-1 p-4 md:p-6"> {/* Removed overflow-auto, parent handles scrolling */}
+                   {children}
                 </div>
             </SidebarInset>
          </div>

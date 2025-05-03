@@ -14,6 +14,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Search, Filter, Users as UsersIcon, Target, Clock, X, MessageSquare, CalendarDays, Mail, User, ArrowRight, Star, Handshake, Zap, Users } from "lucide-react"; // Added more icons
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Import Dialog components
 import { Label } from "@/components/ui/label"; // Import Label
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 // Sidebar Filters Component
 const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
@@ -133,22 +144,32 @@ export default function CollaborationsPage() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({ contentCategory: '', collaborationType: '', timeline: '' });
+  const [isClient, setIsClient] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
+  const router = useRouter();
 
 
   useEffect(() => {
+    setIsClient(true);
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
     fetchCollaborations();
   }, []);
 
   // Apply search and filters whenever collaborations, searchTerm, or filters change
   useEffect(() => {
-    applyFilters(filters);
+    if (collaborations.length > 0) { // Avoid running on initial empty array
+      applyFilters(filters);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collaborations, searchTerm]); // Re-apply if base data or search term changes
+  }, [collaborations]); // Re-apply if base data changes
 
   const fetchCollaborations = async () => {
     setIsLoading(true);
     setError(null);
     try {
+      // Always fetch collabs regardless of login status
       const response = await axios.get(
         "http://localhost:3001/api/users/collabration/getCollabOfAllUsers"
       );
@@ -212,8 +233,12 @@ export default function CollaborationsPage() {
 
 
   const handleCardClick = (collaboration) => {
-    setSelectedCollaboration(collaboration);
-    setSubmissionStatus(null); // Reset submission status
+    if (!isLoggedIn) {
+      setShowLoginAlert(true); // Show login required alert
+    } else {
+      setSelectedCollaboration(collaboration);
+      setSubmissionStatus(null); // Reset submission status
+    }
   };
 
   const handleInputChange = (e) => {
@@ -223,7 +248,7 @@ export default function CollaborationsPage() {
 
   const handleApply = async (e) => {
     e.preventDefault();
-    if (!selectedCollaboration) return;
+    if (!selectedCollaboration || !isLoggedIn) return; // Ensure logged in
 
     setSubmissionStatus('Submitting...');
 
@@ -232,6 +257,9 @@ export default function CollaborationsPage() {
       if (!selectedCollaboration.id && selectedCollaboration.id !== 0) { // Check for 0 just in case
           throw new Error("Selected collaboration is missing an ID.");
       }
+      const collabIdToUse = selectedCollaboration.id;
+      const token = localStorage.getItem('token'); // Get token for auth
+      const userId = localStorage.getItem('id'); // Get user ID
 
       // Prepare payload matching backend expectations
        const payload = {
@@ -239,13 +267,17 @@ export default function CollaborationsPage() {
          requesterEmail: application.requesterEmail,
          message: application.message,
          appliedDate: application.appliedDate, // Send date if required by backend
-         // Add requesterId if needed and available (e.g., from localStorage)
-         requesterId: localStorage.getItem('id') || null
+         requesterId: userId || null // Include requester ID
        };
 
       const response = await axios.post(
-        `http://localhost:3001/api/users/collabration/applyForCollab/${selectedCollaboration.id}`,
-        payload // Send the prepared payload
+        `http://localhost:3001/api/users/collabration/applyForCollab/${collabIdToUse}`,
+        payload, // Send the prepared payload
+        { // Add Authorization header
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+        }
       );
       setSubmissionStatus("Application submitted successfully!");
       setApplication({ // Reset form
@@ -264,6 +296,11 @@ export default function CollaborationsPage() {
       setSubmissionStatus(errorMessage);
     }
   };
+
+   if (!isClient) {
+     // Render skeleton or null during SSR/hydration
+     return null; // Or a loading skeleton component
+   }
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-16"> {/* Increased spacing */}
@@ -318,7 +355,7 @@ export default function CollaborationsPage() {
          <ul className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
            <li>Browse collaboration posts or use filters to find potential partners.</li>
            <li>Click 'View & Apply' to learn more about a specific collab idea.</li>
-           <li>Send a message to the creator expressing your interest and ideas.</li>
+           <li>Log in or sign up to send a message to the creator expressing your interest and ideas.</li>
            <li>Connect and start creating amazing content together!</li>
          </ul>
        </section>
@@ -538,6 +575,23 @@ export default function CollaborationsPage() {
             </div>
          </DialogContent>
        </Dialog>
+
+        {/* Login Required Alert Dialog */}
+        <AlertDialog open={showLoginAlert} onOpenChange={setShowLoginAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Login Required</AlertDialogTitle>
+              <AlertDialogDescription>
+                You need to be logged in to apply for collaborations.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => router.push('/auth')}>Login</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
     </div>
   );
 }

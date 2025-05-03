@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Import useEffect
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,7 +11,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
+import { Terminal, LogIn } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 const formSchema = z.object({
   prompt: z.string().min(10, { message: 'Prompt must be at least 10 characters long.' }).max(500, { message: 'Prompt cannot exceed 500 characters.' }),
@@ -22,6 +32,23 @@ export default function GeneratePage() {
   const [generatedIdeas, setGeneratedIdeas] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isClient, setIsClient] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [generationCount, setGenerationCount] = useState(0);
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    setIsClient(true);
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+    // Load generation count from localStorage if available
+    const storedCount = localStorage.getItem('generationCount');
+    if (storedCount) {
+      setGenerationCount(parseInt(storedCount, 10));
+    }
+  }, []);
+
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -31,6 +58,12 @@ export default function GeneratePage() {
   });
 
   const onSubmit = async (data) => {
+    // Check login status and generation count
+    if (!isLoggedIn && generationCount >= 1) {
+      setShowLoginAlert(true);
+      return; // Stop submission
+    }
+
     setIsLoading(true);
     setError(null);
     setGeneratedIdeas([]); // Clear previous ideas
@@ -39,6 +72,12 @@ export default function GeneratePage() {
       const result = await generateContentIdeas({ prompt: data.prompt });
       if (result && result.ideas) {
         setGeneratedIdeas(result.ideas);
+        // Increment generation count only on successful generation
+        const newCount = generationCount + 1;
+        setGenerationCount(newCount);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('generationCount', newCount.toString());
+        }
       } else {
          setError('Failed to generate ideas. The AI returned an unexpected response.');
       }
@@ -50,11 +89,18 @@ export default function GeneratePage() {
     }
   };
 
+   if (!isClient) {
+     // Render skeleton or null during SSR/hydration
+     return null; // Or a loading skeleton component
+   }
+
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl md:text-4xl font-bold">Generate Content Ideas</h1>
       <p className="text-lg text-foreground/80">
         Stuck in a creative rut? Enter a topic or keyword, and let our AI brainstorm content ideas for you.
+        {!isLoggedIn && <span className="text-sm block text-muted-foreground">(First generation is free! Login for unlimited access.)</span>}
       </p>
 
       <Card>
@@ -86,6 +132,7 @@ export default function GeneratePage() {
               />
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? 'Generating...' : 'Generate Ideas'}
+                 {!isLoggedIn && generationCount > 0 && <span className="ml-2 text-xs">(Login Required)</span>}
               </Button>
             </form>
           </Form>
@@ -127,6 +174,23 @@ export default function GeneratePage() {
           </CardContent>
         </Card>
       )}
+
+       {/* Login Required Alert Dialog */}
+       <AlertDialog open={showLoginAlert} onOpenChange={setShowLoginAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2"> <LogIn className="h-5 w-5"/> Login Required</AlertDialogTitle>
+              <AlertDialogDescription>
+                You've used your free generation. Please log in or sign up to continue generating unlimited content ideas.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => router.push('/auth')}>Login / Sign Up</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
     </div>
   );
 }

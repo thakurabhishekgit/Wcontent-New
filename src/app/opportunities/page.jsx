@@ -14,6 +14,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Search, MapPin, Briefcase, DollarSign, Filter, X, ArrowRight, Star, Award, Target, Users as UsersIcon } from "lucide-react"; // Added more icons
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Import Dialog components
 import { Label } from "@/components/ui/label"; // Import Label
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 // How It Works Component
 const HowitWorks = () => (
@@ -22,8 +33,8 @@ const HowitWorks = () => (
     <ul className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
       <li>Browse available opportunities using the search bar and filters.</li>
       <li>Click 'View & Apply' on an opportunity that interests you to see full details.</li>
-      <li>Fill out the simple application form with your name, email, and portfolio link.</li>
-      <li>Submit your application and the opportunity poster will be notified!</li>
+      <li>Log in or sign up to submit your application with your name, email, and portfolio link.</li>
+      <li>The opportunity poster will be notified once you apply!</li>
     </ul>
   </div>
 );
@@ -131,14 +142,23 @@ export default function OpportunitiesPage() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({ type: '', location: '', budget: '' });
+  const [isClient, setIsClient] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
+    setIsClient(true);
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
     fetchOpportunities();
   }, []);
 
   // Apply search and filters whenever opportunities, searchTerm, or filteredOpportunities change
    useEffect(() => {
-     applyFilters(filters); // Re-apply filters if opportunities list changes
+     if(opportunities.length > 0) { // Avoid running on initial empty array
+        applyFilters(filters);
+     }
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [opportunities]); // Only depends on opportunities list itself
 
@@ -146,6 +166,7 @@ export default function OpportunitiesPage() {
      setIsLoading(true);
      setError(null);
      try {
+       // Always fetch opportunities, regardless of login status
        const response = await axios.get(
          "http://localhost:3001/api/users/opportunities/opportunitiesGetAll"
        );
@@ -209,8 +230,12 @@ export default function OpportunitiesPage() {
 
 
   const handleCardClick = (opportunity) => {
-    setSelectedOpportunity(opportunity);
-    setSubmissionStatus(null); // Reset submission status
+    if (!isLoggedIn) {
+      setShowLoginAlert(true); // Show login required alert
+    } else {
+      setSelectedOpportunity(opportunity);
+      setSubmissionStatus(null); // Reset submission status
+    }
   };
 
   const handleInputChange = (e) => {
@@ -220,7 +245,7 @@ export default function OpportunitiesPage() {
 
   const handleApply = async (e) => {
     e.preventDefault();
-    if (!selectedOpportunity) return;
+    if (!selectedOpportunity || !isLoggedIn) return; // Ensure logged in
 
     setSubmissionStatus('Submitting...');
 
@@ -231,10 +256,16 @@ export default function OpportunitiesPage() {
 
       // Use the correct field from backend ('id' or '_id' mapped to 'id')
        const oppIdToUse = selectedOpportunity.id;
+       const token = localStorage.getItem('token'); // Get token for authenticated request
 
       const response = await axios.post(
         `http://localhost:3001/api/users/application/opportunity/${oppIdToUse}/apply`,
-        application
+        application,
+        { // Add Authorization header
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       );
       setSubmissionStatus("Application submitted successfully!");
       setApplication({
@@ -253,6 +284,12 @@ export default function OpportunitiesPage() {
       setSubmissionStatus(errorMessage);
     }
   };
+
+  if (!isClient) {
+    // Render skeleton or null during SSR/hydration
+    return null; // Or a loading skeleton component
+  }
+
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-16"> {/* Increased spacing */}
@@ -445,7 +482,7 @@ export default function OpportunitiesPage() {
        </section>
 
 
-      {/* Application Dialog (Modal) */}
+      {/* Application Dialog (Modal) - Only shows if logged in */}
        <Dialog open={!!selectedOpportunity} onOpenChange={() => setSelectedOpportunity(null)}>
          <DialogContent className="sm:max-w-[650px]">
            <DialogHeader>
@@ -500,6 +537,23 @@ export default function OpportunitiesPage() {
             </div>
          </DialogContent>
        </Dialog>
+
+       {/* Login Required Alert Dialog */}
+        <AlertDialog open={showLoginAlert} onOpenChange={setShowLoginAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Login Required</AlertDialogTitle>
+              <AlertDialogDescription>
+                You need to be logged in to apply for opportunities.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => router.push('/auth')}>Login</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
     </div>
   );
 }
