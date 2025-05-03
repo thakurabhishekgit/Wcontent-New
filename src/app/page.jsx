@@ -52,10 +52,16 @@ export default function Home() {
                 WContent Lite is a platform designed for content creators, offering tools like AI-powered idea generation, content prediction insights (coming soon!), and opportunities to collaborate with others. We aim to simplify your creative process and help you grow.
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="item-2" className="border-b-0">
+            <AccordionItem value="item-2">
               <AccordionTrigger className="text-lg font-semibold hover:no-underline">Who is it for?</AccordionTrigger>
               <AccordionContent className="text-foreground/70">
                 Whether you're a blogger, YouTuber, social media influencer, or any kind of digital creator, WContent Lite provides valuable tools to enhance your productivity and reach.
+              </AccordionContent>
+            </AccordionItem>
+             <AccordionItem value="item-3" className="border-b-0">
+              <AccordionTrigger className="text-lg font-semibold hover:no-underline">How does the AI generation work?</AccordionTrigger>
+              <AccordionContent className="text-foreground/70">
+                Our AI uses advanced language models. Simply provide a prompt or topic, and it will generate relevant content ideas, headlines, or outlines to kickstart your creative process.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
