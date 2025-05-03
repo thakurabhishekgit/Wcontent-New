@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from "react";
-// Note: react-router-dom's useNavigate doesn't work in Next.js App Router. Replace with next/navigation.
+// Note: react-router-dom's useNavigate doesn't work in Next.js App Router. Using next/navigation.
 import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +34,9 @@ const Login = ({ handleLogin }) => {
     setError(""); // Clear previous errors
 
     try {
-      const response = await fetch("http://localhost:3001/api/users/login", { // Consider using environment variables for API URLs
+      // Ensure the backend URL is correct and accessible
+      const backendUrl = "http://localhost:3001/api/users/login";
+      const response = await fetch(backendUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -53,16 +55,27 @@ const Login = ({ handleLogin }) => {
         router.push("/"); // Use Next.js router for navigation
         // Avoid window.location.reload(); let Next.js handle state updates
       } else {
-        const data = await response.json();
-        setError(data.message || "Login failed. Please check credentials and try again.");
+        // Handle HTTP errors (like 401 Unauthorized, 404 Not Found, etc.)
+        let errorMessage = "Login failed. Please check credentials and try again.";
+        try {
+            const data = await response.json();
+            errorMessage = data.message || errorMessage;
+        } catch (jsonError) {
+            // If response is not JSON or empty
+            console.error("Could not parse error response:", jsonError);
+             errorMessage = `Login failed with status: ${response.status} ${response.statusText}`;
+        }
+         setError(errorMessage);
       }
     } catch (error) {
-       console.error("Login error:", error); // Log the actual error
+       // Handle network errors (like failed fetch, CORS)
+       console.error("Login network error:", error); // Log the actual error
+       let networkErrorMessage = "Error logging in. Please check your connection and try again.";
        if (error instanceof TypeError && error.message === 'Failed to fetch') {
-         setError("Error logging in. Could not connect to the server. Please ensure the backend is running and accessible.");
-       } else {
-        setError("Error logging in. Please check your connection and try again.");
+         // Suggest possible causes for "Failed to fetch"
+         networkErrorMessage = `Error logging in. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and that CORS is configured correctly on the server to allow requests from your frontend origin (${window.location.origin}).`;
        }
+       setError(networkErrorMessage);
     }
   };
 
@@ -72,11 +85,8 @@ const Login = ({ handleLogin }) => {
      setError("");
 
     try {
-      const response = await fetch(
-        `http://localhost:3001/api/users/request-otp?email=${encodeURIComponent(
-          email
-        )}`,
-        {
+      const backendUrl = `http://localhost:3001/api/users/request-otp?email=${encodeURIComponent(email)}`;
+      const response = await fetch(backendUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -87,16 +97,23 @@ const Login = ({ handleLogin }) => {
       if (response.ok) {
         setIsOtpSent(true);
       } else {
-        const data = await response.json();
-        setError(data.message || "Error sending OTP. Please try again.");
+         let errorMessage = "Error sending OTP. Please try again.";
+         try {
+            const data = await response.json();
+            errorMessage = data.message || errorMessage;
+         } catch (jsonError) {
+            console.error("Could not parse OTP send error response:", jsonError);
+            errorMessage = `Error sending OTP: ${response.status} ${response.statusText}`;
+         }
+        setError(errorMessage);
       }
     } catch (error) {
-       console.error("OTP Send error:", error);
+       console.error("OTP Send network error:", error);
+       let networkErrorMessage = "Error sending OTP. Please check your connection.";
        if (error instanceof TypeError && error.message === 'Failed to fetch') {
-         setError("Error sending OTP. Could not connect to the server.");
-       } else {
-          setError("Error sending OTP. Please check your connection and try again.");
+          networkErrorMessage = `Error sending OTP. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
        }
+       setError(networkErrorMessage);
     }
   };
 
@@ -106,11 +123,8 @@ const Login = ({ handleLogin }) => {
      setError("");
 
     try {
-      const response = await fetch(
-        `http://localhost:3001/api/users/verify-otp?email=${encodeURIComponent(
-          email
-        )}&otp=${encodeURIComponent(otp)}`,
-        {
+      const backendUrl = `http://localhost:3001/api/users/verify-otp?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`;
+      const response = await fetch(backendUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -121,16 +135,23 @@ const Login = ({ handleLogin }) => {
       if (response.ok) {
         setIsOtpVerified(true);
       } else {
-        const data = await response.json();
-        setError(data.message || "Invalid OTP. Please try again.");
+        let errorMessage = "Invalid OTP. Please try again.";
+         try {
+            const data = await response.json();
+            errorMessage = data.message || errorMessage;
+         } catch (jsonError) {
+             console.error("Could not parse OTP verify error response:", jsonError);
+             errorMessage = `Error verifying OTP: ${response.status} ${response.statusText}`;
+         }
+        setError(errorMessage);
       }
     } catch (error) {
-      console.error("OTP Verify error:", error);
-      if (error instanceof TypeError && error.message === 'Failed to fetch') {
-         setError("Error verifying OTP. Could not connect to the server.");
-       } else {
-        setError("Error verifying OTP. Please check your connection and try again.");
-      }
+      console.error("OTP Verify network error:", error);
+      let networkErrorMessage = "Error verifying OTP. Please check your connection.";
+       if (error instanceof TypeError && error.message === 'Failed to fetch') {
+         networkErrorMessage = `Error verifying OTP. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
+       }
+      setError(networkErrorMessage);
     }
   };
 
@@ -145,7 +166,8 @@ const Login = ({ handleLogin }) => {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/api/users/register", {
+      const backendUrl = "http://localhost:3001/api/users/register";
+      const response = await fetch(backendUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -171,16 +193,23 @@ const Login = ({ handleLogin }) => {
         setIsRegistering(false); // Switch back to login view after successful registration
         router.push("/"); // Navigate to home
       } else {
-        const data = await response.json();
-        setError(data.message || "Registration failed. Please try again.");
+        let errorMessage = "Registration failed. Please try again.";
+         try {
+            const data = await response.json();
+            errorMessage = data.message || errorMessage;
+         } catch (jsonError) {
+            console.error("Could not parse registration error response:", jsonError);
+            errorMessage = `Registration failed: ${response.status} ${response.statusText}`;
+         }
+        setError(errorMessage);
       }
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("Registration network error:", error);
+      let networkErrorMessage = "Error registering. Please check your connection.";
        if (error instanceof TypeError && error.message === 'Failed to fetch') {
-         setError("Error registering. Could not connect to the server.");
-       } else {
-         setError("Error registering. Please check your connection and try again.");
+         networkErrorMessage = `Error registering. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
        }
+       setError(networkErrorMessage);
     }
   };
 
