@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'; // Import Shadcn Textarea
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Import Shadcn Card
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Import Alert
-import { Terminal, Youtube, Lightbulb, Loader2, LogIn, Search, TrendingUp, DollarSign, Users, Video, Target } from "lucide-react"; // Import icons
+import { Terminal, Youtube, Lightbulb, Loader2, LogIn, Search, TrendingUp, DollarSign, Users, Video, Target, BarChart } from "lucide-react"; // Import icons, added BarChart
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +21,9 @@ import {
 } from "@/components/ui/alert-dialog"; // Import AlertDialog components
 import { useRouter } from 'next/navigation'; // Import useRouter
 import { Label } from "@/components/ui/label"; // Import Label
+import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart } from 'recharts'; // Import Recharts components
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'; // Import Shadcn Chart components
+
 
 // Placeholder component similar to homepage features
 const FeatureCard = ({ icon: Icon, title, description, img, hint }) => (
@@ -65,8 +68,16 @@ function Ml() {
     avgViews: "",
   });
   const [reachLoading, setReachLoading] = useState(false);
-  const [reachPrediction, setReachPrediction] = useState("");
+  // Updated state to hold detailed prediction results
+  const [reachPredictionResult, setReachPredictionResult] = useState({
+     views: null,
+     likes: null,
+     comments: null,
+     description: "",
+   });
   const [reachError, setReachError] = useState("");
+  const [reachTips, setReachTips] = useState("");
+  const [tipsLoading, setTipsLoading] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -174,6 +185,7 @@ function Ml() {
     const { name, value } = e.target;
     setFutureReachData(prev => ({ ...prev, [name]: value }));
     setReachError(""); // Clear error on change
+    setReachTips(""); // Clear tips when input changes
   };
 
   const handleReachPrediction = async () => {
@@ -191,20 +203,33 @@ function Ml() {
 
     setReachLoading(true);
     setReachError("");
-    setReachPrediction("");
+    setReachPredictionResult({ views: null, likes: null, comments: null, description: "" }); // Reset prediction results
+    setReachTips(""); // Clear previous tips
 
     try {
       // --- IMPORTANT: Replace with your Genkit Flow call for reach prediction ---
-      // This requires a new Genkit flow that takes channel stats and content details.
-      // Example structure:
-      // import { predictVideoReach } from '@/ai/flows/predict-reach-flow'; // Assuming you create this flow
       // const predictionResult = await predictVideoReach(futureReachData);
-      // setReachPrediction(predictionResult.predictedReach); // Adjust based on flow output
+      // setReachPredictionResult({
+      //    views: predictionResult.predictedViews,
+      //    likes: predictionResult.predictedLikes,
+      //    comments: predictionResult.predictedComments,
+      //    description: predictionResult.predictionSummary
+      // });
 
       await new Promise(resolve => setTimeout(resolve, 2500)); // Simulate API delay
-      const randomReach = Math.floor(Math.random() * (50000 - 5000 + 1)) + 5000;
-      const placeholderPrediction = `Based on the provided details and current (simulated) stats, the estimated reach for this content is around ${randomReach.toLocaleString()} views within the first month. Factors like promotion and audience engagement could influence this.`;
-      setReachPrediction(placeholderPrediction);
+
+      // Simulate detailed predictions
+      const predictedViews = Math.floor(Math.random() * (50000 - 5000 + 1)) + 5000;
+      const predictedLikes = Math.floor(predictedViews * (Math.random() * 0.05 + 0.01)); // Simulate likes as % of views
+      const predictedComments = Math.floor(predictedLikes * (Math.random() * 0.1 + 0.02)); // Simulate comments as % of likes
+      const predictionDescription = `Based on the provided details and current (simulated) stats, the estimated reach for "${futureReachData.contentType}" content could be around ${predictedViews.toLocaleString()} views, ${predictedLikes.toLocaleString()} likes, and ${predictedComments.toLocaleString()} comments within the first month. Factors like promotion strategy, audience engagement rate, and content quality will significantly influence the actual results.`;
+
+       setReachPredictionResult({
+          views: predictedViews,
+          likes: predictedLikes,
+          comments: predictedComments,
+          description: predictionDescription,
+       });
 
        // Increment prediction count (shared with comment analysis for simplicity)
        const newCount = predictionCount + 1;
@@ -220,6 +245,51 @@ function Ml() {
       setReachLoading(false);
     }
   };
+
+   // Function to get improvement tips
+   const handleGetTips = async () => {
+     if (!reachPredictionResult.views) {
+       setReachError("Generate a prediction first before asking for tips.");
+       return;
+     }
+
+     setTipsLoading(true);
+     setReachError("");
+     setReachTips("");
+
+     try {
+       // --- IMPORTANT: Replace with your Genkit Flow call for improvement tips ---
+       // Example:
+       // const tipsResult = await getReachImprovementTips({
+       //   contentDetails: futureReachData,
+       //   prediction: reachPredictionResult,
+       // });
+       // setReachTips(tipsResult.tips);
+
+       await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API delay
+       const placeholderTips = `To potentially improve reach for "${futureReachData.contentType}":\n- Optimize Title & Thumbnail: Use keywords related to '${futureReachData.description.substring(0, 20)}...' and create a compelling thumbnail.\n- Promote Actively: Share on social media platforms relevant to your target audience immediately after posting.\n- Engage Early: Respond to initial comments quickly to boost engagement signals.\n- Collaboration: Consider collaborating with another creator in a similar niche if applicable.\n- Analyze Audience Retention: Check YouTube Analytics for drop-off points in similar past videos.`;
+       setReachTips(placeholderTips);
+
+     } catch (err) {
+       const message = err instanceof Error ? err.message : "Failed to fetch improvement tips.";
+       setReachError(message);
+     } finally {
+       setTipsLoading(false);
+     }
+   };
+
+   // Prepare data for the chart
+   const chartData = reachPredictionResult.views !== null ? [
+      { name: 'Views', value: reachPredictionResult.views, fill: 'hsl(var(--chart-1))' },
+      { name: 'Likes', value: reachPredictionResult.likes, fill: 'hsl(var(--chart-2))' },
+      { name: 'Comments', value: reachPredictionResult.comments, fill: 'hsl(var(--chart-3))' },
+   ] : [];
+
+   const chartConfig = {
+     views: { label: 'Views', color: 'hsl(var(--chart-1))' },
+     likes: { label: 'Likes', color: 'hsl(var(--chart-2))' },
+     comments: { label: 'Comments', color: 'hsl(var(--chart-3))' },
+   };
 
 
    if (!isClient) {
@@ -484,23 +554,90 @@ function Ml() {
                   {!isLoggedIn && <span className="ml-2 text-xs">(Login Required)</span>}
                 </Button>
 
-                {/* Prediction Result */}
+                {/* Prediction Result Section */}
                 {reachLoading && (
                    <div className="space-y-4 pt-4 border-t mt-6">
                       <h3 className="text-lg font-semibold">Predicted Reach:</h3>
                       <Skeleton className="h-5 w-1/3" />
                       <Skeleton className="h-4 w-full" />
                       <Skeleton className="h-4 w-5/6" />
+                      <div className="h-48 mt-4"><Skeleton className="h-full w-full" /></div> {/* Chart Skeleton */}
+                      <Skeleton className="h-10 w-1/2 mt-4" /> {/* Tips Button Skeleton */}
                    </div>
                 )}
-                {reachPrediction && !reachLoading && (
+                {reachPredictionResult.views !== null && !reachLoading && (
                    <Card className="bg-muted/30 mt-6">
                       <CardHeader>
-                         <CardTitle className="text-xl flex items-center gap-2"><Target className="h-5 w-5 text-primary"/> Predicted Reach</CardTitle>
+                         <CardTitle className="text-xl flex items-center gap-2"><Target className="h-5 w-5 text-primary"/> Predicted Reach & Engagement</CardTitle>
                       </CardHeader>
-                      <CardContent>
-                         <p className="text-sm text-foreground/90 whitespace-pre-wrap">{reachPrediction}</p>
+                      <CardContent className="space-y-6">
+                          {/* Numerical Predictions */}
+                          <div className="grid grid-cols-3 gap-4 text-center">
+                              <div>
+                                  <p className="text-xs text-muted-foreground uppercase">Views</p>
+                                  <p className="text-2xl font-bold text-primary">{reachPredictionResult.views.toLocaleString()}</p>
+                              </div>
+                              <div>
+                                  <p className="text-xs text-muted-foreground uppercase">Likes</p>
+                                  <p className="text-2xl font-bold">{reachPredictionResult.likes.toLocaleString()}</p>
+                              </div>
+                              <div>
+                                  <p className="text-xs text-muted-foreground uppercase">Comments</p>
+                                  <p className="text-2xl font-bold">{reachPredictionResult.comments.toLocaleString()}</p>
+                              </div>
+                          </div>
+
+                         {/* Bar Chart Visualization */}
+                         <div className="h-[200px] mt-4">
+                           <ChartContainer config={chartConfig} className="w-full h-full">
+                             <RechartsBarChart accessibilityLayer data={chartData} layout="vertical" margin={{ left: 10, right: 10 }}>
+                               <CartesianGrid horizontal={false} />
+                               <XAxis type="number" hide />
+                               <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tickMargin={10} width={60} />
+                               <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                               <Bar dataKey="value" radius={5} />
+                             </RechartsBarChart>
+                           </ChartContainer>
+                         </div>
+
+                         {/* Prediction Description */}
+                         <p className="text-sm text-foreground/90 whitespace-pre-wrap mt-4">{reachPredictionResult.description}</p>
                          <p className="text-xs text-muted-foreground mt-2">*Disclaimer: This is an AI-generated estimate and actual results may vary.*</p>
+
+                         {/* Improvement Tips Button & Section */}
+                         <Button
+                             onClick={handleGetTips}
+                             variant="outline"
+                             className="w-full mt-4"
+                             disabled={tipsLoading || !isLoggedIn}
+                          >
+                             {tipsLoading ? (
+                               <>
+                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating Tips...
+                               </>
+                             ) : (
+                               <>
+                                 <Lightbulb className="mr-2 h-4 w-4" /> Get Improvement Tips
+                               </>
+                             )}
+                              {!isLoggedIn && <span className="ml-2 text-xs">(Login Required)</span>}
+                          </Button>
+
+                          {tipsLoading && (
+                            <div className="space-y-2 pt-2 mt-4">
+                              <Skeleton className="h-5 w-1/3" />
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-4 w-4/5" />
+                            </div>
+                          )}
+
+                          {reachTips && !tipsLoading && (
+                            <div className="pt-4 mt-4 border-t">
+                              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary"/> Improvement Tips</h3>
+                              <p className="text-sm text-foreground/90 whitespace-pre-wrap">{reachTips}</p>
+                            </div>
+                          )}
                       </CardContent>
                    </Card>
                 )}

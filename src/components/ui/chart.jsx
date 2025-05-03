@@ -1,8 +1,9 @@
 
+
 "use client"
 
 import * as React from "react"
-import * as RechartsPrimitive from "recharts"
+import * as RechartsPrimitive from "recharts" // Added import for Recharts
 
 import { cn } from "@/lib/utils"
 
@@ -109,7 +110,10 @@ const ChartTooltipContent = React.forwardRef(
         return null
       }
 
-      const [item] = payload
+      // Ensure item exists before accessing properties
+      const item = payload[0];
+      if (!item) return null;
+
       const key = `${labelKey || item.dataKey || item.name || "value"}`
       const itemConfig = getPayloadConfigFromPayload(config, item, key)
       const value =
@@ -157,13 +161,17 @@ const ChartTooltipContent = React.forwardRef(
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
           {payload.map((item, index) => {
+            // Ensure item exists before accessing properties
+             if (!item) return null;
+
             const key = `${nameKey || item.name || item.dataKey || "value"}`
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
-            const indicatorColor = color || item.payload.fill || item.color
+            // Ensure payload exists for color lookup
+            const indicatorColor = color || item.payload?.fill || item.color;
 
             return (
               <div
-                key={item.dataKey}
+                key={item.dataKey || index} // Use index as fallback key
                 className={cn(
                   "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
                   indicator === "dot" && "items-center"
@@ -206,12 +214,13 @@ const ChartTooltipContent = React.forwardRef(
                       <div className="grid gap-1.5">
                         {nestLabel ? tooltipLabel : null}
                         <span className="text-muted-foreground">
-                          {itemConfig?.label || item.name}
+                          {itemConfig?.label || item.name || 'N/A'} {/* Added fallback */}
                         </span>
                       </div>
-                      {item.value && (
+                      {/* Check if item.value is a number before calling toLocaleString */}
+                      {item.value !== undefined && item.value !== null && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
-                          {item.value.toLocaleString()}
+                          {typeof item.value === 'number' ? item.value.toLocaleString() : String(item.value)}
                         </span>
                       )}
                     </div>
@@ -250,6 +259,9 @@ const ChartLegendContent = React.forwardRef(
         )}
       >
         {payload.map((item) => {
+           // Ensure item exists before accessing properties
+           if (!item) return null;
+
           const key = `${nameKey || item.dataKey || "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
@@ -270,7 +282,7 @@ const ChartLegendContent = React.forwardRef(
                   }}
                 />
               )}
-              {itemConfig?.label}
+              {itemConfig?.label || 'N/A'} {/* Added fallback */}
             </div>
           )
         })}
@@ -286,7 +298,8 @@ function getPayloadConfigFromPayload(
   payload,
   key
 ) {
-  if (typeof payload !== "object" || payload === null) {
+   // Add checks for null or undefined config and payload
+  if (!config || typeof payload !== "object" || payload === null) {
     return undefined
   }
 
@@ -314,9 +327,10 @@ function getPayloadConfigFromPayload(
     ]
   }
 
+   // Check if configLabelKey exists in config before accessing
   return configLabelKey in config
     ? config[configLabelKey]
-    : config[key]
+    : config[key] // Fallback to original key
 }
 
 export {
