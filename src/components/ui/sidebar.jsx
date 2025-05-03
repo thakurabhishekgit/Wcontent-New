@@ -386,8 +386,7 @@ const SidebarMenuButton = React.forwardRef(
       size = "default",
       tooltip,
       className,
-      children, // Keep children prop
-      ...props
+      ...props // Keep remaining props, including children
     },
     ref
   ) => {
@@ -402,10 +401,8 @@ const SidebarMenuButton = React.forwardRef(
         data-size={size}
         data-active={isActive}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
-        {...props}
-      >
-        {children} {/* Render children passed to SidebarMenuButton */}
-      </Comp>
+        {...props} // Pass all props, including children
+      />
     );
 
     if (!tooltip) {
@@ -574,4 +571,5 @@ export {
   SidebarTrigger,
   useSidebar, // Keep useSidebar export
 }
+
 

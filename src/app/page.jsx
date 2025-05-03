@@ -88,10 +88,10 @@ export default function Home() {
         <div className="container mx-auto px-4 z-10">
            {/* Animated Text Content */}
            <div key={activeIndex} className="animate-fade-in"> {/* Add key to force re-render/animation */}
-             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4"> {/* Removed text shadow */}
+             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4">
                {currentSlide.title}
              </h1>
-             <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto mb-8"> {/* Removed text shadow */}
+             <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto mb-8">
                {currentSlide.description}
              </p>
            </div>
@@ -99,10 +99,12 @@ export default function Home() {
           <div className="flex justify-center gap-4 mb-12">
             <Button asChild size="lg">
               <Link href="/generate">
-                Get Started <ArrowRight className="ml-2 h-5 w-5" />
+                <> {/* Wrap children in Fragment */}
+                  Get Started <ArrowRight className="ml-2 h-5 w-5" />
+                </>
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="bg-white/10 border-white/50 backdrop-blur-sm hover:bg-white/20 text-white"> {/* Adjusted outline button style */}
+            <Button asChild variant="outline" size="lg" className="bg-white/10 border-white/50 backdrop-blur-sm hover:bg-white/20 text-white">
               <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
           </div>
@@ -205,9 +207,11 @@ export default function Home() {
             Join WContent Lite today and unlock powerful tools to boost your creativity and growth.
           </p>
           <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transform hover:scale-105 transition-transform">
-            <Link href="/dashboard">
-              Explore Your Dashboard <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
+             <Link href="/dashboard">
+                <> {/* Wrap children in Fragment */}
+                 Explore Your Dashboard <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+             </Link>
           </Button>
         </section>
       </div>
