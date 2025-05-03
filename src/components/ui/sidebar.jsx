@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider, // Keep TooltipProvider for internal tooltips
+  // TooltipProvider, // Removed provider from here
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
@@ -99,7 +99,7 @@ const Sidebar = React.forwardRef(
     // Desktop rendering - consumes context
     return (
        // No provider needed here
-         <TooltipProvider delayDuration={0}>
+         // <TooltipProvider delayDuration={0}> // Removed Provider from here
            <div
             ref={ref}
             className="group peer hidden md:block text-sidebar-foreground"
@@ -142,7 +142,7 @@ const Sidebar = React.forwardRef(
                </div>
             </div>
            </div>
-         </TooltipProvider>
+         // </TooltipProvider> // Removed Provider from here
     )
   }
 )

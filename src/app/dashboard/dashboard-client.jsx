@@ -21,6 +21,7 @@ import { useRouter, usePathname } from 'next/navigation'; // For navigation, add
 import Link from 'next/link'; // For internal links
 import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile hook
 import { cn } from '@/lib/utils'; // Import cn utility function
+import { TooltipProvider } from '@/components/ui/tooltip'; // Import TooltipProvider
 
 // Placeholder components for different dashboard sections - These will eventually be separate pages or components
 // We pass the main page content via `children` now.
@@ -113,8 +114,9 @@ export default function DashboardClient({ children }) {
 
   return (
     // Provide the sidebar context to all children
+    <TooltipProvider delayDuration={0}>
     <SidebarContext.Provider value={contextValue}>
-      {/* Render Sidebar - it will consume the context */}
+      {/* Render Sidebar - it will consume the context now provided by TooltipProvider too */}
       <Sidebar>
         <SidebarHeader className="border-b border-sidebar-border">
           <div className="flex items-center justify-between p-2">
@@ -190,5 +192,6 @@ export default function DashboardClient({ children }) {
         </div>
       </SidebarInset>
     </SidebarContext.Provider>
+    </TooltipProvider>
   );
 }
