@@ -64,7 +64,7 @@ export default function PostCollabPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/users/collabration/createCollab/${userId}`, // Corrected endpoint
+        `https://localhost:3001/api/users/collabration/addCollab/${userId}`, // Updated endpoint
         {
           method: "POST",
           headers: {
@@ -86,7 +86,11 @@ export default function PostCollabPage() {
       }
     } catch (err) {
       console.error("Error posting collaboration:", err);
-      setError("An unexpected error occurred. Please try again.");
+      let fetchErrorMessage = "An unexpected error occurred. Please try again.";
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+         fetchErrorMessage = `Error posting collaboration. Could not connect to the server at https://localhost:3001. Please ensure the backend is running, uses HTTPS, and CORS is configured correctly.`;
+      }
+      setError(fetchErrorMessage);
     } finally {
       setIsSubmitting(false);
     }
