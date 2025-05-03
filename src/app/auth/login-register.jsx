@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from "react";
@@ -64,7 +65,10 @@ const Login = ({ handleLogin }) => {
             errorMessage = data.message || errorMessage;
         } catch (jsonError) {
             console.error("Could not parse error response:", jsonError);
-             errorMessage = `Login failed with status: ${response.status} ${response.statusText}`;
+             // Check if response text gives a clue
+             const text = await response.text().catch(() => '');
+             console.error("Login error response text:", text);
+             errorMessage = `Login failed with status: ${response.status} ${response.statusText}. Check server logs for details.`;
         }
          setError(errorMessage);
       }
@@ -103,7 +107,9 @@ const Login = ({ handleLogin }) => {
             errorMessage = data.message || errorMessage;
          } catch (jsonError) {
             console.error("Could not parse OTP send error response:", jsonError);
-            errorMessage = `Error sending OTP: ${response.status} ${response.statusText}`;
+             const text = await response.text().catch(() => '');
+             console.error("OTP Send error response text:", text);
+            errorMessage = `Error sending OTP: ${response.status} ${response.statusText}. Check server logs.`;
          }
         setError(errorMessage);
       }
@@ -141,7 +147,9 @@ const Login = ({ handleLogin }) => {
             errorMessage = data.message || errorMessage;
          } catch (jsonError) {
              console.error("Could not parse OTP verify error response:", jsonError);
-             errorMessage = `Error verifying OTP: ${response.status} ${response.statusText}`;
+             const text = await response.text().catch(() => '');
+             console.error("OTP Verify error response text:", text);
+             errorMessage = `Error verifying OTP: ${response.status} ${response.statusText}. Check server logs.`;
          }
         setError(errorMessage);
       }
@@ -206,7 +214,9 @@ const Login = ({ handleLogin }) => {
             errorMessage = data.message || errorMessage;
          } catch (jsonError) {
             console.error("Could not parse registration error response:", jsonError);
-            errorMessage = `Registration failed: ${response.status} ${response.statusText}`;
+            const text = await response.text().catch(() => '');
+            console.error("Registration error response text:", text);
+            errorMessage = `Registration failed: ${response.status} ${response.statusText}. Check server logs.`;
          }
         setError(errorMessage);
       }
@@ -243,11 +253,11 @@ const Login = ({ handleLogin }) => {
 
         {/* Left Side - Illustration and Welcome */}
         <div className="hidden md:flex flex-col justify-center items-center p-8 lg:p-12 bg-gradient-to-br from-primary/50 via-primary/30 to-primary/50 text-primary-foreground">
-          <h1 className="text-3xl font-bold mb-4 text-center">Welcome to WContent Lite</h1>
+          <h1 className="text-3xl font-bold mb-4 text-center">Welcome to Wcontent</h1> {/* Updated name */}
           <p className="text-center mb-8 text-primary-foreground/80">
-            Join us today to explore amazing features and take your career to
+            Join the ultimate platform for creators today to explore amazing features and take your career to
             the next level. Whether you're a content creator or a role seeker,
-            we've got you covered.
+            we've got you covered. {/* Updated description */}
           </p>
           <Image
             src="https://picsum.photos/400/300?random=auth" // Use picsum for placeholder

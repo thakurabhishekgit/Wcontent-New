@@ -6,6 +6,8 @@ import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
 import { Providers } from './providers'; // Import Providers
+import { TooltipProvider } from '@/components/ui/tooltip'; // Import TooltipProvider
+
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -18,13 +20,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: 'WContent Lite',
-  description: 'AI-Powered Content Creation Platform',
+  title: 'Wcontent', // Updated title
+  description: 'ultimate platform for creators', // Updated description
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark"> {/* Ensure html has lang and dark class */}
       <body
         className={cn(
           geistSans.variable,
@@ -33,15 +35,17 @@ export default function RootLayout({ children }) {
         )}
       >
         <Providers> {/* Wrap content with Providers */}
-          <Navbar />
-          {/* Removed 'container mx-auto' to allow full-width layouts like the dashboard */}
-          <main className="flex flex-col flex-1 px-4 py-8">
-             <div className="flex-1"> {/* This div will grow to fill the space */}
-               {children}
-             </div>
-          </main>
-          <Footer />
-          <Toaster />
+          <TooltipProvider delayDuration={0}> {/* Wrap with TooltipProvider */}
+            <Navbar />
+            {/* Removed 'container mx-auto' to allow full-width layouts like the dashboard */}
+            <main className="flex flex-col flex-1"> {/* Remove padding here */}
+              <div className="flex-1 px-4 py-8"> {/* Add padding to this inner div */}
+                 {children}
+               </div>
+            </main>
+            <Footer />
+            <Toaster />
+          </TooltipProvider>
         </Providers>
       </body>
     </html>

@@ -1,3 +1,4 @@
+
 'use client'; // Required for useState and useEffect
 
 import React, { useState, useEffect } from 'react'; // Import hooks
@@ -8,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ArrowRight, Zap, BarChart, Users, Award, Star } from 'lucide-react';
 import { cn } from '@/lib/utils'; // Import cn utility function
+import WcontentLogo from '@/components/icons/wcontent-logo'; // Import the logo
 
 // Placeholder for a future Carousel component
 const FeatureShowcaseSlider = () => (
@@ -29,8 +31,8 @@ const heroSlides = [
   {
     imageUrl: 'https://picsum.photos/1920/1080?random=10',
     imageHint: 'digital creation laptop desk',
-    title: 'Empower Your Content Creation',
-    description: 'WContent Lite provides AI-powered tools to streamline your workflow, generate fresh ideas, and connect with collaborators.',
+    title: 'Empower Your Content Creation with Wcontent', // Updated title
+    description: 'Wcontent is the ultimate platform for creators, providing AI-powered tools to streamline your workflow, generate fresh ideas, and connect with collaborators.', // Updated description
   },
   {
     imageUrl: 'https://picsum.photos/1920/1080?random=11',
@@ -88,8 +90,8 @@ export default function Home() {
         <div className="container mx-auto px-4 z-10">
            {/* Animated Text Content */}
            <div key={activeIndex} className="animate-fade-in"> {/* Add key to force re-render/animation */}
-             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4">
-               {currentSlide.title}
+             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 flex items-center justify-center gap-3">
+                <WcontentLogo className="h-10 w-10 md:h-14 md:w-14" /> {currentSlide.title} {/* Add logo to title */}
              </h1>
              <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto mb-8">
                {currentSlide.description}
@@ -99,9 +101,7 @@ export default function Home() {
           <div className="flex justify-center gap-4 mb-12">
             <Button asChild size="lg">
               <Link href="/generate">
-                <> {/* Wrap children in Fragment */}
-                  Get Started <ArrowRight className="ml-2 h-5 w-5" />
-                </>
+                Get Started <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="bg-white/10 border-white/50 backdrop-blur-sm hover:bg-white/20 text-white">
@@ -112,15 +112,15 @@ export default function Home() {
           <div className="mt-12 max-w-2xl mx-auto bg-background/70 dark:bg-background/80 backdrop-blur-md rounded-lg p-4 border border-white/20 text-foreground dark:text-foreground"> {/* Accordion background */}
             <Accordion type="single" collapsible className="w-full text-left">
               <AccordionItem value="item-1" className="border-white/20">
-                <AccordionTrigger className="text-lg font-semibold hover:no-underline text-white dark:text-white">What is WContent Lite?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-semibold hover:no-underline text-white dark:text-white">What is Wcontent?</AccordionTrigger> {/* Updated name */}
                 <AccordionContent className="text-white/80 dark:text-white/80">
-                  WContent Lite is a platform designed for content creators, offering tools like AI-powered idea generation, content prediction insights (coming soon!), and opportunities to collaborate with others. We aim to simplify your creative process and help you grow.
+                  Wcontent is the ultimate platform for creators, offering tools like AI-powered idea generation, content prediction insights, and opportunities to collaborate with others. We aim to simplify your creative process and help you grow. {/* Updated description */}
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-2" className="border-white/20">
                 <AccordionTrigger className="text-lg font-semibold hover:no-underline text-white dark:text-white">Who is it for?</AccordionTrigger>
                 <AccordionContent className="text-white/80 dark:text-white/80">
-                  Whether you're a blogger, YouTuber, social media influencer, or any kind of digital creator, WContent Lite provides valuable tools to enhance your productivity and reach.
+                  Whether you're a blogger, YouTuber, social media influencer, or any kind of digital creator, Wcontent provides valuable tools to enhance your productivity and reach. {/* Updated name */}
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3" className="border-b-0">
@@ -179,10 +179,10 @@ export default function Home() {
         {/* Testimonials Section */}
         <section className="text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-3">What Creators Say</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto mb-12">Hear directly from creators using WContent Lite.</p>
+          <p className="text-muted-foreground max-w-xl mx-auto mb-12">Hear directly from creators using Wcontent.</p> {/* Updated name */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
-              { quote: "WContent's idea generator saved me hours of brainstorming!", name: "Alex R.", role: "Blogger" },
+              { quote: "Wcontent's idea generator saved me hours of brainstorming!", name: "Alex R.", role: "Blogger" }, // Updated name
               { quote: "Finding collaboration opportunities used to be tough. This platform makes it easy.", name: "Maria G.", role: "YouTuber" },
               { quote: "The dashboard helps me keep everything organized. Love the dark theme!", name: "Sam K.", role: "Podcast Host" }
             ].map((testimonial, index) => (
@@ -204,13 +204,11 @@ export default function Home() {
         <section className="text-center bg-gradient-to-r from-teal-900/30 via-background to-teal-900/30 py-16 rounded-lg border border-teal-800/50">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Elevate Your Content?</h2>
           <p className="text-lg text-foreground/80 mb-8 max-w-2xl mx-auto">
-            Join WContent Lite today and unlock powerful tools to boost your creativity and growth.
+            Join Wcontent today and unlock powerful tools to boost your creativity and growth. {/* Updated name */}
           </p>
           <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transform hover:scale-105 transition-transform">
              <Link href="/dashboard">
-                <> {/* Wrap children in Fragment */}
                  Explore Your Dashboard <ArrowRight className="ml-2 h-5 w-5" />
-                </>
              </Link>
           </Button>
         </section>

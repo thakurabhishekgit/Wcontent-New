@@ -1,6 +1,7 @@
 
 import Link from 'next/link';
-import { Github, Twitter, Linkedin, Feather } from 'lucide-react'; // Added Feather
+import { Github, Twitter, Linkedin } from 'lucide-react'; // Removed Feather
+import WcontentLogo from '@/components/icons/wcontent-logo'; // Import the new logo
 
 const primaryLinks = [
   { href: '/generate', label: 'Generate' },
@@ -25,11 +26,11 @@ export default function Footer() {
         {/* Logo and Copyright */}
         <div className="col-span-1 flex flex-col items-center md:items-start">
            <Link href="/" className="flex items-center space-x-2 mb-3">
-             <Feather className="h-6 w-6 text-primary" />
-             <span className="font-bold">WContent Lite</span>
+             <WcontentLogo className="h-6 w-6" /> {/* Use new logo */}
+             <span className="font-bold">Wcontent</span> {/* Use new name */}
            </Link>
            <p className="text-xs text-foreground/60 text-center md:text-left">
-             © {new Date().getFullYear()} WContent Lite. <br className="hidden md:inline"/>All rights reserved.
+             © {new Date().getFullYear()} Wcontent. <br className="hidden md:inline"/>All rights reserved. {/* Updated copyright */}
            </p>
             <div className="flex space-x-4 mt-4">
               {/* Placeholder Social Links */}
