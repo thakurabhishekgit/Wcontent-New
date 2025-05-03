@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Link from 'next/link';
+import Image from 'next/image'; // Import Image
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,20 +11,19 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, MapPin, Briefcase, DollarSign, Filter, X } from "lucide-react";
+import { Search, MapPin, Briefcase, DollarSign, Filter, X, ArrowRight, Star, Award, Target, Users as UsersIcon } from "lucide-react"; // Added more icons
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Import Dialog components
 import { Label } from "@/components/ui/label"; // Import Label
 
-
-// Placeholder for HowitWorks component if it's not available yet
+// How It Works Component
 const HowitWorks = () => (
-  <div className="p-4 mb-6 bg-card rounded-lg border border-border/50 shadow-sm">
-    <h2 className="text-lg font-semibold mb-2 text-primary">How It Works</h2>
-    <ul className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-      <li>Browse available opportunities or use filters to narrow your search.</li>
-      <li>Click 'View & Apply' on an opportunity that interests you.</li>
-      <li>Review the details and fill out the application form.</li>
-      <li>Submit your application and wait for the poster to respond!</li>
+  <div className="p-6 mb-12 bg-card rounded-lg border border-border/50 shadow-sm">
+    <h2 className="text-xl font-semibold mb-3 text-primary">How It Works</h2>
+    <ul className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+      <li>Browse available opportunities using the search bar and filters.</li>
+      <li>Click 'View & Apply' on an opportunity that interests you to see full details.</li>
+      <li>Fill out the simple application form with your name, email, and portfolio link.</li>
+      <li>Submit your application and the opportunity poster will be notified!</li>
     </ul>
   </div>
 );
@@ -255,109 +255,195 @@ export default function OpportunitiesPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
+    <div className="container mx-auto px-4 py-8 space-y-16"> {/* Increased spacing */}
 
       {/* Header Section */}
-      <div className="text-center mb-8">
-         <h1 className="text-3xl md:text-4xl font-bold mb-2">Discover Opportunities</h1>
-         <p className="text-lg text-muted-foreground">Find paid gigs, sponsorships, and roles tailored for content creators.</p>
-      </div>
+      <section className="text-center pt-8 pb-8 md:pt-12 md:pb-12">
+         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 bg-gradient-to-r from-primary via-teal-400 to-teal-600 bg-clip-text text-transparent">
+           Discover Content Creator Opportunities
+         </h1>
+         <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+           Find paid gigs, sponsorships, roles, and projects tailored specifically for digital creators like you.
+         </p>
+      </section>
+
+      {/* Features Section */}
+      <section className="space-y-12">
+        <div className="text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-3">Why Use WContent Opportunities?</h2>
+          <p className="text-muted-foreground max-w-xl mx-auto">Connect directly with brands and businesses looking for your talent.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {[
+            { icon: Award, title: 'Curated Gigs', description: 'Access opportunities specifically for content creators.', img: 'https://picsum.photos/400/250?random=5', hint: 'award medal opportunity' },
+            { icon: Filter, title: 'Smart Filters', description: 'Easily find relevant gigs by type, location, and budget.', img: 'https://picsum.photos/400/250?random=6', hint: 'filter search options' },
+            { icon: Target, title: 'Direct Applications', description: 'Apply directly to opportunities through the platform.', img: 'https://picsum.photos/400/250?random=7', hint: 'target application form submit' },
+            { icon: Briefcase, title: 'Diverse Roles', description: 'From paid gigs to full-time roles, find what fits you.', img: 'https://picsum.photos/400/250?random=8', hint: 'briefcase portfolio job variety' },
+          ].map((feature, index) => (
+            <Card key={index} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <CardHeader>
+                <feature.icon className="h-8 w-8 mb-2 text-primary" />
+                <CardTitle>{feature.title}</CardTitle>
+                <CardDescription>{feature.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow flex items-end">
+                <Image
+                  src={feature.img}
+                  alt={feature.title}
+                  data-ai-hint={feature.hint}
+                  width={400}
+                  height={250}
+                  className="rounded-md object-cover w-full h-auto mt-4"
+                />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
 
       {/* How It Works Section */}
       <HowitWorks />
 
-      {/* Search and Main Content Area */}
-       <div className="flex flex-col md:flex-row gap-8">
+      {/* Main Opportunities Listing Section */}
+      <section className="space-y-8">
+        <h2 className="text-3xl md:text-4xl font-bold text-center">Explore Opportunities</h2>
+        {/* Search and Main Content Area */}
+        <div className="flex flex-col md:flex-row gap-8">
 
-         {/* Filters Sidebar */}
-         <div className="w-full md:w-1/4 lg:w-1/5">
-            <FilterSidebar filters={filters} setFilters={setFilters} applyFilters={applyFilters} />
-         </div>
-
-         {/* Main Content Grid */}
-         <div className="w-full md:w-3/4 lg:w-4/5 space-y-6">
-
-            {/* Search Bar */}
-            <div className="relative">
-               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-               <Input
-                 type="search"
-                 placeholder="Search by title, company, description..."
-                 className="pl-10"
-                 value={searchTerm}
-                 onChange={handleSearchChange}
-               />
-            </div>
-
-           {/* Loading and Error States */}
-           {isLoading && (
-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[...Array(6)].map((_, i) => (
-                     <Card key={i}>
-                       <CardHeader><Skeleton className="h-5 w-3/4" /></CardHeader>
-                       <CardContent className="space-y-2">
-                         <Skeleton className="h-4 w-1/2" />
-                         <Skeleton className="h-4 w-1/3" />
-                         <Skeleton className="h-4 w-1/4" />
-                         <Skeleton className="h-4 w-full mt-2" />
-                       </CardContent>
-                       <CardFooter><Skeleton className="h-10 w-full" /></CardFooter>
-                     </Card>
-                  ))}
-               </div>
-           )}
-           {error && (
-             <Alert variant="destructive">
-               <AlertTitle>Error</AlertTitle>
-               <AlertDescription>{error}</AlertDescription>
-               <Button variant="outline" size="sm" onClick={fetchOpportunities} className="mt-2">Retry</Button>
-             </Alert>
-           )}
-
-
-            {/* Opportunities Grid */}
-            {!isLoading && !error && filteredOpportunities.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredOpportunities.map((opportunity) => (
-                  <Card key={opportunity.id} className="flex flex-col">
-                    <CardHeader>
-                      <CardTitle className="text-lg line-clamp-2">{opportunity.title}</CardTitle>
-                       <div className="flex flex-wrap gap-1 pt-1">
-                          <Badge variant={opportunity.type === 'Paid Gig' ? 'default' : 'secondary'}>{opportunity.type || 'N/A'}</Badge>
-                          <Badge variant="outline" className="flex items-center"><MapPin className="h-3 w-3 mr-1"/>{opportunity.location || 'N/A'}</Badge>
-                       </div>
-                       <CardDescription className="text-xs pt-2 flex items-center">
-                          <Briefcase className="h-3 w-3 mr-1"/> {opportunity.company || 'N/A'}
-                       </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-grow space-y-2">
-                       <p className="text-sm text-muted-foreground line-clamp-3">{opportunity.description || 'No description.'}</p>
-                       <p className="text-sm font-medium flex items-center pt-1"><DollarSign className="h-4 w-4 mr-1 text-primary"/>{opportunity.salaryRange || 'N/A'}</p>
-                    </CardContent>
-                    <CardFooter>
-                      <Button
-                        className="w-full"
-                        onClick={() => handleCardClick(opportunity)}
-                        variant="outline"
-                      >
-                        View & Apply
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            )}
-            {!isLoading && !error && filteredOpportunities.length === 0 && (
-               <Card className="text-center py-10 border-dashed">
-                  <CardContent className="flex flex-col items-center gap-2">
-                    <Search className="h-12 w-12 text-muted-foreground" />
-                    <p className="text-muted-foreground">No opportunities match your criteria.</p>
-                    <p className="text-xs text-muted-foreground">Try adjusting your search or filters.</p>
-                  </CardContent>
-               </Card>
-            )}
+          {/* Filters Sidebar */}
+          <div className="w-full md:w-1/4 lg:w-1/5">
+              <FilterSidebar filters={filters} setFilters={setFilters} applyFilters={applyFilters} />
           </div>
-        </div>
+
+          {/* Main Content Grid */}
+          <div className="w-full md:w-3/4 lg:w-4/5 space-y-6">
+
+              {/* Search Bar */}
+              <div className="relative">
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                 <Input
+                   type="search"
+                   placeholder="Search by title, company, description..."
+                   className="pl-10"
+                   value={searchTerm}
+                   onChange={handleSearchChange}
+                 />
+              </div>
+
+             {/* Loading and Error States */}
+             {isLoading && (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[...Array(6)].map((_, i) => (
+                       <Card key={i}>
+                         <CardHeader><Skeleton className="h-5 w-3/4" /></CardHeader>
+                         <CardContent className="space-y-2">
+                           <Skeleton className="h-4 w-1/2" />
+                           <Skeleton className="h-4 w-1/3" />
+                           <Skeleton className="h-4 w-1/4" />
+                           <Skeleton className="h-4 w-full mt-2" />
+                         </CardContent>
+                         <CardFooter><Skeleton className="h-10 w-full" /></CardFooter>
+                       </Card>
+                    ))}
+                 </div>
+             )}
+             {error && (
+               <Alert variant="destructive">
+                 <AlertTitle>Error</AlertTitle>
+                 <AlertDescription>{error}</AlertDescription>
+                 <Button variant="outline" size="sm" onClick={fetchOpportunities} className="mt-2">Retry</Button>
+               </Alert>
+             )}
+
+
+              {/* Opportunities Grid */}
+              {!isLoading && !error && filteredOpportunities.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredOpportunities.map((opportunity) => (
+                    <Card key={opportunity.id} className="flex flex-col hover:shadow-md transition-shadow">
+                      <CardHeader>
+                        <CardTitle className="text-lg line-clamp-2">{opportunity.title}</CardTitle>
+                         <div className="flex flex-wrap gap-1 pt-1">
+                            <Badge variant={opportunity.type === 'Paid Gig' ? 'default' : 'secondary'}>{opportunity.type || 'N/A'}</Badge>
+                            <Badge variant="outline" className="flex items-center"><MapPin className="h-3 w-3 mr-1"/>{opportunity.location || 'N/A'}</Badge>
+                         </div>
+                         <CardDescription className="text-xs pt-2 flex items-center">
+                            <Briefcase className="h-3 w-3 mr-1"/> {opportunity.company || 'N/A'}
+                         </CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex-grow space-y-2">
+                         <p className="text-sm text-muted-foreground line-clamp-3">{opportunity.description || 'No description.'}</p>
+                         <p className="text-sm font-medium flex items-center pt-1"><DollarSign className="h-4 w-4 mr-1 text-primary"/>{opportunity.salaryRange || 'N/A'}</p>
+                      </CardContent>
+                      <CardFooter>
+                        <Button
+                          className="w-full"
+                          onClick={() => handleCardClick(opportunity)}
+                          variant="outline"
+                        >
+                          View & Apply
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              )}
+              {!isLoading && !error && filteredOpportunities.length === 0 && (
+                 <Card className="text-center py-10 border-dashed">
+                    <CardContent className="flex flex-col items-center gap-2">
+                      <Search className="h-12 w-12 text-muted-foreground" />
+                      <p className="text-muted-foreground">No opportunities match your criteria.</p>
+                      <p className="text-xs text-muted-foreground">Try adjusting your search or filters.</p>
+                    </CardContent>
+                 </Card>
+              )}
+            </div>
+          </div>
+      </section>
+
+       {/* Testimonials Section */}
+       <section className="text-center">
+         <h2 className="text-3xl md:text-4xl font-bold mb-3">Success Stories</h2>
+         <p className="text-muted-foreground max-w-xl mx-auto mb-12">Hear from creators who found opportunities here.</p>
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+           {[
+             { quote: "Landed a great sponsored content deal through WContent!", name: "TechReviewer Pro", role: "Gadget Reviewer" },
+             { quote: "The travel opportunity I found here was a dream come true.", name: "Wanderlust Vlogs", role: "Travel Vlogger" },
+             { quote: "Consistent paid gigs keep my freelance career thriving. Thanks, WContent!", name: "Creative Spark", role: "Social Media Manager" }
+           ].map((testimonial, index) => (
+             <Card key={index} className="bg-card/80 border border-border/60 text-left">
+               <CardContent className="pt-6">
+                 <div className="flex mb-2">
+                   {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-primary fill-primary" />)}
+                 </div>
+                 <p className="italic mb-4 text-foreground/90">"{testimonial.quote}"</p>
+                 <p className="font-semibold">{testimonial.name}</p>
+                 <p className="text-xs text-foreground/60">{testimonial.role}</p>
+               </CardContent>
+             </Card>
+           ))}
+         </div>
+       </section>
+
+
+       {/* Call to Action Section */}
+       <section className="text-center bg-gradient-to-r from-teal-900/30 via-background to-teal-900/30 py-16 rounded-lg border border-teal-800/50">
+         <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Find Your Next Gig?</h2>
+         <p className="text-lg text-foreground/80 mb-8 max-w-2xl mx-auto">
+           Sign up or log in to start applying for opportunities and grow your creator career.
+         </p>
+         <div className="flex justify-center gap-4">
+           <Button asChild size="lg">
+             <Link href="/dashboard/opportunities/new">
+               Post an Opportunity <ArrowRight className="ml-2 h-5 w-5" />
+             </Link>
+           </Button>
+           <Button asChild variant="outline" size="lg">
+             <Link href="/auth">Login / Sign Up</Link>
+           </Button>
+         </div>
+       </section>
+
 
       {/* Application Dialog (Modal) */}
        <Dialog open={!!selectedOpportunity} onOpenChange={() => setSelectedOpportunity(null)}>
