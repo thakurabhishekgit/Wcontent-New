@@ -70,7 +70,7 @@ export default function NewOpportunityPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/users/opportunities/opportunity/${userId}`,
+        `http://localhost:3001/api/users/opportunities/opportunity/${userId}`, // Use http instead of https
         {
           method: "POST",
           headers: {
@@ -92,7 +92,12 @@ export default function NewOpportunityPage() {
       }
     } catch (err) {
       console.error("Error posting opportunity:", err);
-      setError("An unexpected error occurred. Please try again.");
+      let fetchErrorMessage = "An unexpected error occurred. Please try again.";
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+         // Updated error message to reflect http
+         fetchErrorMessage = `Error posting opportunity. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and CORS is configured correctly.`;
+       }
+      setError(fetchErrorMessage);
     } finally {
       setIsSubmitting(false);
     }
