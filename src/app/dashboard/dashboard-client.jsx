@@ -50,24 +50,40 @@ export default function DashboardClient({ children }) {
   const [open, setOpen] = useState(true); // Desktop sidebar state
   const [openMobile, setOpenMobile] = useState(false); // Mobile sidebar state
 
+   // Function to check login status
+   const checkLoginStatus = () => {
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('username');
+        setIsLoggedIn(!!token);
+        if (user) setUsername(user);
+      }
+    };
+
   // Get active path and username on client-side mount
   useEffect(() => {
     setIsClient(true); // Component has mounted on the client
-    const storedUsername = localStorage.getItem("username");
-    const token = localStorage.getItem("token");
+    checkLoginStatus(); // Check login status on mount
 
-    if (token) {
-        setIsLoggedIn(true);
-        if (storedUsername) {
-            setUsername(storedUsername);
-        }
-    } else {
+    const handleAuthChange = () => {
+        checkLoginStatus(); // Re-check login status on auth change
+    };
+    window.addEventListener('authChange', handleAuthChange);
+
+
+    if (!localStorage.getItem("token")) {
         // If no token, redirect to login page
         router.push('/auth');
     }
 
-     // Close mobile sidebar on navigation if it's open
-     // setOpenMobile(false); // Removed this line to keep mobile sidebar state persistent across navigations unless explicitly closed
+     // Add listener for auth changes
+     window.addEventListener('authChange', handleAuthChange);
+
+     // Cleanup listener on unmount
+     return () => {
+       window.removeEventListener('authChange', handleAuthChange);
+     };
+
   }, [router]); // Add router to dependency array
 
   // Add effect to close mobile sidebar specifically on pathname change if it's open
@@ -85,15 +101,11 @@ export default function DashboardClient({ children }) {
         localStorage.removeItem("id");
         localStorage.removeItem("username");
      }
-     setIsLoggedIn(false); // Update login state
+     // Dispatch custom event immediately after removing items
+     window.dispatchEvent(new CustomEvent('authChange'));
+    setIsMobileMenuOpen(false); // Close mobile menu if open
     // Redirect to login page
     router.push('/auth');
-     // Optionally force refresh or use state management to update globally
-     // This might be needed if other parts of the app rely on the logged-in state
-     // without re-checking localStorage or context.
-     // Consider a more robust state management solution (like Context API or Zustand)
-     // for complex applications instead of relying on reload.
-     // window.location.reload();
   };
 
   const handleNavigation = (path) => {
@@ -198,10 +210,10 @@ export default function DashboardClient({ children }) {
             </Sidebar>
 
             {/* Main Content Area - Renders the actual page content */}
-             {/* Ensure SidebarInset handles the margin correctly */}
-            <SidebarInset className="flex flex-col flex-1 overflow-y-auto"> {/* Added flex-1 and overflow-y-auto */}
+             {/* SidebarInset now correctly handles layout using flex-1 and overflow */}
+            <SidebarInset className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden"> {/* Added overflow-x-hidden */}
                 {/* Header for main content area, including the mobile trigger */}
-                <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0 sticky top-0 bg-background z-10"> {/* Make header sticky on mobile */}
+                <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0 bg-background z-10"> {/* Removed sticky */}
                     {/* Find the current page title */}
                 <h2 className="text-xl font-semibold capitalize">
                     {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
@@ -210,7 +222,7 @@ export default function DashboardClient({ children }) {
                 <SidebarTrigger />
                 </header>
                 {/* Render the specific page component passed as children */}
-                <div className="flex-1 p-4 md:p-6"> {/* Removed overflow-auto, parent handles scrolling */}
+                <div className="flex-1 p-4 md:p-6"> {/* Ensure padding */}
                    {children}
                 </div>
             </SidebarInset>

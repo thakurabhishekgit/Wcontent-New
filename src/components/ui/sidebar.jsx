@@ -200,22 +200,10 @@ const SidebarInset = React.forwardRef(({ className, ...props }, ref) => {
       ref={ref}
       className={cn(
         // flex-1 allows this component to take up remaining space
+        // Removed explicit margin calculations (ml-*, mr-*)
         "relative flex flex-1 flex-col bg-background",
-        // --- Margin adjustments based on sibling `peer` data attributes (Desktop only) ---
 
-        // Standard Sidebar (not inset): Add margin based on expanded/collapsed state
-        "md:peer-data-[variant=sidebar]:peer-data-[state=expanded]:peer-data-[side=left]:ml-[--sidebar-width]",
-        "md:peer-data-[variant=sidebar]:peer-data-[state=collapsed]:peer-data-[side=left]:ml-[--sidebar-width-icon]",
-        "md:peer-data-[variant=sidebar]:peer-data-[state=expanded]:peer-data-[side=right]:mr-[--sidebar-width]",
-        "md:peer-data-[variant=sidebar]:peer-data-[state=collapsed]:peer-data-[side=right]:mr-[--sidebar-width-icon]",
-
-        // Inset Sidebar: Add margin based on expanded/collapsed state + padding
-        "md:peer-data-[variant=inset]:peer-data-[state=expanded]:peer-data-[side=left]:ml-[calc(var(--sidebar-width)_+_theme(spacing.4))]",
-        "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:peer-data-[side=left]:ml-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
-        "md:peer-data-[variant=inset]:peer-data-[state=expanded]:peer-data-[side=right]:mr-[calc(var(--sidebar-width)_+_theme(spacing.4))]",
-        "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:peer-data-[side=right]:mr-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
-
-        // --- General inset styles (Desktop only) ---
+        // --- General inset styles (Desktop only) - Keep these if inset variant is used ---
         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))]",
         "md:peer-data-[variant=inset]:m-2",
         "md:peer-data-[variant=inset]:rounded-xl",
@@ -223,7 +211,7 @@ const SidebarInset = React.forwardRef(({ className, ...props }, ref) => {
 
         className
       )}
-       style={{ '--sidebar-width': SIDEBAR_WIDTH, '--sidebar-width-icon': SIDEBAR_WIDTH_ICON, ...props.style }}
+       // Removed style prop that set CSS variables, as they are not needed for margin calculation anymore
       {...props}
     />
   )
