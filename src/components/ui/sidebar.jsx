@@ -120,7 +120,7 @@ const Sidebar = React.forwardRef(
             />
             <div
                className={cn(
-                "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex", // Keep h-svh for fixed positioning
+                "duration-200 fixed inset-y-0 z-10 hidden h-full w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex", // Changed h-svh to h-full
                 side === "left"
                   ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
                   : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
@@ -200,18 +200,9 @@ const SidebarInset = React.forwardRef(({ className, ...props }, ref) => {
       ref={ref}
       className={cn(
         // flex-1 allows this component to take up remaining space
-        // Removed explicit margin calculations (ml-*, mr-*)
-        "relative flex flex-1 flex-col bg-background",
-
-        // --- General inset styles (Desktop only) - Keep these if inset variant is used ---
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))]",
-        "md:peer-data-[variant=inset]:m-2",
-        "md:peer-data-[variant=inset]:rounded-xl",
-        "md:peer-data-[variant=inset]:shadow",
-
+        "relative flex flex-col flex-1 bg-background overflow-hidden", // Removed md:peer styles and margin calculation styles
         className
       )}
-       // Removed style prop that set CSS variables, as they are not needed for margin calculation anymore
       {...props}
     />
   )
@@ -395,6 +386,7 @@ const SidebarMenuButton = React.forwardRef(
       size = "default",
       tooltip,
       className,
+      children, // Keep children prop
       ...props
     },
     ref
@@ -402,7 +394,8 @@ const SidebarMenuButton = React.forwardRef(
     const Comp = asChild ? Slot : "button";
     const { isMobile, state } = useSidebar(); // Use context
 
-    const button = (
+    // Create the button element
+    const buttonElement = (
       <Comp
         ref={ref}
         data-sidebar="menu-button"
@@ -410,20 +403,22 @@ const SidebarMenuButton = React.forwardRef(
         data-active={isActive}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
         {...props}
-      />
-    )
+      >
+        {children} {/* Render children passed to SidebarMenuButton */}
+      </Comp>
+    );
 
     if (!tooltip) {
-      return button
+      return buttonElement; // Return button directly if no tooltip
     }
 
     // Ensure tooltip is an object for TooltipContent props
     const tooltipProps = typeof tooltip === "string" ? { children: tooltip } : tooltip;
 
-
+    // Wrap the button element with TooltipTrigger when tooltip is present
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipTrigger asChild>{buttonElement}</TooltipTrigger>
         <TooltipContent
           side="right"
           align="center"
@@ -432,9 +427,9 @@ const SidebarMenuButton = React.forwardRef(
           {...tooltipProps} // Spread tooltip props here
         />
       </Tooltip>
-    )
+    );
   }
-)
+);
 SidebarMenuButton.displayName = "SidebarMenuButton"
 
 const SidebarMenuAction = React.forwardRef(({ className, asChild = false, showOnHover = false, ...props }, ref) => {
@@ -579,3 +574,4 @@ export {
   SidebarTrigger,
   useSidebar, // Keep useSidebar export
 }
+

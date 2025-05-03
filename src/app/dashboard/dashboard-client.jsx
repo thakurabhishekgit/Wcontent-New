@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react'; // Added useEffect, useMemo
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Sidebar,
   SidebarHeader,
@@ -11,17 +11,17 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
-  SidebarContext, // Import context to provide it
-  useSidebar, // Keep if needed, but primary use is within Sidebar component
+  SidebarContext,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bell, Settings, User, Edit3, PlusCircle, Mail, FileText, LogOut, BarChart, Zap, Users as UsersIcon, ListChecks } from 'lucide-react'; // Added more icons
-import { useRouter, usePathname } from 'next/navigation'; // For navigation, added usePathname
-import Link from 'next/link'; // For internal links
-import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile hook
-import { cn } from '@/lib/utils'; // Import cn utility function
-import { TooltipProvider } from '@/components/ui/tooltip'; // Import TooltipProvider
+import { Bell, Settings, User, Edit3, PlusCircle, Mail, FileText, LogOut, BarChart, Zap, Users as UsersIcon, ListChecks } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 // Define the structure for sidebar links
 const sidebarLinks = [
@@ -29,8 +29,8 @@ const sidebarLinks = [
     { id: '/dashboard/update', label: 'Update Profile', icon: Edit3 },
     { id: '/dashboard/opportunities/new', label: 'Post Opportunity', icon: PlusCircle },
     { id: '/dashboard/collabs/new', label: 'Post Collab', icon: PlusCircle },
-    { id: '/dashboard/opportunities/myopportunities', label: 'My Opportunities', icon: ListChecks }, // Renamed & updated icon
-    { id: '/dashboard/collabs/myrequests', label: 'My Collabs', icon: ListChecks }, // Updated icon
+    { id: '/dashboard/opportunities/myopportunities', label: 'My Opportunities', icon: ListChecks },
+    { id: '/dashboard/collabs/myrequests', label: 'My Collabs', icon: ListChecks },
     // Adding links to main app sections for convenience
     { id: '/generate', label: 'Generate Ideas', icon: Zap },
     { id: '/predict', label: 'Predict Performance', icon: BarChart },
@@ -40,10 +40,10 @@ const sidebarLinks = [
 
 export default function DashboardClient({ children }) {
   const router = useRouter();
-  const pathname = usePathname(); // Get current path
-  const [username, setUsername] = useState('User'); // Default username
-  const [isClient, setIsClient] = useState(false); // To avoid hydration issues
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login status
+  const pathname = usePathname();
+  const [username, setUsername] = useState('User');
+  const [isClient, setIsClient] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Sidebar state management lifted here
   const isMobile = useIsMobile();
@@ -62,55 +62,47 @@ export default function DashboardClient({ children }) {
 
   // Get active path and username on client-side mount
   useEffect(() => {
-    setIsClient(true); // Component has mounted on the client
-    checkLoginStatus(); // Check login status on mount
+    setIsClient(true);
+    checkLoginStatus();
 
     const handleAuthChange = () => {
-        checkLoginStatus(); // Re-check login status on auth change
+        checkLoginStatus();
     };
     window.addEventListener('authChange', handleAuthChange);
 
 
     if (!localStorage.getItem("token")) {
-        // If no token, redirect to login page
         router.push('/auth');
     }
 
-     // Add listener for auth changes
      window.addEventListener('authChange', handleAuthChange);
 
-     // Cleanup listener on unmount
      return () => {
        window.removeEventListener('authChange', handleAuthChange);
      };
 
-  }, [router]); // Add router to dependency array
+  }, [router]);
 
-  // Add effect to close mobile sidebar specifically on pathname change if it's open
   useEffect(() => {
     if (isMobile && openMobile) {
       setOpenMobile(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, isMobile]); // Dependency on pathname and isMobile
+  }, [pathname, isMobile]);
 
   const handleLogout = () => {
-    // Clear local storage
      if (typeof window !== 'undefined') {
         localStorage.removeItem("token");
         localStorage.removeItem("id");
         localStorage.removeItem("username");
+        window.dispatchEvent(new CustomEvent('authChange'));
      }
-     // Dispatch custom event immediately after removing items
-     window.dispatchEvent(new CustomEvent('authChange'));
-    setIsMobileMenuOpen(false); // Close mobile menu if open
-    // Redirect to login page
+    setOpenMobile(false); // Close mobile menu if open
     router.push('/auth');
   };
 
   const handleNavigation = (path) => {
     router.push(path);
-    // Mobile sidebar closing is handled by the useEffect hook reacting to pathname change
   };
 
   // Sidebar Context Value
@@ -133,28 +125,22 @@ export default function DashboardClient({ children }) {
   }, [open, setOpen, isMobile, openMobile, setOpenMobile]);
 
 
-  // Prevent rendering potentially mismatching content on the server
-   if (!isClient || !isLoggedIn) { // Also check isLoggedIn
-     // Return a basic layout skeleton or null while checking login/redirecting
+   if (!isClient || !isLoggedIn) {
       return (
         <div className="flex min-h-screen items-center justify-center">
-          {/* Placeholder Loading/Redirecting */}
-          <p>Loading...</p> {/* Or a spinner */}
+          <p>Loading...</p>
         </div>
       );
    }
 
   return (
-    // Provide the sidebar context to all children
     <TooltipProvider delayDuration={0}>
     <SidebarContext.Provider value={contextValue}>
-        {/* Use flex container for overall layout */}
-        <div className="flex h-screen overflow-hidden"> {/* Changed min-h-screen to h-screen and added overflow-hidden */}
-            {/* Render Sidebar - it will consume the context */}
+        <div className="flex h-screen overflow-hidden">
             <Sidebar>
                 <SidebarHeader className="border-b border-sidebar-border">
                 <div className="flex items-center justify-between p-2">
-                    {/* Mobile Trigger - Correctly uses context now */}
+                    {/* Mobile Trigger */}
                     <SidebarTrigger className="md:hidden"/>
                     {/* Desktop User Info */}
                     <div className="hidden md:flex items-center gap-2">
@@ -164,7 +150,7 @@ export default function DashboardClient({ children }) {
                         </Avatar>
                         {/* Use context state to conditionally hide username */}
                         <span className={cn("text-sm font-medium", contextValue.state === 'collapsed' && 'sr-only group-data-[collapsible=icon]:hidden')}>
-                        {username}
+                          {username}
                         </span>
                     </div>
                     {/* Actions (Notifications/Settings) */}
@@ -172,7 +158,6 @@ export default function DashboardClient({ children }) {
                         <Button variant="ghost" size="icon" aria-label="Notifications">
                             <Bell className="size-4" />
                         </Button>
-                        {/* Link to profile settings */}
                         <Link href="/dashboard/update" passHref legacyBehavior>
                             <Button variant="ghost" size="icon" aria-label="Settings">
                                 <Settings className="size-4" />
@@ -186,12 +171,13 @@ export default function DashboardClient({ children }) {
                     {sidebarLinks.map(link => (
                     <SidebarMenuItem key={link.id}>
                         <SidebarMenuButton
-                        onClick={() => handleNavigation(link.id)}
-                        isActive={pathname === link.id} // Use pathname for active state
-                        tooltip={link.label} // Tooltip for collapsed view
+                            onClick={() => handleNavigation(link.id)}
+                            isActive={pathname === link.id}
+                            tooltip={link.label}
                         >
-                        <link.icon />
-                        <span>{link.label}</span>
+                           {/* Removed fragment - pass children directly */}
+                           <link.icon />
+                           <span>{link.label}</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     ))}
@@ -201,28 +187,27 @@ export default function DashboardClient({ children }) {
                 <SidebarMenu>
                     <SidebarMenuItem>
                     <SidebarMenuButton tooltip="Logout" onClick={handleLogout}>
+                      <>
                         <LogOut />
                         <span>Logout</span>
+                      </>
                     </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
                 </SidebarFooter>
             </Sidebar>
 
-            {/* Main Content Area - Renders the actual page content */}
-             {/* SidebarInset now correctly handles layout using flex-1 and overflow */}
-            <SidebarInset className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden"> {/* Added overflow-x-hidden */}
-                {/* Header for main content area, including the mobile trigger */}
-                <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0 bg-background z-10"> {/* Removed sticky */}
-                    {/* Find the current page title */}
-                <h2 className="text-xl font-semibold capitalize">
-                    {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
-                </h2>
-                {/* This trigger now works correctly because context is provided above */}
-                <SidebarTrigger />
+             {/* Main Content Area */}
+            <SidebarInset className="flex flex-col flex-1 overflow-hidden"> {/* Changed overflow-y-auto to overflow-hidden */}
+                {/* Header for main content area (mobile only) */}
+                <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0 bg-background z-10">
+                    <h2 className="text-xl font-semibold capitalize">
+                        {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
+                    </h2>
+                    <SidebarTrigger />
                 </header>
                 {/* Render the specific page component passed as children */}
-                <div className="flex-1 p-4 md:p-6"> {/* Ensure padding */}
+                <div className="flex-1 p-4 md:p-6 overflow-y-auto"> {/* Added overflow-y-auto here */}
                    {children}
                 </div>
             </SidebarInset>

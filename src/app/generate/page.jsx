@@ -88,8 +88,8 @@ export default function GeneratePage() {
      // Prepare data for the flow, converting "default" value back to undefined for optional fields
      const flowInput = {
         ...formData,
-        tone: formData.tone === 'default' || formData.tone === '' ? undefined : formData.tone,
-        format: formData.format === 'default' || formData.format === '' ? undefined : formData.format,
+        tone: formData.tone === 'default' ? undefined : formData.tone, // Check for "default"
+        format: formData.format === 'default' ? undefined : formData.format, // Check for "default"
       };
 
     try {
