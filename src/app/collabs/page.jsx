@@ -1,82 +1,275 @@
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Users, Zap, Target, Clock } from 'lucide-react';
-import Link from 'next/link';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-// Placeholder data - replace with actual data fetching later
-const collabs = [
-  { id: 1, title: 'Joint YouTube Video - Comedy Skit', creatorName: 'FunnyFolks', niche: 'Comedy', goal: 'Cross-promotion, Audience Growth', platform: 'YouTube', postedDate: '3 days ago', lookingFor: 'Another comedy channel with 10k+ subs' },
-  { id: 2, title: 'Instagram Live Q&A - Mental Wellness', creatorName: 'MindfulMinds', niche: 'Wellness', goal: 'Share expertise, Community building', platform: 'Instagram', postedDate: '6 days ago', lookingFor: 'Therapist or wellness coach' },
-  { id: 3, title: 'Podcast Guest Swap - Indie Music Scene', creatorName: 'MusicMavens Pod', niche: 'Music', goal: 'Introduce audiences to new artists', platform: 'Podcast', postedDate: '1 week ago', lookingFor: 'Indie musicians or band members' },
-  { id: 4, title: 'Blog Post Collaboration - Sustainable Travel', creatorName: 'EcoWanderer', niche: 'Travel', goal: 'Co-author a guide', platform: 'Blog', postedDate: '1 week ago', lookingFor: 'Travel blogger focused on sustainability' },
-  { id: 5, title: 'TikTok Challenge Collab', creatorName: 'DanceMovesDaily', niche: 'Dance/Entertainment', goal: 'Create a viral challenge', platform: 'TikTok', postedDate: '12 days ago', lookingFor: 'Dancer or choreographer' },
-];
-
-export default function CollabsPage() {
+const Collaborations = () => {
+  const [collaborations, setCollaborations] = useState([]);
+  const [selectedCollaboration, setSelectedCollaboration] = useState(null);
+  const [application, setApplication] = useState({
+    requesterName: "",
+    requesterEmail: "",
+    message: "",
+    appliedDate: new Date().toISOString().split("T")[0],
+  });
+  const [submissionStatus, setSubmissionStatus] = useState(null);
+  const styles = {
+    container: {
+      padding: "20px",
+      fontFamily: "Arial, sans-serif",
+    },
+    pageTitle: {
+      textAlign: "center",
+      marginBottom: "20px",
+    },
+    pageDescription: {
+      textAlign: "center",
+      marginBottom: "30px",
+    },
+    collaborationsList: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+      gap: "20px",
+    },
+    collaborationCard: {
+      border: "1px solid #ccc",
+      padding: "15px",
+      borderRadius: "5px",
+      cursor: "pointer",
+    },
+    cardTitle: {
+      marginBottom: "10px",
+    },
+    cardText: {
+      marginBottom: "5px",
+    },
+    applyButton: {
+      backgroundColor: "#007bff",
+      color: "white",
+      border: "none",
+      padding: "10px 15px",
+      borderRadius: "5px",
+      cursor: "pointer",
+    },
+    detailsContainer: {
+      marginTop: "30px",
+      border: "1px solid #ccc",
+      borderRadius: "5px",
+      padding: "20px",
+    },
+    detailsSection: {
+      marginBottom: "20px",
+    },
+    detailsTitle: {
+      marginBottom: "10px",
+    },
+    detailsText: {
+      marginBottom: "5px",
+    },
+    applicationForm: {
+      border: "1px solid #ccc",
+      borderRadius: "5px",
+      padding: "20px",
+    },
+    formTitle: {
+      marginBottom: "20px",
+    },
+    form: {
+      display: "flex",
+      flexDirection: "column",
+    },
+    formGroup: {
+      marginBottom: "15px",
+    },
+    label: {
+      marginBottom: "5px",
+    },
+    input: {
+      padding: "10px",
+      border: "1px solid #ccc",
+      borderRadius: "5px",
+    },
+    submitButton: {
+      backgroundColor: "#007bff",
+      color: "white",
+      border: "none",
+      padding: "10px 15px",
+      borderRadius: "5px",
+      cursor: "pointer",
+    },
+  };
+  useEffect(() => {
+    fetchCollaborations();
+  }, []);
+  const fetchCollaborations = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:3001/api/users/collabration/getCollabOfAllUsers"
+      );
+      setCollaborations(response.data);
+    } catch (error) {
+      console.error("Error fetching collaborations:", error);
+    }
+  };
+  const handleCardClick = (collaboration) => {
+    setSelectedCollaboration(collaboration);
+    setSubmissionStatus(null); // Reset submission status when a new collaboration is selected
+  };
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setApplication({ ...application, [name]: value });
+  };
+  const handleApply = async (e) => {
+    e.preventDefault();
+    if (!selectedCollaboration) return;
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/api/users/collabration/applyForCollab/${selectedCollaboration.id}`,
+        application
+      );
+      setSubmissionStatus("Application submitted successfully!");
+      setApplication({
+        requesterName: "",
+        requesterEmail: "",
+        message: "",
+        appliedDate: new Date().toISOString().split("T")[0],
+      }); // Reset form
+    } catch (error) {
+      console.error("Error applying for collaboration:", error);
+      setSubmissionStatus("Failed to submit application. Please try again.");
+    }
+  };
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl md:text-4xl font-bold">Collaboration Hub</h1>
-      <p className="text-lg text-foreground/80">
-        Connect with fellow creators for joint projects, guest appearances, and cross-promotions.
+    <div style={styles.container}>
+      <h1 style={styles.pageTitle}>Collaboration Opportunities</h1>
+      <p style={styles.pageDescription}>
+        Explore exciting collaboration opportunities and join hands with
+        like-minded individuals to bring innovative ideas to life.
       </p>
-
-      {/* Filtering/Sorting Placeholder */}
-      <div className="flex flex-wrap gap-2">
-         <Button variant="outline" size="sm" disabled>Filter by Niche</Button>
-         <Button variant="outline" size="sm" disabled>Filter by Platform</Button>
-         <Button variant="outline" size="sm" disabled>Sort by Date</Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {collabs.map((collab) => (
-          <Card key={collab.id} className="flex flex-col justify-between hover:shadow-md transition-shadow duration-200">
-            <CardHeader>
-               <div className="flex justify-between items-start mb-3">
-                 <div className="flex items-center space-x-2">
-                   <Avatar className="h-8 w-8">
-                     {/* Placeholder image */}
-                     <AvatarImage src={`https://i.pravatar.cc/40?u=${collab.creatorName}`} alt={collab.creatorName} />
-                     <AvatarFallback>{collab.creatorName.substring(0, 1)}</AvatarFallback>
-                   </Avatar>
-                   <span className="text-sm font-medium">{collab.creatorName}</span>
-                 </div>
-                 <span className="text-xs text-foreground/60 flex items-center">
-                   <Clock className="h-3 w-3 mr-1" /> {collab.postedDate}
-                 </span>
-              </div>
-              <CardTitle className="text-xl">{collab.title}</CardTitle>
-               <div className="flex flex-wrap gap-2 pt-1">
-                <Badge variant="outline">{collab.niche}</Badge>
-                <Badge variant="outline">{collab.platform}</Badge>
-               </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-start text-sm">
-                <Target className="h-4 w-4 mr-2 mt-0.5 text-primary shrink-0" />
-                <span className="text-foreground/80"><strong className="font-medium text-foreground/90">Goal:</strong> {collab.goal}</span>
-              </div>
-              <div className="flex items-start text-sm">
-                 <Zap className="h-4 w-4 mr-2 mt-0.5 text-primary shrink-0" />
-                 <span className="text-foreground/80"><strong className="font-medium text-foreground/90">Looking for:</strong> {collab.lookingFor}</span>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" size="sm" asChild>
-                {/* Link to a detailed collab page later */}
-                <Link href={`/collabs/${collab.id}`}>View Details</Link>
-              </Button>
-               <Button size="sm" className="ml-auto" disabled>Request Collab (TBD)</Button>
-            </CardFooter>
-          </Card>
+      <div style={styles.collaborationsList}>
+        {collaborations.map((collaboration) => (
+          <div
+            key={collaboration.id}
+            style={styles.collaborationCard}
+            onClick={() => handleCardClick(collaboration)}
+          >
+            <h3 style={styles.cardTitle}>{collaboration.title}</h3>
+            <p style={styles.cardText}>{collaboration.description}</p>
+            <p style={styles.cardText}>
+              <strong>Category:</strong> {collaboration.contentCategory}
+            </p>
+            <p style={styles.cardText}>
+              <strong>Type:</strong> {collaboration.collaborationType}
+            </p>
+            <p style={styles.cardText}>
+              <strong>Timeline:</strong> {collaboration.timeline}
+            </p>
+            <button
+              style={styles.applyButton}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent card click event
+                handleCardClick(collaboration);
+              }}
+            >
+              Apply Now
+            </button>
+          </div>
         ))}
       </div>
-       {/* Pagination Placeholder */}
-       <div className="flex justify-center mt-8">
-         <Button variant="outline" disabled>Load More</Button>
-       </div>
+      {selectedCollaboration && (
+        <div style={styles.detailsContainer}>
+          <div style={styles.detailsSection}>
+            <h2 style={styles.detailsTitle}>{selectedCollaboration.title}</h2>
+            <p style={styles.detailsText}>
+              {selectedCollaboration.description}
+            </p>
+            <p style={styles.detailsText}>
+              <strong>Category:</strong> {selectedCollaboration.contentCategory}
+            </p>
+            <p style={styles.detailsText}>
+              <strong>Type:</strong> {selectedCollaboration.collaborationType}
+            </p>
+            <p style={styles.detailsText}>
+              <strong>Timeline:</strong> {selectedCollaboration.timeline}
+            </p>
+            <p style={styles.detailsText}>
+              <strong>Status:</strong>{" "}
+              {selectedCollaboration.open ? "Open" : "Closed"}
+            </p>
+          </div>
+          <div style={styles.applicationForm}>
+            <h3 style={styles.formTitle}>Apply for this Collaboration</h3>
+            {submissionStatus && (
+              <p
+                style={{
+                  color: submissionStatus.includes("success") ? "green" : "red",
+                  marginBottom: "20px",
+                  fontSize: "14px",
+                }}
+              >
+                {submissionStatus}
+              </p>
+            )}
+            <form onSubmit={handleApply} style={styles.form}>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  Your Name:
+                  <input
+                    type="text"
+                    name="requesterName"
+                    value={application.requesterName}
+                    onChange={handleInputChange}
+                    required
+                    style={styles.input}
+                  />
+                </label>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  Your Email:
+                  <input
+                    type="email"
+                    name="requesterEmail"
+                    value={application.requesterEmail}
+                    onChange={handleInputChange}
+                    required
+                    style={styles.input}
+                  />
+                </label>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  Message:
+                  <textarea
+                    name="message"
+                    value={application.message}
+                    onChange={handleInputChange}
+                    required
+                    style={{ ...styles.input, height: "100px" }}
+                  />
+                </label>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  Application Date:
+                  <input
+                    type="date"
+                    name="appliedDate"
+                    value={application.appliedDate}
+                    onChange={handleInputChange}
+                    required
+                    style={styles.input}
+                  />
+                </label>
+              </div>
+              <button type="submit" style={styles.submitButton}>
+                Submit Application
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default Collaborations;

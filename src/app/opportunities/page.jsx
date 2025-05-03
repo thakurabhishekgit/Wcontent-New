@@ -1,72 +1,339 @@
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Briefcase, MapPin, Clock, DollarSign } from 'lucide-react';
-import Link from 'next/link';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import HowitWorks from "../components/HowItWorks";
 
-// Placeholder data - replace with actual data fetching later
-const opportunities = [
-  { id: 1, title: 'Tech Gadget Review Video', company: 'GadgetCo', type: 'Paid Gig', location: 'Remote', postedDate: '2 days ago', budget: '$500 - $1000', description: 'Looking for a tech reviewer to create a 5-minute YouTube video showcasing our new smart watch.' },
-  { id: 2, title: 'Sponsored Blog Post - Sustainable Fashion', company: 'EcoThreads', type: 'Paid Gig', location: 'Remote', postedDate: '5 days ago', budget: '$300', description: 'Write an engaging blog post about sustainable fashion choices, featuring our latest collection.' },
-  { id: 3, title: 'Travel Vlogger for Destination Marketing', company: 'VisitParadise Agency', type: 'Travel Opp', location: 'Bali, Indonesia (Travel Provided)', postedDate: '1 week ago', budget: 'Expenses Covered + Fee', description: 'Seeking an experienced travel vlogger to capture the beauty of Bali for a tourism campaign.' },
-  { id: 4, title: 'Recipe Development - Vegan Snacks', company: 'HealthyBites', type: 'Paid Gig', location: 'Remote', postedDate: '1 week ago', budget: '$150 per recipe', description: 'Develop and photograph 3 unique vegan snack recipes using our new plant-based protein powder.' },
-  { id: 5, title: 'Instagram Campaign - Fitness Apparel', company: 'FitGear', type: 'Paid Gig', location: 'Remote', postedDate: '10 days ago', budget: 'Negotiable', description: 'Collaborate on an Instagram campaign (3 posts + 2 stories) promoting our new activewear line.' },
-];
+const styles = {
+  container: {
+    fontFamily: "Arial, sans-serif",
+    padding: "20px",
+    maxWidth: "1200px",
+    margin: "0 auto",
+  },
+  divider: {
+    borderTop: "2px solid #ddd",
+    margin: "20px 0",
+  },
+  ctaSection: {
+    backgroundColor: "#f8f8f8",
+    padding: "30px",
+    borderRadius: "8px",
+    textAlign: "center",
+    marginBottom: "30px",
+  },
+  ctaTitle: {
+    color: "#333",
+    marginBottom: "15px",
+    fontSize: "24px",
+  },
+  ctaText: {
+    color: "#555",
+    lineHeight: "1.6",
+  },
+  opportunitiesList: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+    gap: "20px",
+    marginBottom: "30px",
+  },
+  opportunityCard: {
+    backgroundColor: "#fff",
+    border: "1px solid #eee",
+    borderRadius: "8px",
+    padding: "20px",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
+      transform: "translateY(-2px)",
+    },
+  },
+  cardTitle: {
+    color: "#333",
+    marginBottom: "10px",
+    fontSize: "18px",
+  },
+  cardText: {
+    color: "#666",
+    marginBottom: "5px",
+  },
+  applyButton: {
+    backgroundColor: "#007bff",
+    color: "#fff",
+    padding: "10px 15px",
+    borderRadius: "5px",
+    border: "none",
+    cursor: "pointer",
+    marginTop: "15px",
+    "&:hover": {
+      backgroundColor: "#0056b3",
+    },
+  },
+  detailsContainer: {
+    display: "flex",
+    gap: "20px",
+    marginBottom: "30px",
+  },
+  detailsSection: {
+    flex: "2",
+    backgroundColor: "#fff",
+    border: "1px solid #eee",
+    borderRadius: "8px",
+    padding: "20px",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+  },
+  detailsTitle: {
+    color: "#333",
+    marginBottom: "10px",
+    fontSize: "20px",
+  },
+  detailsText: {
+    color: "#555",
+    marginBottom: "10px",
+    lineHeight: "1.6",
+  },
+  applicationFormCard: {
+    flex: "1",
+    backgroundColor: "#fff",
+    border: "1px solid #eee",
+    borderRadius: "8px",
+    padding: "20px",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+  },
+  formTitle: {
+    color: "#333",
+    marginBottom: "20px",
+    fontSize: "18px",
+    textAlign: "center",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  formGroup: {
+    marginBottom: "20px",
+    display: "flex",
+    flexDirection: "column",
+  },
+  label: {
+    marginBottom: "5px",
+    color: "#333",
+  },
+  input: {
+    padding: "10px",
+    border: "1px solid #ddd",
+    borderRadius: "5px",
+    marginBottom: "5px",
+  },
+  submitButton: {
+    backgroundColor: "#007bff",
+    color: "#fff",
+    padding: "10px 15px",
+    borderRadius: "5px",
+    border: "none",
+    cursor: "pointer",
+    "&:hover": {
+      backgroundColor: "#0056b3",
+    },
+  },
+};
 
-export default function OpportunitiesPage() {
+const Opportunities = () => {
+  const [opportunities, setOpportunities] = useState([]);
+  const [selectedOpportunity, setSelectedOpportunity] = useState(null);
+  const [application, setApplication] = useState({
+    name: "",
+    email: "",
+    resumeUrl: "",
+    applicationDate: new Date().toISOString().split("T")[0],
+  });
+  const [submissionStatus, setSubmissionStatus] = useState(null);
+
+  useEffect(() => {
+    fetchOpportunities();
+  }, []);
+
+  const fetchOpportunities = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:3001/api/users/opportunities/opportunitiesGetAll"
+      );
+      setOpportunities(response.data);
+    } catch (error) {
+      console.error("Error fetching opportunities:", error);
+    }
+  };
+
+  const handleCardClick = (opportunity) => {
+    setSelectedOpportunity(opportunity);
+    setSubmissionStatus(null); // Reset submission status when a new opportunity is selected
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setApplication({ ...application, [name]: value });
+  };
+
+  const handleApply = async (e) => {
+    e.preventDefault();
+    if (!selectedOpportunity) return;
+
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/api/users/application/opportunity/${selectedOpportunity.id}/apply`,
+        application
+      );
+      setSubmissionStatus("Application submitted successfully!");
+      setApplication({
+        name: "",
+        email: "",
+        resumeUrl: "",
+        applicationDate: new Date().toISOString().split("T")[0],
+      }); // Reset form
+    } catch (error) {
+      console.error("Error applying for opportunity:", error);
+      setSubmissionStatus("Failed to submit application. Please try again.");
+    }
+  };
+
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl md:text-4xl font-bold">Opportunities Hub</h1>
-      <p className="text-lg text-foreground/80">
-        Discover paid gigs, brand collaborations, and exciting projects tailored for content creators.
-      </p>
+    <div style={styles.container}>
+      {/* How It Works Section */}
+      <HowitWorks />
 
-      {/* Filtering/Sorting Placeholder */}
-      <div className="flex flex-wrap gap-2">
-         {/* Add filter/sort components here later */}
-         <Button variant="outline" size="sm" disabled>Filter by Type</Button>
-         <Button variant="outline" size="sm" disabled>Sort by Date</Button>
+      {/* Divider and CTA Section */}
+      <div style={styles.divider}></div>
+      <div style={styles.ctaSection}>
+        <h2 style={styles.ctaTitle}>Ready to Collaborate?</h2>
+        <p style={styles.ctaText}>
+          Join our community of innovators and creators. Explore exciting
+          collaboration opportunities and bring your ideas to life with
+          like-minded individuals.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {opportunities.map((opp) => (
-          <Card key={opp.id} className="flex flex-col justify-between hover:shadow-md transition-shadow duration-200">
-            <CardHeader>
-              <div className="flex justify-between items-start mb-2">
-                 <Badge variant={opp.type === 'Paid Gig' ? 'default' : 'secondary'}>{opp.type}</Badge>
-                 <span className="text-xs text-foreground/60 flex items-center">
-                   <Clock className="h-3 w-3 mr-1" /> {opp.postedDate}
-                 </span>
-              </div>
-              <CardTitle className="text-xl">{opp.title}</CardTitle>
-              <CardDescription className="flex items-center text-sm">
-                 <Briefcase className="h-4 w-4 mr-1.5 text-foreground/70" /> {opp.company}
-              </CardDescription>
-               <CardDescription className="flex items-center text-sm">
-                 <MapPin className="h-4 w-4 mr-1.5 text-foreground/70" /> {opp.location}
-               </CardDescription>
-               <CardDescription className="flex items-center text-sm pt-1 font-medium">
-                 <DollarSign className="h-4 w-4 mr-1.5 text-primary" /> {opp.budget}
-               </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-foreground/80 line-clamp-3">{opp.description}</p>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" size="sm" asChild>
-                {/* Link to a detailed opportunity page later */}
-                <Link href={`/opportunities/${opp.id}`}>View Details</Link>
-              </Button>
-               <Button size="sm" className="ml-auto" disabled>Apply Now (TBD)</Button>
-            </CardFooter>
-          </Card>
+      {/* Collaboration Opportunities Section */}
+
+      <div style={styles.opportunitiesList}>
+        {opportunities.map((opportunity) => (
+          <div
+            key={opportunity.id}
+            style={styles.opportunityCard}
+            onClick={() => handleCardClick(opportunity)}
+          >
+            <h3 style={styles.cardTitle}>{opportunity.title}</h3>
+            <p style={styles.cardText}>{opportunity.location}</p>
+            <p style={styles.cardText}>{opportunity.type}</p>
+            <p style={styles.cardText}>{opportunity.salaryRange}</p>
+            <button
+              style={styles.applyButton}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent card click event
+                handleCardClick(opportunity);
+              }}
+            >
+              Apply Now
+            </button>
+          </div>
         ))}
       </div>
-       {/* Pagination Placeholder */}
-       <div className="flex justify-center mt-8">
-         <Button variant="outline" disabled>Load More</Button>
-       </div>
+
+      {selectedOpportunity && (
+        <div style={styles.detailsContainer}>
+          <div style={styles.detailsSection}>
+            <h2 style={styles.detailsTitle}>{selectedOpportunity.title}</h2>
+            <p style={styles.detailsText}>{selectedOpportunity.description}</p>
+            <p style={styles.detailsText}>
+              <strong>Requirements:</strong> {selectedOpportunity.requirements}
+            </p>
+            <p style={styles.detailsText}>
+              <strong>Location:</strong> {selectedOpportunity.location}
+            </p>
+            <p style={styles.detailsText}>
+              <strong>Type:</strong> {selectedOpportunity.type}
+            </p>
+            <p style={styles.detailsText}>
+              <strong>Salary Range:</strong> {selectedOpportunity.salaryRange}
+            </p>
+          </div>
+
+          <div style={styles.applicationFormCard}>
+            <h3 style={styles.formTitle}>Apply for this Opportunity</h3>
+            {submissionStatus && (
+              <p
+                style={{
+                  color: submissionStatus.includes("success") ? "green" : "red",
+                  marginBottom: "20px",
+                  fontSize: "14px",
+                  textAlign: "center",
+                }}
+              >
+                {submissionStatus}
+              </p>
+            )}
+            <form onSubmit={handleApply} style={styles.form}>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  Name:
+                  <input
+                    type="text"
+                    name="name"
+                    value={application.name}
+                    onChange={handleInputChange}
+                    required
+                    style={styles.input}
+                  />
+                </label>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  Email:
+                  <input
+                    type="email"
+                    name="email"
+                    value={application.email}
+                    onChange={handleInputChange}
+                    required
+                    style={styles.input}
+                  />
+                </label>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  work URL:
+                  <input
+                    type="url"
+                    name="resumeUrl"
+                    value={application.resumeUrl}
+                    onChange={handleInputChange}
+                    required
+                    style={styles.input}
+                  />
+                </label>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  Application Date:
+                  <input
+                    type="date"
+                    name="applicationDate"
+                    value={application.applicationDate}
+                    onChange={handleInputChange}
+                    required
+                    style={styles.input}
+                  />
+                </label>
+              </div>
+              <button type="submit" style={styles.submitButton}>
+                Submit Application
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default Opportunities;

@@ -21,6 +21,7 @@ const navLinks = [
 export default function Navbar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -42,6 +43,20 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          {!isLoggedIn ? (
+            <Link href="/auth" className="text-sm font-medium transition-colors hover:text-primary" onClick={() => setIsLoggedIn(true)}>
+              Login
+            </Link>
+          ) : (
+            <Button
+              variant="ghost"
+              className="text-sm font-medium transition-colors hover:text-primary"
+              onClick={() => setIsLoggedIn(false)}
+            >
+              Logout
+            </Button>
+          )}
+        
         </nav>
         <div className="flex flex-1 items-center justify-end space-x-4 md:hidden">
            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -69,6 +84,19 @@ export default function Navbar() {
                   >
                     {link.label}
                   </Link>
+                ))}
+                {!isLoggedIn ? (
+                  <Link href="/auth" className="text-sm font-medium transition-colors hover:text-primary" onClick={() => {setIsLoggedIn(true) ;setIsMobileMenuOpen(false)}}>
+                    Login
+                  </Link>
+                ) : (
+                  <Link className="text-sm font-medium transition-colors hover:text-primary" 
+                  onClick={() => {setIsLoggedIn(false); setIsMobileMenuOpen(false)}}>
+                    <Button variant="ghost" size='sm'>
+                    Logout
+                    </Button>
+
+                  </Link> 
                 ))}
               </div>
             </SheetContent>
