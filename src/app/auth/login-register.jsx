@@ -54,11 +54,15 @@ const Login = ({ handleLogin }) => {
         // Avoid window.location.reload(); let Next.js handle state updates
       } else {
         const data = await response.json();
-        setError(data.message || "Login failed. Please try again.");
+        setError(data.message || "Login failed. Please check credentials and try again.");
       }
     } catch (error) {
        console.error("Login error:", error); // Log the actual error
-      setError("Error logging in. Please check your connection and try again.");
+       if (error instanceof TypeError && error.message === 'Failed to fetch') {
+         setError("Error logging in. Could not connect to the server. Please ensure the backend is running and accessible.");
+       } else {
+        setError("Error logging in. Please check your connection and try again.");
+       }
     }
   };
 
@@ -88,7 +92,11 @@ const Login = ({ handleLogin }) => {
       }
     } catch (error) {
        console.error("OTP Send error:", error);
-      setError("Error sending OTP. Please check your connection and try again.");
+       if (error instanceof TypeError && error.message === 'Failed to fetch') {
+         setError("Error sending OTP. Could not connect to the server.");
+       } else {
+          setError("Error sending OTP. Please check your connection and try again.");
+       }
     }
   };
 
@@ -118,7 +126,11 @@ const Login = ({ handleLogin }) => {
       }
     } catch (error) {
       console.error("OTP Verify error:", error);
-      setError("Error verifying OTP. Please check your connection and try again.");
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+         setError("Error verifying OTP. Could not connect to the server.");
+       } else {
+        setError("Error verifying OTP. Please check your connection and try again.");
+      }
     }
   };
 
@@ -164,7 +176,11 @@ const Login = ({ handleLogin }) => {
       }
     } catch (error) {
       console.error("Registration error:", error);
-      setError("Error registering. Please check your connection and try again.");
+       if (error instanceof TypeError && error.message === 'Failed to fetch') {
+         setError("Error registering. Could not connect to the server.");
+       } else {
+         setError("Error registering. Please check your connection and try again.");
+       }
     }
   };
 
