@@ -9,15 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth"; // Import Firebase Auth
-import { app } from "@/lib/firebase/config"; // Import Firebase app instance
-
-// SVG for Google icon
-const GoogleIcon = () => (
-  <svg className="mr-2 -ml-1 w-4 h-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-    <path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 261.8S110.3 11.6 244 11.6c70.3 0 129.5 27.8 174.2 71.9l-63.9 61.3c-24.5-23.1-58.1-37.3-99.8-37.3-86.1 0-156.1 69.1-156.1 154.1s69.9 154.1 156.1 154.1c99.8 0 133-60.9 138.4-93.2H244v-76.5h239.8c4.7 25.4 7.2 51.9 7.2 79.7z"></path>
-  </svg>
-);
+// Removed Firebase Auth imports: import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+// Removed Firebase app instance import: import { app } from "@/lib/firebase/config";
 
 
 const Login = ({ handleLogin }) => {
@@ -36,7 +29,7 @@ const Login = ({ handleLogin }) => {
   const [isClient, setIsClient] = useState(false);
 
   const router = useRouter();
-  const auth = getAuth(app); // Get Firebase Auth instance
+  // Removed Firebase Auth instance initialization: const auth = getAuth(app);
 
    useEffect(() => {
     setIsClient(true); // Indicate component has mounted
@@ -86,63 +79,7 @@ const Login = ({ handleLogin }) => {
     }
   };
 
-   // Handle Google Sign-In
-   const handleGoogleSignIn = async () => {
-     setError("");
-     const provider = new GoogleAuthProvider();
-     try {
-       const result = await signInWithPopup(auth, provider);
-       const user = result.user;
-       const idToken = await user.getIdToken();
-
-       // **Crucial Backend Interaction (Placeholder)**
-       // Send the idToken to your backend (e.g., http://localhost:3001/api/users/google-login)
-       // Your backend should:
-       // 1. Verify the Firebase ID token using the Firebase Admin SDK.
-       // 2. Check if a user exists with this Google UID or email.
-       // 3. If exists, log them in and return your backend's session token/user info.
-       // 4. If not exists, create a new user in your database using info from the token (name, email, etc.) and return the session token/user info.
-       // 5. Handle potential errors (invalid token, backend issues).
-
-       // Example Placeholder Backend Call:
-       const backendResponse = await fetch("http://localhost:3001/api/users/google-login", { // Adjust endpoint as needed
-         method: "POST",
-         headers: {
-           "Content-Type": "application/json",
-           "Authorization": `Bearer ${idToken}` // Send Firebase token to backend
-         },
-         // Optionally send user details if needed for registration on backend
-         // body: JSON.stringify({ email: user.email, name: user.displayName })
-       });
-
-       if (backendResponse.ok) {
-         const backendData = await backendResponse.json();
-         // Assuming backend returns { token: 'yourBackendToken', user: { id: '...', username: '...' } }
-         if (typeof window !== 'undefined') {
-           localStorage.setItem("token", backendData.token); // Store YOUR backend token
-           localStorage.setItem("id", backendData.user.id);
-           localStorage.setItem("username", backendData.user.username);
-         }
-         router.push("/"); // Navigate on successful backend login/registration
-       } else {
-         // Handle error from *your* backend during Google login/registration
-         const errorData = await backendResponse.json().catch(() => ({ message: "Google Sign-In failed on backend." }));
-         setError(errorData.message || "Google Sign-In failed during backend processing.");
-       }
-
-     } catch (error) {
-       console.error("Google Sign-In Error:", error);
-       let firebaseErrorMessage = "Google Sign-In failed. Please try again.";
-       if (error.code === 'auth/popup-closed-by-user') {
-         firebaseErrorMessage = "Google Sign-In cancelled.";
-       } else if (error.code === 'auth/network-request-failed') {
-          firebaseErrorMessage = "Google Sign-In failed. Check your network connection.";
-       } else if (error instanceof TypeError && error.message === 'Failed to fetch'){
-          firebaseErrorMessage = `Google Sign-In failed. Could not connect to backend at http://localhost:3001 for validation.`;
-       }
-       setError(firebaseErrorMessage);
-     }
-   };
+   // Removed handleGoogleSignIn function
 
 
   // Handle Send OTP
@@ -358,19 +295,7 @@ const Login = ({ handleLogin }) => {
                   <Button type="submit" className="w-full">
                     Login
                   </Button>
-                    {/* Divider */}
-                    <div className="relative my-4">
-                       <div className="absolute inset-0 flex items-center">
-                           <span className="w-full border-t border-border"></span>
-                       </div>
-                       <div className="relative flex justify-center text-xs uppercase">
-                           <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-                       </div>
-                    </div>
-                    {/* Google Sign-In Button */}
-                     <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn}>
-                       <GoogleIcon /> Google
-                     </Button>
+                    {/* Removed Google Sign-In Button and Divider */}
                 </form>
               )}
 
@@ -397,19 +322,7 @@ const Login = ({ handleLogin }) => {
                         Send OTP
                       </Button>
                     </form>
-                     {/* Divider */}
-                     <div className="relative my-4">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-border"></span>
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-card px-2 text-muted-foreground">Or sign up with</span>
-                        </div>
-                     </div>
-                      {/* Google Sign-Up Button */}
-                      <Button variant="outline" className="w-full mt-4" type="button" onClick={handleGoogleSignIn}>
-                        <GoogleIcon /> Google
-                      </Button>
+                     {/* Removed Google Sign-Up Button and Divider */}
                      </>
                   )}
 
