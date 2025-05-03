@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState } from "react";
-// Note: react-router-dom's useNavigate doesn't work in Next.js App Router. Using next/navigation.
-import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
+import React, { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth"; // Import Firebase Auth
+import { app } from "@/lib/firebase/config"; // Import Firebase app instance
+
+// SVG for Google icon
+const GoogleIcon = () => (
+  <svg className="mr-2 -ml-1 w-4 h-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+    <path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 261.8S110.3 11.6 244 11.6c70.3 0 129.5 27.8 174.2 71.9l-63.9 61.3c-24.5-23.1-58.1-37.3-99.8-37.3-86.1 0-156.1 69.1-156.1 154.1s69.9 154.1 156.1 154.1c99.8 0 133-60.9 138.4-93.2H244v-76.5h239.8c4.7 25.4 7.2 51.9 7.2 79.7z"></path>
+  </svg>
+);
 
 
 const Login = ({ handleLogin }) => {
@@ -25,16 +33,21 @@ const Login = ({ handleLogin }) => {
   const [channelName, setChannelName] = useState("");
   const [channelId, setChannelId] = useState("");
   const [channelURL, setChannelURL] = useState("");
+  const [isClient, setIsClient] = useState(false);
 
-  const router = useRouter(); // Use Next.js router
+  const router = useRouter();
+  const auth = getAuth(app); // Get Firebase Auth instance
+
+   useEffect(() => {
+    setIsClient(true); // Indicate component has mounted
+   }, []);
 
   // Handle Login
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Clear previous errors
+    setError("");
 
     try {
-      // Ensure the backend URL is correct and accessible
       const backendUrl = "http://localhost:3001/api/users/login";
       const response = await fetch(backendUrl, {
         method: "POST",
@@ -46,43 +59,96 @@ const Login = ({ handleLogin }) => {
 
       if (response.ok) {
         const data = await response.json();
-        // Use localStorage carefully in Next.js, ensure it only runs client-side
         if (typeof window !== 'undefined') {
-          localStorage.setItem("token", data.token);
+          localStorage.setItem("token", data.token); // Store backend token
           localStorage.setItem("id", data.user.id);
           localStorage.setItem("username", data.user.username);
         }
-        router.push("/"); // Use Next.js router for navigation
-        // Avoid window.location.reload(); let Next.js handle state updates
+        router.push("/");
       } else {
-        // Handle HTTP errors (like 401 Unauthorized, 404 Not Found, etc.)
         let errorMessage = "Login failed. Please check credentials and try again.";
         try {
             const data = await response.json();
             errorMessage = data.message || errorMessage;
         } catch (jsonError) {
-            // If response is not JSON or empty
             console.error("Could not parse error response:", jsonError);
              errorMessage = `Login failed with status: ${response.status} ${response.statusText}`;
         }
          setError(errorMessage);
       }
     } catch (error) {
-       // Handle network errors (like failed fetch, CORS)
-       console.error("Login network error:", error); // Log the actual error
+       console.error("Login network error:", error);
        let networkErrorMessage = "Error logging in. Please check your connection and try again.";
-       if (error instanceof TypeError && error.message === 'Failed to fetch') {
-         // Suggest possible causes for "Failed to fetch"
-         networkErrorMessage = `Error logging in. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and that CORS is configured correctly on the server to allow requests from your frontend origin (${window.location.origin}).`;
+       if (isClient && error instanceof TypeError && error.message === 'Failed to fetch') {
+          networkErrorMessage = `Error logging in. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and that CORS is configured correctly on the server to allow requests from your frontend origin (${window.location.origin}).`;
        }
        setError(networkErrorMessage);
     }
   };
 
+   // Handle Google Sign-In
+   const handleGoogleSignIn = async () => {
+     setError("");
+     const provider = new GoogleAuthProvider();
+     try {
+       const result = await signInWithPopup(auth, provider);
+       const user = result.user;
+       const idToken = await user.getIdToken();
+
+       // **Crucial Backend Interaction (Placeholder)**
+       // Send the idToken to your backend (e.g., http://localhost:3001/api/users/google-login)
+       // Your backend should:
+       // 1. Verify the Firebase ID token using the Firebase Admin SDK.
+       // 2. Check if a user exists with this Google UID or email.
+       // 3. If exists, log them in and return your backend's session token/user info.
+       // 4. If not exists, create a new user in your database using info from the token (name, email, etc.) and return the session token/user info.
+       // 5. Handle potential errors (invalid token, backend issues).
+
+       // Example Placeholder Backend Call:
+       const backendResponse = await fetch("http://localhost:3001/api/users/google-login", { // Adjust endpoint as needed
+         method: "POST",
+         headers: {
+           "Content-Type": "application/json",
+           "Authorization": `Bearer ${idToken}` // Send Firebase token to backend
+         },
+         // Optionally send user details if needed for registration on backend
+         // body: JSON.stringify({ email: user.email, name: user.displayName })
+       });
+
+       if (backendResponse.ok) {
+         const backendData = await backendResponse.json();
+         // Assuming backend returns { token: 'yourBackendToken', user: { id: '...', username: '...' } }
+         if (typeof window !== 'undefined') {
+           localStorage.setItem("token", backendData.token); // Store YOUR backend token
+           localStorage.setItem("id", backendData.user.id);
+           localStorage.setItem("username", backendData.user.username);
+         }
+         router.push("/"); // Navigate on successful backend login/registration
+       } else {
+         // Handle error from *your* backend during Google login/registration
+         const errorData = await backendResponse.json().catch(() => ({ message: "Google Sign-In failed on backend." }));
+         setError(errorData.message || "Google Sign-In failed during backend processing.");
+       }
+
+     } catch (error) {
+       console.error("Google Sign-In Error:", error);
+       let firebaseErrorMessage = "Google Sign-In failed. Please try again.";
+       if (error.code === 'auth/popup-closed-by-user') {
+         firebaseErrorMessage = "Google Sign-In cancelled.";
+       } else if (error.code === 'auth/network-request-failed') {
+          firebaseErrorMessage = "Google Sign-In failed. Check your network connection.";
+       } else if (error instanceof TypeError && error.message === 'Failed to fetch'){
+          firebaseErrorMessage = `Google Sign-In failed. Could not connect to backend at http://localhost:3001 for validation.`;
+       }
+       setError(firebaseErrorMessage);
+     }
+   };
+
+
   // Handle Send OTP
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
-     setError("");
+    setError("");
 
     try {
       const backendUrl = `http://localhost:3001/api/users/request-otp?email=${encodeURIComponent(email)}`;
@@ -110,7 +176,7 @@ const Login = ({ handleLogin }) => {
     } catch (error) {
        console.error("OTP Send network error:", error);
        let networkErrorMessage = "Error sending OTP. Please check your connection.";
-       if (error instanceof TypeError && error.message === 'Failed to fetch') {
+       if (isClient && error instanceof TypeError && error.message === 'Failed to fetch') {
           networkErrorMessage = `Error sending OTP. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
        }
        setError(networkErrorMessage);
@@ -148,7 +214,7 @@ const Login = ({ handleLogin }) => {
     } catch (error) {
       console.error("OTP Verify network error:", error);
       let networkErrorMessage = "Error verifying OTP. Please check your connection.";
-       if (error instanceof TypeError && error.message === 'Failed to fetch') {
+       if (isClient && error instanceof TypeError && error.message === 'Failed to fetch') {
          networkErrorMessage = `Error verifying OTP. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
        }
       setError(networkErrorMessage);
@@ -190,8 +256,8 @@ const Login = ({ handleLogin }) => {
             localStorage.setItem("id", data.user.id);
             localStorage.setItem("username", data.user.username);
          }
-        setIsRegistering(false); // Switch back to login view after successful registration
-        router.push("/"); // Navigate to home
+        setIsRegistering(false);
+        router.push("/");
       } else {
         let errorMessage = "Registration failed. Please try again.";
          try {
@@ -206,7 +272,7 @@ const Login = ({ handleLogin }) => {
     } catch (error) {
       console.error("Registration network error:", error);
       let networkErrorMessage = "Error registering. Please check your connection.";
-       if (error instanceof TypeError && error.message === 'Failed to fetch') {
+       if (isClient && error instanceof TypeError && error.message === 'Failed to fetch') {
          networkErrorMessage = `Error registering. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
        }
        setError(networkErrorMessage);
@@ -292,6 +358,19 @@ const Login = ({ handleLogin }) => {
                   <Button type="submit" className="w-full">
                     Login
                   </Button>
+                    {/* Divider */}
+                    <div className="relative my-4">
+                       <div className="absolute inset-0 flex items-center">
+                           <span className="w-full border-t border-border"></span>
+                       </div>
+                       <div className="relative flex justify-center text-xs uppercase">
+                           <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                       </div>
+                    </div>
+                    {/* Google Sign-In Button */}
+                     <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn}>
+                       <GoogleIcon /> Google
+                     </Button>
                 </form>
               )}
 
@@ -300,6 +379,7 @@ const Login = ({ handleLogin }) => {
                 <>
                   {/* Step 1: Email Input */}
                   {!isOtpSent && (
+                     <>
                     <form onSubmit={handleEmailSubmit} className="space-y-4">
                       <div>
                         <Label htmlFor="register-email">Email</Label>
@@ -317,6 +397,20 @@ const Login = ({ handleLogin }) => {
                         Send OTP
                       </Button>
                     </form>
+                     {/* Divider */}
+                     <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-border"></span>
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-card px-2 text-muted-foreground">Or sign up with</span>
+                        </div>
+                     </div>
+                      {/* Google Sign-Up Button */}
+                      <Button variant="outline" className="w-full mt-4" type="button" onClick={handleGoogleSignIn}>
+                        <GoogleIcon /> Google
+                      </Button>
+                     </>
                   )}
 
                   {/* Step 2: OTP Verification */}
