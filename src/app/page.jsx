@@ -8,7 +8,8 @@ import { ArrowRight, Zap, BarChart, Users, Award } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="space-y-16 md:space-y-24">
+    // Add container mx-auto here to constrain content width on this page
+    <div className="container mx-auto space-y-16 md:space-y-24">
       {/* Hero Section */}
       <section className="text-center pt-16 pb-12 md:pt-24 md:pb-16">
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4 bg-gradient-to-r from-primary via-teal-400 to-teal-600 bg-clip-text text-transparent">

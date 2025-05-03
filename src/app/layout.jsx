@@ -6,7 +6,6 @@ import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
 import { Providers } from './providers'; // Import Providers
-// Removed SidebarProvider import
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -35,9 +34,8 @@ export default function RootLayout({ children }) {
       >
         <Providers> {/* Wrap content with Providers */}
           <Navbar />
-          {/* Changed main to flex flex-col to contain its children properly */}
-          <main className="flex flex-col flex-1 container mx-auto px-4 py-8">
-             {/* Removed flex-grow from main, applied flex-1 */}
+          {/* Removed 'container mx-auto' to allow full-width layouts like the dashboard */}
+          <main className="flex flex-col flex-1 px-4 py-8">
              <div className="flex-1"> {/* This div will grow to fill the space */}
                {children}
              </div>

@@ -1,13 +1,12 @@
+
 import DashboardClient from './dashboard-client';
 
 export default function DashboardLayout({ children }) {
   return (
-    // DashboardClient provides the Sidebar and the main content area structure
-    // Wrap children in a flex container to manage layout
-    <div className="flex flex-1">
-       <DashboardClient>
-         {children}
-       </DashboardClient>
-    </div>
+    // DashboardClient itself now manages the sidebar and main content area structure.
+    // No extra flex container needed here.
+     <DashboardClient>
+       {children}
+     </DashboardClient>
   );
 }

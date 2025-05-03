@@ -100,7 +100,7 @@ const Sidebar = React.forwardRef(
        // No provider needed here
            <div
             ref={ref}
-            className="group peer hidden md:block text-sidebar-foreground"
+            className="group peer hidden md:flex md:flex-shrink-0 text-sidebar-foreground" // Added md:flex md:flex-shrink-0
             data-state={state} // Use state from context
             data-collapsible={state === "collapsed" ? collapsible : ""}
             data-variant={variant}
@@ -199,21 +199,27 @@ const SidebarInset = React.forwardRef(({ className, ...props }, ref) => {
     <main
       ref={ref}
       className={cn(
-        // Removed min-h-svh, added flex-1 to allow growing within parent flex container
+        // flex-1 allows this component to take up remaining space
         "relative flex flex-1 flex-col bg-background",
-        // Adjustments for inset variant based on sibling `peer` data attributes
-        "md:peer-data-[state=expanded]:peer-data-[variant=inset]:ml-[--sidebar-width]",
-         "md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
-         // Ensure proper margin handling based on side
-         "md:peer-data-[side=right]:peer-data-[state=expanded]:peer-data-[variant=inset]:mr-[--sidebar-width]",
-         "md:peer-data-[side=right]:peer-data-[state=collapsed]:peer-data-[variant=inset]:mr-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
-        // General inset styles
-         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
-         // Reset margin if not inset or collapsed icon state doesn't apply
-         "md:peer-data-[state=expanded]:peer-data-[variant=sidebar]:ml-[--sidebar-width]", // Standard sidebar expanded
-         "md:peer-data-[state=collapsed]:peer-data-[variant=sidebar]:ml-[--sidebar-width-icon]", // Standard sidebar collapsed
-         "md:peer-data-[side=right]:peer-data-[state=expanded]:peer-data-[variant=sidebar]:mr-[--sidebar-width]",
-         "md:peer-data-[side=right]:peer-data-[state=collapsed]:peer-data-[variant=sidebar]:mr-[--sidebar-width-icon]",
+        // --- Margin adjustments based on sibling `peer` data attributes (Desktop only) ---
+
+        // Standard Sidebar (not inset): Add margin based on expanded/collapsed state
+        "md:peer-data-[variant=sidebar]:peer-data-[state=expanded]:peer-data-[side=left]:ml-[--sidebar-width]",
+        "md:peer-data-[variant=sidebar]:peer-data-[state=collapsed]:peer-data-[side=left]:ml-[--sidebar-width-icon]",
+        "md:peer-data-[variant=sidebar]:peer-data-[state=expanded]:peer-data-[side=right]:mr-[--sidebar-width]",
+        "md:peer-data-[variant=sidebar]:peer-data-[state=collapsed]:peer-data-[side=right]:mr-[--sidebar-width-icon]",
+
+        // Inset Sidebar: Add margin based on expanded/collapsed state + padding
+        "md:peer-data-[variant=inset]:peer-data-[state=expanded]:peer-data-[side=left]:ml-[calc(var(--sidebar-width)_+_theme(spacing.4))]",
+        "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:peer-data-[side=left]:ml-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
+        "md:peer-data-[variant=inset]:peer-data-[state=expanded]:peer-data-[side=right]:mr-[calc(var(--sidebar-width)_+_theme(spacing.4))]",
+        "md:peer-data-[variant=inset]:peer-data-[state=collapsed]:peer-data-[side=right]:mr-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
+
+        // --- General inset styles (Desktop only) ---
+        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))]",
+        "md:peer-data-[variant=inset]:m-2",
+        "md:peer-data-[variant=inset]:rounded-xl",
+        "md:peer-data-[variant=inset]:shadow",
 
         className
       )}
