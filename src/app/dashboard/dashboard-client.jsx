@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react'; // Added useEffect, useMemo
@@ -22,9 +23,6 @@ import Link from 'next/link'; // For internal links
 import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile hook
 import { cn } from '@/lib/utils'; // Import cn utility function
 import { TooltipProvider } from '@/components/ui/tooltip'; // Import TooltipProvider
-
-// Placeholder components for different dashboard sections - These will eventually be separate pages or components
-// We pass the main page content via `children` now.
 
 // Define the structure for sidebar links
 const sidebarLinks = [
@@ -116,81 +114,83 @@ export default function DashboardClient({ children }) {
     // Provide the sidebar context to all children
     <TooltipProvider delayDuration={0}>
     <SidebarContext.Provider value={contextValue}>
-      {/* Render Sidebar - it will consume the context now provided by TooltipProvider too */}
-      <Sidebar>
-        <SidebarHeader className="border-b border-sidebar-border">
-          <div className="flex items-center justify-between p-2">
-             {/* Mobile Trigger - Correctly uses context now */}
-             <SidebarTrigger className="md:hidden"/>
-              {/* Desktop User Info */}
-              <div className="hidden md:flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={`https://i.pravatar.cc/40?u=${username}`} alt={username} />
-                  <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                {/* Use context state to conditionally hide username */}
-                <span className={cn("text-sm font-medium", contextValue.state === 'collapsed' && 'sr-only group-data-[collapsible=icon]:hidden')}>
-                  {username}
-                </span>
-              </div>
-             {/* Actions (Notifications/Settings) */}
-             <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" aria-label="Notifications">
-                    <Bell className="size-4" />
-                </Button>
-                 {/* Link to profile settings */}
-                 <Link href="/dashboard/update" passHref legacyBehavior>
-                    <Button variant="ghost" size="icon" aria-label="Settings">
-                        <Settings className="size-4" />
+        {/* Render Sidebar - it will consume the context now provided by TooltipProvider too */}
+        <Sidebar>
+            <SidebarHeader className="border-b border-sidebar-border">
+            <div className="flex items-center justify-between p-2">
+                {/* Mobile Trigger - Correctly uses context now */}
+                <SidebarTrigger className="md:hidden"/>
+                {/* Desktop User Info */}
+                <div className="hidden md:flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                    <AvatarImage src={`https://i.pravatar.cc/40?u=${username}`} alt={username} />
+                    <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    {/* Use context state to conditionally hide username */}
+                    <span className={cn("text-sm font-medium", contextValue.state === 'collapsed' && 'sr-only group-data-[collapsible=icon]:hidden')}>
+                    {username}
+                    </span>
+                </div>
+                {/* Actions (Notifications/Settings) */}
+                <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" aria-label="Notifications">
+                        <Bell className="size-4" />
                     </Button>
-                 </Link>
-             </div>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            {sidebarLinks.map(link => (
-               <SidebarMenuItem key={link.id}>
-                <SidebarMenuButton
-                  onClick={() => handleNavigation(link.id)}
-                  isActive={pathname === link.id} // Use pathname for active state
-                  tooltip={link.label} // Tooltip for collapsed view
-                >
-                  <link.icon />
-                  <span>{link.label}</span>
+                    {/* Link to profile settings */}
+                    <Link href="/dashboard/update" passHref legacyBehavior>
+                        <Button variant="ghost" size="icon" aria-label="Settings">
+                            <Settings className="size-4" />
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+            </SidebarHeader>
+            <SidebarContent>
+            <SidebarMenu>
+                {sidebarLinks.map(link => (
+                <SidebarMenuItem key={link.id}>
+                    <SidebarMenuButton
+                    onClick={() => handleNavigation(link.id)}
+                    isActive={pathname === link.id} // Use pathname for active state
+                    tooltip={link.label} // Tooltip for collapsed view
+                    >
+                    <link.icon />
+                    <span>{link.label}</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                ))}
+            </SidebarMenu>
+            </SidebarContent>
+            <SidebarFooter className="border-t border-sidebar-border mt-auto">
+            <SidebarMenu>
+                <SidebarMenuItem>
+                <SidebarMenuButton tooltip="Logout" onClick={handleLogout}>
+                    <LogOut />
+                    <span>Logout</span>
                 </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter className="border-t border-sidebar-border mt-auto">
-           <SidebarMenu>
-             <SidebarMenuItem>
-               <SidebarMenuButton tooltip="Logout" onClick={handleLogout}>
-                 <LogOut />
-                 <span>Logout</span>
-               </SidebarMenuButton>
-             </SidebarMenuItem>
-           </SidebarMenu>
-        </SidebarFooter>
-      </Sidebar>
+                </SidebarMenuItem>
+            </SidebarMenu>
+            </SidebarFooter>
+        </Sidebar>
 
-      {/* Main Content Area - Renders the actual page content */}
-      <SidebarInset>
-        {/* Header for main content area, including the mobile trigger */}
-        <header className="flex items-center justify-between p-4 border-b md:hidden">
-            {/* Find the current page title */}
-           <h2 className="text-xl font-semibold capitalize">
-               {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
-           </h2>
-           {/* This trigger now works correctly because context is provided above */}
-           <SidebarTrigger />
-        </header>
-        {/* Render the specific page component passed as children */}
-        <div className="p-4 md:p-6"> {/* Add padding around the content */}
-          {children}
-        </div>
-      </SidebarInset>
+        {/* Main Content Area - Renders the actual page content */}
+        {/* Removed min-h-screen to allow natural height based on sidebar */}
+        <SidebarInset className="flex flex-col">
+            {/* Header for main content area, including the mobile trigger */}
+            <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0">
+                {/* Find the current page title */}
+            <h2 className="text-xl font-semibold capitalize">
+                {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
+            </h2>
+            {/* This trigger now works correctly because context is provided above */}
+            <SidebarTrigger />
+            </header>
+            {/* Render the specific page component passed as children */}
+            {/* Added flex-grow here */}
+            <div className="p-4 md:p-6 flex-grow">
+            {children}
+            </div>
+        </SidebarInset>
     </SidebarContext.Provider>
     </TooltipProvider>
   );

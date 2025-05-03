@@ -16,7 +16,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
   TooltipContent,
-  // TooltipProvider, // Removed provider from here
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
@@ -63,7 +62,7 @@ const Sidebar = React.forwardRef(
          // No provider needed here, context comes from parent
             <div
             className={cn(
-                "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
+                "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground", // Added flex flex-col h-full
                 className
             )}
             ref={ref}
@@ -99,7 +98,6 @@ const Sidebar = React.forwardRef(
     // Desktop rendering - consumes context
     return (
        // No provider needed here
-         // <TooltipProvider delayDuration={0}> // Removed Provider from here
            <div
             ref={ref}
             className="group peer hidden md:block text-sidebar-foreground"
@@ -136,13 +134,12 @@ const Sidebar = React.forwardRef(
             >
                <div
                 data-sidebar="sidebar"
-                className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
+                className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow" // Added flex flex-col h-full
                >
                 {children}
                </div>
             </div>
            </div>
-         // </TooltipProvider> // Removed Provider from here
     )
   }
 )
@@ -246,7 +243,7 @@ const SidebarHeader = React.forwardRef(({ className, ...props }, ref) => {
     <div
       ref={ref}
       data-sidebar="header"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn("flex flex-col gap-2 p-2 shrink-0", className)} // Added shrink-0
       {...props}
     />
   )
@@ -258,7 +255,7 @@ const SidebarFooter = React.forwardRef(({ className, ...props }, ref) => {
     <div
       ref={ref}
       data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn("flex flex-col gap-2 p-2 shrink-0", className)} // Added shrink-0
       {...props}
     />
   )
@@ -283,7 +280,7 @@ const SidebarContent = React.forwardRef(({ className, ...props }, ref) => {
       ref={ref}
       data-sidebar="content"
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden", // flex-1 and overflow-auto should handle scrolling
         className
       )}
       {...props}
