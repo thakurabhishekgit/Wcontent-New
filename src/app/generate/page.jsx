@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, LogIn, Lightbulb, Sparkles, Bot } from "lucide-react";
+import { Terminal, LogIn, Lightbulb, Sparkles, Bot, Loader2 } from "lucide-react"; // Added Loader2
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,8 +63,8 @@ export default function GeneratePage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       prompt: '',
-      tone: '',
-      format: '',
+      tone: '', // Default to empty string, mapping to the 'default' SelectItem
+      format: '', // Default to empty string, mapping to the 'default' SelectItem
       generationMode: 'ideas',
     },
   });
@@ -73,7 +74,7 @@ export default function GeneratePage() {
     form.setValue('generationMode', activeTab);
   }, [activeTab, form]);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (formData) => {
     // Check login status and generation count
     if (!isLoggedIn && generationCount >= 1) {
       setShowLoginAlert(true);
@@ -84,9 +85,16 @@ export default function GeneratePage() {
     setError(null);
     setGenerationResult(null); // Clear previous result
 
+     // Prepare data for the flow, converting "default" value back to undefined for optional fields
+     const flowInput = {
+        ...formData,
+        tone: formData.tone === 'default' || formData.tone === '' ? undefined : formData.tone,
+        format: formData.format === 'default' || formData.format === '' ? undefined : formData.format,
+      };
+
     try {
-      // Pass all form data, including tone, format, and generationMode
-      const result = await generateContentIdeas(data);
+      // Pass the modified flowInput to the Genkit flow
+      const result = await generateContentIdeas(flowInput);
 
       // Check the structure of the result based on generationMode
        if (result) {
@@ -101,7 +109,7 @@ export default function GeneratePage() {
            setError('Failed to generate content. The AI returned an unexpected response.');
        }
     } catch (err) {
-      console.error(`Error generating ${data.generationMode}:`, err);
+      console.error(`Error generating ${flowInput.generationMode}:`, err);
        setError(`An error occurred: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`);
     } finally {
       setIsLoading(false);
@@ -170,14 +178,17 @@ export default function GeneratePage() {
                        render={({ field }) => (
                          <FormItem>
                            <FormLabel>Desired Tone (Optional)</FormLabel>
-                           <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                           {/* The value prop maps form state to SelectValue. Default value handles initial render. */}
+                           <Select onValueChange={field.onChange} value={field.value || ''} disabled={isLoading}>
                              <FormControl>
                                <SelectTrigger>
+                                  {/* Display placeholder if value is empty string or "default" */}
                                  <SelectValue placeholder="Select a tone" />
                                </SelectTrigger>
                              </FormControl>
                              <SelectContent>
-                                <SelectItem value="">Any / Default</SelectItem>
+                                {/* Use "default" as the value for the placeholder item */}
+                                <SelectItem value="default">Any / Default</SelectItem>
                                 <SelectItem value="Formal">Formal</SelectItem>
                                 <SelectItem value="Casual">Casual</SelectItem>
                                 <SelectItem value="Humorous">Humorous</SelectItem>
@@ -196,14 +207,17 @@ export default function GeneratePage() {
                        render={({ field }) => (
                          <FormItem>
                            <FormLabel>Desired Format (Optional)</FormLabel>
-                           <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                            {/* The value prop maps form state to SelectValue. Default value handles initial render. */}
+                           <Select onValueChange={field.onChange} value={field.value || ''} disabled={isLoading}>
                              <FormControl>
                                <SelectTrigger>
+                                  {/* Display placeholder if value is empty string or "default" */}
                                  <SelectValue placeholder="Select a format" />
                                </SelectTrigger>
                              </FormControl>
                              <SelectContent>
-                               <SelectItem value="">Any / General</SelectItem>
+                                {/* Use "default" as the value for the placeholder item */}
+                               <SelectItem value="default">Any / General</SelectItem>
                                <SelectItem value="Blog Post">Blog Post</SelectItem>
                                <SelectItem value="Video Script">Video Script</SelectItem>
                                <SelectItem value="Tweet">Tweet</SelectItem>
@@ -226,7 +240,7 @@ export default function GeneratePage() {
                     {isLoading ? (
                        <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating {activeTab}... </>
                     ) : `Generate ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`}
-                     {!isLoggedIn && generationCount > 0 && <span className="ml-2 text-xs">(Login Required)</span>}
+                     {!isLoggedIn && generationCount >= 1 && <span className="ml-2 text-xs">(Login Required)</span>}
                   </Button>
                 </form>
               </Form>
