@@ -110,7 +110,7 @@ const Sidebar = React.forwardRef(
             {/* This is what handles the sidebar gap on desktop */}
             <div
                className={cn(
-                "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
+                "duration-200 relative h-full w-[--sidebar-width] bg-transparent transition-[width] ease-linear", // Changed h-svh to h-full
                 "group-data-[collapsible=offcanvas]:w-0",
                 "group-data-[side=right]:rotate-180",
                 variant === "floating" || variant === "inset"
@@ -120,7 +120,7 @@ const Sidebar = React.forwardRef(
             />
             <div
                className={cn(
-                "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
+                "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex", // Keep h-svh for fixed positioning
                 side === "left"
                   ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
                   : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
@@ -199,7 +199,8 @@ const SidebarInset = React.forwardRef(({ className, ...props }, ref) => {
     <main
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background",
+        // Removed min-h-svh, added flex-1 to allow growing within parent flex container
+        "relative flex flex-1 flex-col bg-background",
         // Adjustments for inset variant based on sibling `peer` data attributes
         "md:peer-data-[state=expanded]:peer-data-[variant=inset]:ml-[--sidebar-width]",
          "md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",

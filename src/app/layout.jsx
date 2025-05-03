@@ -30,16 +30,17 @@ export default function RootLayout({ children }) {
         className={cn(
           geistSans.variable,
           geistMono.variable,
-          'antialiased flex flex-col min-h-screen'
+          'antialiased flex flex-col min-h-screen' // Ensures body takes full height and uses flex column layout
         )}
       >
         <Providers> {/* Wrap content with Providers */}
-          {/* Removed SidebarProvider wrapping */}
           <Navbar />
-          {/* The main content area can occupy the space between navbar and footer */}
-          {/* The dashboard layout will handle its specific structure */}
-          <main className="flex-grow container mx-auto px-4 py-8">
-             {children}
+          {/* Changed main to flex flex-col to contain its children properly */}
+          <main className="flex flex-col flex-1 container mx-auto px-4 py-8">
+             {/* Removed flex-grow from main, applied flex-1 */}
+             <div className="flex-1"> {/* This div will grow to fill the space */}
+               {children}
+             </div>
           </main>
           <Footer />
           <Toaster />

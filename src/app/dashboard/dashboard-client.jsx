@@ -174,8 +174,8 @@ export default function DashboardClient({ children }) {
         </Sidebar>
 
         {/* Main Content Area - Renders the actual page content */}
-        {/* Removed min-h-screen to allow natural height based on sidebar */}
-        <SidebarInset className="flex flex-col">
+        {/* Added flex flex-col h-full to ensure this takes full height within its parent flex container */}
+        <SidebarInset className="flex flex-col h-full">
             {/* Header for main content area, including the mobile trigger */}
             <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0">
                 {/* Find the current page title */}
@@ -186,8 +186,8 @@ export default function DashboardClient({ children }) {
             <SidebarTrigger />
             </header>
             {/* Render the specific page component passed as children */}
-            {/* Added flex-grow here */}
-            <div className="p-4 md:p-6 flex-grow">
+            {/* Removed flex-grow, relying on flex-1 on SidebarInset */}
+            <div className="p-4 md:p-6 overflow-auto"> {/* Added overflow-auto */}
             {children}
             </div>
         </SidebarInset>
