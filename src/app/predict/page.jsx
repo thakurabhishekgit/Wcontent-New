@@ -1,4 +1,6 @@
 
+'use client'; // Add this directive
+
 import React, { useState } from "react";
 
 function Ml() {
