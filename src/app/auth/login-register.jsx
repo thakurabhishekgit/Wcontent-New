@@ -9,8 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
-// Removed Firebase Auth imports: import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-// Removed Firebase app instance import: import { app } from "@/lib/firebase/config";
 
 
 const Login = ({ handleLogin }) => {
@@ -29,7 +27,6 @@ const Login = ({ handleLogin }) => {
   const [isClient, setIsClient] = useState(false);
 
   const router = useRouter();
-  // Removed Firebase Auth instance initialization: const auth = getAuth(app);
 
    useEffect(() => {
     setIsClient(true); // Indicate component has mounted
@@ -56,6 +53,8 @@ const Login = ({ handleLogin }) => {
           localStorage.setItem("token", data.token); // Store backend token
           localStorage.setItem("id", data.user.id);
           localStorage.setItem("username", data.user.username);
+          // Dispatch custom event to notify navbar
+          window.dispatchEvent(new CustomEvent('authChange'));
         }
         router.push("/");
       } else {
@@ -72,14 +71,12 @@ const Login = ({ handleLogin }) => {
     } catch (error) {
        console.error("Login network error:", error);
        let networkErrorMessage = "Error logging in. Please check your connection and try again.";
-       if (isClient && error instanceof TypeError && error.message === 'Failed to fetch') {
+       if (isClient && error instanceof TypeError && error.message.includes('fetch')) { // More robust check
           networkErrorMessage = `Error logging in. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and that CORS is configured correctly on the server to allow requests from your frontend origin (${window.location.origin}).`;
        }
        setError(networkErrorMessage);
     }
   };
-
-   // Removed handleGoogleSignIn function
 
 
   // Handle Send OTP
@@ -113,7 +110,7 @@ const Login = ({ handleLogin }) => {
     } catch (error) {
        console.error("OTP Send network error:", error);
        let networkErrorMessage = "Error sending OTP. Please check your connection.";
-       if (isClient && error instanceof TypeError && error.message === 'Failed to fetch') {
+       if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
           networkErrorMessage = `Error sending OTP. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
        }
        setError(networkErrorMessage);
@@ -151,7 +148,7 @@ const Login = ({ handleLogin }) => {
     } catch (error) {
       console.error("OTP Verify network error:", error);
       let networkErrorMessage = "Error verifying OTP. Please check your connection.";
-       if (isClient && error instanceof TypeError && error.message === 'Failed to fetch') {
+       if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
          networkErrorMessage = `Error verifying OTP. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
        }
       setError(networkErrorMessage);
@@ -167,6 +164,11 @@ const Login = ({ handleLogin }) => {
       setError("Please select a user type.");
       return;
     }
+     // Basic password confirmation validation
+     if (password.length < 6) {
+        setError("Password must be at least 6 characters long.");
+        return;
+     }
 
     try {
       const backendUrl = "http://localhost:3001/api/users/register";
@@ -192,6 +194,8 @@ const Login = ({ handleLogin }) => {
             localStorage.setItem("token", data.token);
             localStorage.setItem("id", data.user.id);
             localStorage.setItem("username", data.user.username);
+             // Dispatch custom event to notify navbar
+            window.dispatchEvent(new CustomEvent('authChange'));
          }
         setIsRegistering(false);
         router.push("/");
@@ -209,7 +213,7 @@ const Login = ({ handleLogin }) => {
     } catch (error) {
       console.error("Registration network error:", error);
       let networkErrorMessage = "Error registering. Please check your connection.";
-       if (isClient && error instanceof TypeError && error.message === 'Failed to fetch') {
+       if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
          networkErrorMessage = `Error registering. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
        }
        setError(networkErrorMessage);
@@ -295,7 +299,6 @@ const Login = ({ handleLogin }) => {
                   <Button type="submit" className="w-full">
                     Login
                   </Button>
-                    {/* Removed Google Sign-In Button and Divider */}
                 </form>
               )}
 
@@ -322,7 +325,6 @@ const Login = ({ handleLogin }) => {
                         Send OTP
                       </Button>
                     </form>
-                     {/* Removed Google Sign-Up Button and Divider */}
                      </>
                   )}
 
@@ -370,7 +372,8 @@ const Login = ({ handleLogin }) => {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
-                           placeholder="Choose a strong password"
+                           placeholder="Choose a strong password (min. 6 chars)"
+                           minLength={6} // Add hint for minimum length
                         />
                       </div>
                       <div>

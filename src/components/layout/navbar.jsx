@@ -24,14 +24,34 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isClient, setIsClient] = useState(false); // Track client-side mount
 
+  // Function to check login status
+  const checkLoginStatus = () => {
+     if (typeof window !== 'undefined') {
+       const token = localStorage.getItem('token');
+       setIsLoggedIn(!!token);
+     }
+   };
+
+
   useEffect(() => {
     setIsClient(true); // Indicate component has mounted
-    // Check login status only on the client-side after mount
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      setIsLoggedIn(!!token); // Set logged in status based on token presence
-    }
+    checkLoginStatus(); // Initial check
+
+    // Listen for custom 'authChange' event
+    const handleAuthChange = () => {
+       console.log("Auth change detected, updating navbar state..."); // Debug log
+      checkLoginStatus();
+    };
+
+    window.addEventListener('authChange', handleAuthChange);
+
+    // Cleanup listener on component unmount
+    return () => {
+      window.removeEventListener('authChange', handleAuthChange);
+    };
+
   }, []); // Run only once on mount
+
 
   // Handle logout
   const handleLogout = () => {
@@ -39,12 +59,12 @@ export default function Navbar() {
       localStorage.removeItem('token');
       localStorage.removeItem('id');
       localStorage.removeItem('username');
+      // Dispatch custom event to notify navbar (and potentially other components)
+      window.dispatchEvent(new CustomEvent('authChange'));
     }
-    setIsLoggedIn(false); // Update state
+    // setIsLoggedIn(false); // State update now handled by event listener
     setIsMobileMenuOpen(false); // Close mobile menu if open
     router.push('/auth'); // Redirect to login page
-    // Optionally, force refresh or use state management to update globally
-    // window.location.reload(); // Avoid full page reload if possible
   };
 
 
@@ -96,21 +116,25 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          {/* Conditionally render Login or Logout */}
-          {isLoggedIn ? (
-            <Button
-              variant="ghost"
-              className="text-sm font-medium transition-colors hover:text-primary"
-              onClick={handleLogout}
-            >
-              Logout
-            </Button>
-          ) : (
-            <Link href="/auth" className="text-sm font-medium transition-colors hover:text-primary text-foreground/60">
-              Login
-            </Link>
-          )}
         </nav>
+         {/* Desktop Login/Logout Button - Moved to the end */}
+        <div className="hidden md:flex items-center ml-auto">
+           {isLoggedIn ? (
+             <Button
+               variant="ghost"
+               className="text-sm font-medium transition-colors hover:text-primary text-foreground/60" // Match link style
+               onClick={handleLogout}
+             >
+               Logout
+             </Button>
+           ) : (
+             <Button asChild variant="outline" size="sm">
+                 <Link href="/auth">
+                    Login / Sign Up
+                 </Link>
+             </Button>
+           )}
+         </div>
         <div className="flex flex-1 items-center justify-end space-x-4 md:hidden">
            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -153,7 +177,7 @@ export default function Navbar() {
                     className="text-sm font-medium transition-colors hover:text-primary text-foreground/80"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Login
+                    Login / Sign Up
                   </Link>
                 )}
               </div>
