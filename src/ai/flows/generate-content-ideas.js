@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview An AI agent for generating content ideas, headlines, and potentially other formats.
+ * @fileOverview An AI agent for generating content ideas, headlines, and outlines.
  *
  * - generateContentIdeas - A function that handles the content generation process based on mode.
  * - GenerateContentIdeasInput - The input type for the generateContentIdeas function.
@@ -15,15 +15,15 @@ const GenerateContentIdeasInputSchema = z.object({
   prompt: z.string().describe('A core topic or prompt to generate content from.'),
   tone: z.string().optional().describe('The desired tone for the generated content (e.g., Formal, Casual, Humorous).'),
   format: z.string().optional().describe('The desired format for the generated content (e.g., Blog Post, Video Script, Tweet).'),
-  generationMode: z.string().default('ideas').describe('The type of content to generate: "ideas", "headlines", etc.'),
+  generationMode: z.string().default('ideas').describe('The type of content to generate: "ideas", "headlines", or "outline".'), // Added 'outline'
 });
 // No explicit type export needed in JS: export type GenerateContentIdeasInput = z.infer<typeof GenerateContentIdeasInputSchema>;
 
-// Updated Output Schema - potentially includes different types of content
+// Updated Output Schema - now includes outlines
 const GenerateContentIdeasOutputSchema = z.object({
   ideas: z.array(z.string()).optional().describe('A list of content ideas.'),
   headlines: z.array(z.string()).optional().describe('A list of suggested headlines.'),
-  // Add other potential outputs here, e.g., outlines: z.array(...)
+  outline: z.array(z.string()).optional().describe('A list of main points for a content outline.'), // Added outline field
 });
 // No explicit type export needed in JS: export type GenerateContentIdeasOutput = z.infer<typeof GenerateContentIdeasOutputSchema>;
 
@@ -31,7 +31,7 @@ export async function generateContentIdeas(input) { // Input type matches schema
   return generateContentIdeasFlow(input);
 }
 
-// Updated Prompt Definition - uses Handlebars for conditional logic
+// Updated Prompt Definition - includes logic for 'outline' mode
 const prompt = ai.definePrompt({
   name: 'generateContentIdeasPrompt',
   input: { // Input schema matches the updated schema
@@ -57,7 +57,7 @@ Please generate 5-7 compelling headlines that would capture attention for conten
 {{/eq}}
 
 {{#eq generationMode "outline"}}
-Please generate a brief outline with 3-5 main points for a piece of content (like a blog post or video script) based on the topic.
+Please generate a brief outline with 3-5 main points for a piece of content (like a blog post or video script) based on the topic. Present each main point as a string in the output array.
 {{/eq}}
 
 {{!-- Add more modes here as needed --}}
@@ -76,7 +76,11 @@ const generateContentIdeasFlow = ai.defineFlow(
   async input => {
      // The prompt now handles the logic based on generationMode internally via Handlebars
     const {output} = await prompt(input);
-    // The output should conform to the output schema, containing the relevant generated list (ideas, headlines, etc.)
+    // The output should conform to the output schema, containing the relevant generated list (ideas, headlines, outline, etc.)
+    if (!output) {
+        // Handle the case where the prompt call returns null or undefined output
+        throw new Error("AI failed to generate a valid response.");
+     }
     return output; // Ensure output is not null
   }
 );

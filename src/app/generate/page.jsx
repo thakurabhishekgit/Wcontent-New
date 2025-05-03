@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, LogIn, Lightbulb, Sparkles, Bot, Loader2 } from "lucide-react"; // Added Loader2
+import { Terminal, LogIn, Lightbulb, Sparkles, Bot, Loader2, FileText } from "lucide-react"; // Added Loader2, FileText
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,8 +63,8 @@ export default function GeneratePage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       prompt: '',
-      tone: '', // Default to empty string, mapping to the 'default' SelectItem
-      format: '', // Default to empty string, mapping to the 'default' SelectItem
+      tone: 'default', // Use 'default' value for SelectItems
+      format: 'default', // Use 'default' value for SelectItems
       generationMode: 'ideas',
     },
   });
@@ -135,10 +135,10 @@ export default function GeneratePage() {
       </section>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:max-w-md mx-auto"> {/* Adjusted width */}
+        <TabsList className="grid w-full grid-cols-3 md:max-w-lg mx-auto"> {/* Changed to grid-cols-3 */}
           <TabsTrigger value="ideas"> <Lightbulb className="mr-2 h-4 w-4" /> Ideas</TabsTrigger>
           <TabsTrigger value="headlines"> <Sparkles className="mr-2 h-4 w-4" /> Headlines</TabsTrigger>
-          {/* Add more tabs here later e.g., Outlines, Social Posts */}
+          <TabsTrigger value="outline"> <FileText className="mr-2 h-4 w-4" /> Outlines</TabsTrigger> {/* Added Outlines tab */}
         </TabsList>
 
         {/* Shared Form Card */}
@@ -178,17 +178,14 @@ export default function GeneratePage() {
                        render={({ field }) => (
                          <FormItem>
                            <FormLabel>Desired Tone (Optional)</FormLabel>
-                           {/* The value prop maps form state to SelectValue. Default value handles initial render. */}
-                           <Select onValueChange={field.onChange} value={field.value || ''} disabled={isLoading}>
+                           <Select onValueChange={field.onChange} value={field.value || 'default'} disabled={isLoading}>
                              <FormControl>
                                <SelectTrigger>
-                                  {/* Display placeholder if value is empty string or "default" */}
                                  <SelectValue placeholder="Select a tone" />
                                </SelectTrigger>
                              </FormControl>
                              <SelectContent>
-                                {/* Use "default" as the value for the placeholder item */}
-                                <SelectItem value="default">Any / Default</SelectItem>
+                                <SelectItem value="default">Any / Default</SelectItem> {/* Ensure value is not empty */}
                                 <SelectItem value="Formal">Formal</SelectItem>
                                 <SelectItem value="Casual">Casual</SelectItem>
                                 <SelectItem value="Humorous">Humorous</SelectItem>
@@ -207,17 +204,14 @@ export default function GeneratePage() {
                        render={({ field }) => (
                          <FormItem>
                            <FormLabel>Desired Format (Optional)</FormLabel>
-                            {/* The value prop maps form state to SelectValue. Default value handles initial render. */}
-                           <Select onValueChange={field.onChange} value={field.value || ''} disabled={isLoading}>
+                           <Select onValueChange={field.onChange} value={field.value || 'default'} disabled={isLoading}>
                              <FormControl>
                                <SelectTrigger>
-                                  {/* Display placeholder if value is empty string or "default" */}
                                  <SelectValue placeholder="Select a format" />
                                </SelectTrigger>
                              </FormControl>
                              <SelectContent>
-                                {/* Use "default" as the value for the placeholder item */}
-                               <SelectItem value="default">Any / General</SelectItem>
+                               <SelectItem value="default">Any / General</SelectItem> {/* Ensure value is not empty */}
                                <SelectItem value="Blog Post">Blog Post</SelectItem>
                                <SelectItem value="Video Script">Video Script</SelectItem>
                                <SelectItem value="Tweet">Tweet</SelectItem>
@@ -238,7 +232,7 @@ export default function GeneratePage() {
 
                   <Button type="submit" disabled={isLoading} className="w-full md:w-auto">
                     {isLoading ? (
-                       <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating {activeTab}... </>
+                       <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}... </>
                     ) : `Generate ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`}
                      {!isLoggedIn && generationCount >= 1 && <span className="ml-2 text-xs">(Login Required)</span>}
                   </Button>
@@ -289,11 +283,19 @@ export default function GeneratePage() {
                            ))}
                          </ul>
                        )}
-                        {/* Add rendering for other types (e.g., outlines) here */}
+                        {/* Added rendering for outlines */}
+                       {activeTab === 'outline' && generationResult.outline && (
+                         <ol className="list-decimal space-y-2 pl-5 text-foreground/90">
+                           {generationResult.outline.map((point, index) => (
+                             <li key={index}>{point}</li>
+                           ))}
+                         </ol>
+                       )}
 
                          {/* Fallback if result structure doesn't match expected */}
                          {activeTab === 'ideas' && !generationResult.ideas && <p className="text-foreground/60">No ideas generated or unexpected format received.</p>}
                          {activeTab === 'headlines' && !generationResult.headlines && <p className="text-foreground/60">No headlines generated or unexpected format received.</p>}
+                         {activeTab === 'outline' && !generationResult.outline && <p className="text-foreground/60">No outline generated or unexpected format received.</p>}
                      </TabsContent>
                    )
                 )}
