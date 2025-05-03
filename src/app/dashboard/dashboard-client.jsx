@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react'; // Added useEffect
+import React, { useState, useEffect, useMemo } from 'react'; // Added useEffect, useMemo
 import {
   Sidebar,
   SidebarHeader,
@@ -12,22 +12,18 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
+  SidebarContext, // Import context to provide it
+  useSidebar, // Keep if needed, but primary use is within Sidebar component
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, Settings, User, Edit3, PlusCircle, Mail, FileText, LogOut, BarChart, Zap, Users as UsersIcon } from 'lucide-react'; // Added more icons
-import { useRouter } from 'next/navigation'; // For navigation
+import { useRouter, usePathname } from 'next/navigation'; // For navigation, added usePathname
 import Link from 'next/link'; // For internal links
+import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile hook
 
 // Placeholder components for different dashboard sections - These will eventually be separate pages or components
 // We pass the main page content via `children` now.
-// const MyProfile = () => <div className="p-4"><h2 className="text-2xl font-semibold">My Profile</h2><p>Profile details go here...</p></div>;
-// const UpdateProfile = () => <div className="p-4"><h2 className="text-2xl font-semibold">Update Profile</h2><p>Profile editing form goes here...</p></div>;
-// const PostOpportunity = () => <div className="p-4"><h2 className="text-2xl font-semibold">Post Opportunity</h2><p>Form to post a new opportunity...</p></div>;
-// const PostCollab = () => <div className="p-4"><h2 className="text-2xl font-semibold">Post Collab</h2><p>Form to post a new collaboration request...</p></div>;
-// const MyCollabRequests = () => <div className="p-4"><h2 className="text-2xl font-semibold">My Collab Requests</h2><p>List of collaboration requests you've sent or received...</p></div>;
-// const MyOpportunityApplications = () => <div className="p-4"><h2 className="text-2xl font-semibold">My Opportunity Applications</h2><p>List of opportunities you've applied for...</p></div>;
-
 
 // Define the structure for sidebar links
 const sidebarLinks = [
@@ -46,19 +42,25 @@ const sidebarLinks = [
 
 export default function DashboardClient({ children }) {
   const router = useRouter();
-  const [activePath, setActivePath] = useState('');
+  const pathname = usePathname(); // Get current path
   const [username, setUsername] = useState('User'); // Default username
   const [isClient, setIsClient] = useState(false); // To avoid hydration issues
+
+  // Sidebar state management lifted here
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(true); // Desktop sidebar state
+  const [openMobile, setOpenMobile] = useState(false); // Mobile sidebar state
 
   // Get active path and username on client-side mount
   useEffect(() => {
     setIsClient(true); // Component has mounted on the client
-    setActivePath(window.location.pathname);
     const storedUsername = localStorage.getItem("username");
     if (storedUsername) {
       setUsername(storedUsername);
     }
-  }, []);
+     // Close mobile sidebar on navigation if it's open
+     setOpenMobile(false);
+  }, [pathname]); // Add pathname dependency
 
   const handleLogout = () => {
     // Clear local storage
@@ -69,27 +71,48 @@ export default function DashboardClient({ children }) {
      }
     // Redirect to login page
     router.push('/auth');
-     // Optionally, refresh the page or update global state if needed
-     // window.location.reload(); // Might be too disruptive, prefer Next.js navigation
   };
 
   const handleNavigation = (path) => {
-    setActivePath(path);
     router.push(path);
+    if (isMobile) {
+      setOpenMobile(false); // Close mobile sidebar on nav click
+    }
   };
+
+  // Sidebar Context Value
+  const contextValue = useMemo(() => {
+    const state = open ? "expanded" : "collapsed";
+    const toggleSidebar = () => {
+        if (isMobile) setOpenMobile(prev => !prev);
+        else setOpen(prev => !prev);
+    };
+
+    return {
+        state,
+        open,
+        setOpen,
+        isMobile,
+        openMobile,
+        setOpenMobile,
+        toggleSidebar,
+    };
+  }, [open, setOpen, isMobile, openMobile, setOpenMobile]);
+
 
   // Prevent rendering potentially mismatching content on the server
    if (!isClient) {
      return null; // Or a loading skeleton
    }
 
-
   return (
-    <>
+    // Provide the sidebar context to all children
+    <SidebarContext.Provider value={contextValue}>
+      {/* Render Sidebar - it will consume the context */}
       <Sidebar>
         <SidebarHeader className="border-b border-sidebar-border">
           <div className="flex items-center justify-between p-2">
-             {/* Mobile Trigger */}
+             {/* Mobile Trigger - Correctly uses context now */}
              <SidebarTrigger className="md:hidden"/>
               {/* Desktop User Info */}
               <div className="hidden md:flex items-center gap-2">
@@ -97,7 +120,10 @@ export default function DashboardClient({ children }) {
                   <AvatarImage src={`https://i.pravatar.cc/40?u=${username}`} alt={username} />
                   <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium group-data-[collapsed=icon]:hidden">{username}</span>
+                {/* Use context state to conditionally hide username */}
+                <span className={cn("text-sm font-medium", contextValue.state === 'collapsed' && 'sr-only group-data-[collapsible=icon]:hidden')}>
+                  {username}
+                </span>
               </div>
              {/* Actions (Notifications/Settings) */}
              <div className="flex items-center gap-1">
@@ -119,7 +145,7 @@ export default function DashboardClient({ children }) {
                <SidebarMenuItem key={link.id}>
                 <SidebarMenuButton
                   onClick={() => handleNavigation(link.id)}
-                  isActive={activePath === link.id}
+                  isActive={pathname === link.id} // Use pathname for active state
                   tooltip={link.label} // Tooltip for collapsed view
                 >
                   <link.icon />
@@ -147,8 +173,9 @@ export default function DashboardClient({ children }) {
         <header className="flex items-center justify-between p-4 border-b md:hidden">
             {/* Find the current page title */}
            <h2 className="text-xl font-semibold capitalize">
-               {sidebarLinks.find(link => link.id === activePath)?.label || 'Dashboard'}
+               {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
            </h2>
+           {/* This trigger now works correctly because context is provided above */}
            <SidebarTrigger />
         </header>
         {/* Render the specific page component passed as children */}
@@ -156,6 +183,6 @@ export default function DashboardClient({ children }) {
           {children}
         </div>
       </SidebarInset>
-    </>
+    </SidebarContext.Provider>
   );
 }

@@ -24,23 +24,16 @@ const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 
-// Context Setup for Sidebar State Management (can be simplified if provider is always external)
+// Context Setup for Sidebar State Management
 const SidebarContext = React.createContext(null)
 
 function useSidebar() {
   const context = React.useContext(SidebarContext)
   if (!context) {
-    // Allow usage without provider for basic rendering, but stateful features might break
-    // console.warn("useSidebar used outside of a SidebarProvider. State features might not work.");
-    // Return a default/dummy state if needed, or let it throw if provider is mandatory
      throw new Error("useSidebar must be used within a Sidebar structure managed by a layout.");
   }
   return context;
 }
-
-// Note: The SidebarProvider component itself is removed from this file.
-// It should be used in a layout component (e.g., src/app/dashboard/layout.jsx)
-// to wrap the Sidebar and SidebarInset components.
 
 // --- Sidebar Components ---
 
@@ -56,42 +49,18 @@ const Sidebar = React.forwardRef(
     },
     ref
   ) => {
-    // Attempt to get context, but handle potential absence if used standalone (not recommended for full functionality)
-    const context = React.useContext(SidebarContext);
-    const isMobile = useIsMobile(); // Use hook directly
-    const [open, setOpen] = React.useState(true); // Local state for standalone use (limited)
-    const [openMobile, setOpenMobile] = React.useState(false);
-
-    // Prefer context state if available
-    const effectiveIsMobile = context?.isMobile ?? isMobile;
-    const effectiveOpen = context?.open ?? open;
-    const effectiveSetOpen = context?.setOpen ?? setOpen;
-    const effectiveOpenMobile = context?.openMobile ?? openMobile;
-    const effectiveSetOpenMobile = context?.setOpenMobile ?? setOpenMobile;
-
-    const state = effectiveOpen ? "expanded" : "collapsed";
-
-    const contextValue = React.useMemo(
-      () => ({
+    // Consume context provided by the parent (e.g., DashboardClient)
+    const {
         state,
-        open: effectiveOpen,
-        setOpen: effectiveSetOpen,
-        isMobile: effectiveIsMobile,
-        openMobile: effectiveOpenMobile,
-        setOpenMobile: effectiveSetOpenMobile,
-        // toggleSidebar might be missing if no provider
-        toggleSidebar: context?.toggleSidebar || (() => {
-           if (effectiveIsMobile) effectiveSetOpenMobile(prev => !prev);
-           else effectiveSetOpen(prev => !prev);
-        }),
-      }),
-      [state, effectiveOpen, effectiveSetOpen, effectiveIsMobile, effectiveOpenMobile, effectiveSetOpenMobile, context?.toggleSidebar]
-    );
+        isMobile,
+        openMobile,
+        setOpenMobile
+      } = useSidebar();
 
 
     if (collapsible === "none") {
       return (
-         <SidebarContext.Provider value={contextValue}>
+         // No provider needed here, context comes from parent
             <div
             className={cn(
                 "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
@@ -103,14 +72,13 @@ const Sidebar = React.forwardRef(
             >
             {children}
             </div>
-         </SidebarContext.Provider>
       )
     }
 
-    if (effectiveIsMobile) {
+    if (isMobile) {
       return (
-         <SidebarContext.Provider value={contextValue}>
-             <Sheet open={effectiveOpenMobile} onOpenChange={effectiveSetOpenMobile} {...props}>
+         // No provider needed here
+             <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
              <SheetContent
                 data-sidebar="sidebar"
                 data-mobile="true"
@@ -125,19 +93,17 @@ const Sidebar = React.forwardRef(
                 <div className="flex h-full w-full flex-col">{children}</div>
              </SheetContent>
              </Sheet>
-         </SidebarContext.Provider>
       )
     }
 
-    // Desktop rendering remains similar, relies on context potentially provided by layout
+    // Desktop rendering - consumes context
     return (
-      // Provide context for children even if the parent provider is external
-       <SidebarContext.Provider value={contextValue}>
+       // No provider needed here
          <TooltipProvider delayDuration={0}>
            <div
             ref={ref}
             className="group peer hidden md:block text-sidebar-foreground"
-            data-state={state}
+            data-state={state} // Use state from context
             data-collapsible={state === "collapsed" ? collapsible : ""}
             data-variant={variant}
             data-side={side}
@@ -177,7 +143,6 @@ const Sidebar = React.forwardRef(
             </div>
            </div>
          </TooltipProvider>
-       </SidebarContext.Provider>
     )
   }
 )
@@ -443,9 +408,7 @@ const SidebarMenuButton = React.forwardRef(
     ref
   ) => {
     const Comp = asChild ? Slot : "button";
-    const context = React.useContext(SidebarContext);
-    const isMobile = context?.isMobile ?? useIsMobile(); // Fallback if no context
-    const state = context?.state ?? 'expanded'; // Fallback if no context
+    const { isMobile, state } = useSidebar(); // Use context
 
     const button = (
       <Comp
@@ -618,9 +581,9 @@ export {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  // SidebarProvider, // Removed from exports
+  SidebarContext, // Export context for provider usage
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
-  useSidebar, // Keep useSidebar export if needed by consumers
+  useSidebar, // Keep useSidebar export
 }
