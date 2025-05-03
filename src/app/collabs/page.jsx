@@ -2,275 +2,447 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Link from 'next/link';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Search, Filter, Users, Target, Clock, X, MessageSquare, CalendarDays, Mail, User } from "lucide-react"; // Added icons
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Import Dialog components
+import { Label } from "@/components/ui/label"; // Import Label
 
-const Collaborations = () => {
+// Sidebar Filters Component
+const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
+  const handleSelectChange = (name, value) => {
+    setFilters(prev => ({ ...prev, [name]: value === 'all' ? '' : value }));
+  };
+
+  const handleInputChange = (e) => {
+     setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  const clearFilters = () => {
+     setFilters({ contentCategory: '', collaborationType: '', timeline: '' });
+     applyFilters({ contentCategory: '', collaborationType: '', timeline: '' }); // Apply cleared filters
+   };
+
+  // Dummy categories and types for filters - Replace with dynamic data if available
+  const contentCategories = ["Comedy", "Gaming", "Tech", "Beauty", "Fashion", "Lifestyle", "Education", "Music", "Travel", "Food", "Fitness", "Wellness", "Other"];
+  const collaborationTypes = ["Video Collab", "Podcast Guest Swap", "Instagram Collab", "Blog Post Collab", "Event/Workshop", "Challenge/Giveaway", "Other"];
+
+  return (
+    <Card className="sticky top-20 self-start">
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Filter className="h-5 w-5" /> Filters
+        </CardTitle>
+        <CardDescription>Find the perfect collab</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Content Category Filter */}
+        <div className="space-y-1">
+          <Label htmlFor="category-filter">Category / Niche</Label>
+          <Select
+             value={filters.contentCategory || 'all'}
+             onValueChange={(value) => handleSelectChange('contentCategory', value)}
+             id="category-filter"
+             name="contentCategory"
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+               <SelectItem value="all">All Categories</SelectItem>
+               {contentCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Collaboration Type Filter */}
+        <div className="space-y-1">
+           <Label htmlFor="type-filter">Collab Type</Label>
+           <Select
+              value={filters.collaborationType || 'all'}
+              onValueChange={(value) => handleSelectChange('collaborationType', value)}
+              id="type-filter"
+              name="collaborationType"
+           >
+             <SelectTrigger>
+               <SelectValue placeholder="Select type" />
+             </SelectTrigger>
+             <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {collaborationTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+             </SelectContent>
+           </Select>
+        </div>
+
+         {/* Timeline Filter (Input for keyword) */}
+         <div className="space-y-1">
+            <Label htmlFor="timeline-filter">Timeline (Keyword)</Label>
+            <Input
+              id="timeline-filter"
+              name="timeline"
+              placeholder="e.g., Next Month, Flexible"
+              value={filters.timeline || ''}
+              onChange={handleInputChange}
+            />
+         </div>
+
+      </CardContent>
+       <CardFooter className="flex flex-col gap-2">
+           <Button onClick={() => applyFilters(filters)} className="w-full">Apply Filters</Button>
+           {(filters.contentCategory || filters.collaborationType || filters.timeline) && (
+              <Button variant="outline" onClick={clearFilters} className="w-full flex items-center gap-1 text-xs">
+                 <X className="h-3 w-3"/> Clear Filters
+              </Button>
+           )}
+       </CardFooter>
+    </Card>
+  );
+};
+
+// Function to format date
+const formatDate = (dateString) => {
+   if (!dateString) return 'N/A';
+   try {
+     return new Date(dateString).toLocaleDateString('en-US', {
+       year: 'numeric', month: 'short', day: 'numeric'
+     });
+   } catch (e) {
+     return 'Invalid Date';
+   }
+ };
+
+export default function CollaborationsPage() {
   const [collaborations, setCollaborations] = useState([]);
+  const [filteredCollaborations, setFilteredCollaborations] = useState([]);
   const [selectedCollaboration, setSelectedCollaboration] = useState(null);
   const [application, setApplication] = useState({
-    requesterName: "",
-    requesterEmail: "",
-    message: "",
-    appliedDate: new Date().toISOString().split("T")[0],
+    requesterName: "", // Match backend schema
+    requesterEmail: "", // Match backend schema
+    message: "", // Match backend schema
+    appliedDate: new Date().toISOString().split("T")[0], // Assuming backend handles date
   });
   const [submissionStatus, setSubmissionStatus] = useState(null);
-  const styles = {
-    container: {
-      padding: "20px",
-      fontFamily: "Arial, sans-serif",
-    },
-    pageTitle: {
-      textAlign: "center",
-      marginBottom: "20px",
-    },
-    pageDescription: {
-      textAlign: "center",
-      marginBottom: "30px",
-    },
-    collaborationsList: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-      gap: "20px",
-    },
-    collaborationCard: {
-      border: "1px solid #ccc",
-      padding: "15px",
-      borderRadius: "5px",
-      cursor: "pointer",
-    },
-    cardTitle: {
-      marginBottom: "10px",
-    },
-    cardText: {
-      marginBottom: "5px",
-    },
-    applyButton: {
-      backgroundColor: "#007bff",
-      color: "white",
-      border: "none",
-      padding: "10px 15px",
-      borderRadius: "5px",
-      cursor: "pointer",
-    },
-    detailsContainer: {
-      marginTop: "30px",
-      border: "1px solid #ccc",
-      borderRadius: "5px",
-      padding: "20px",
-    },
-    detailsSection: {
-      marginBottom: "20px",
-    },
-    detailsTitle: {
-      marginBottom: "10px",
-    },
-    detailsText: {
-      marginBottom: "5px",
-    },
-    applicationForm: {
-      border: "1px solid #ccc",
-      borderRadius: "5px",
-      padding: "20px",
-    },
-    formTitle: {
-      marginBottom: "20px",
-    },
-    form: {
-      display: "flex",
-      flexDirection: "column",
-    },
-    formGroup: {
-      marginBottom: "15px",
-    },
-    label: {
-      marginBottom: "5px",
-    },
-    input: {
-      padding: "10px",
-      border: "1px solid #ccc",
-      borderRadius: "5px",
-    },
-    submitButton: {
-      backgroundColor: "#007bff",
-      color: "white",
-      border: "none",
-      padding: "10px 15px",
-      borderRadius: "5px",
-      cursor: "pointer",
-    },
-  };
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({ contentCategory: '', collaborationType: '', timeline: '' });
+
+
   useEffect(() => {
     fetchCollaborations();
   }, []);
+
+  // Apply search and filters whenever collaborations, searchTerm, or filters change
+  useEffect(() => {
+    applyFilters(filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [collaborations, searchTerm]); // Re-apply if base data or search term changes
+
   const fetchCollaborations = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       const response = await axios.get(
         "http://localhost:3001/api/users/collabration/getCollabOfAllUsers"
       );
-      setCollaborations(response.data);
+      if (Array.isArray(response.data)) {
+         // Ensure each collab has a unique 'id'. Use _id from MongoDB
+         const collaborationsWithId = response.data.map(collab => ({
+            ...collab,
+            id: collab._id || collab.id // Use _id primarily, fallback to id
+         }));
+        setCollaborations(collaborationsWithId);
+        setFilteredCollaborations(collaborationsWithId); // Initialize filtered list
+      } else {
+        console.error("API response is not an array:", response.data);
+        setError("Received invalid data format from the server.");
+        setCollaborations([]);
+        setFilteredCollaborations([]);
+      }
     } catch (error) {
       console.error("Error fetching collaborations:", error);
+      setError("Failed to fetch collaborations. Please check the API endpoint and your connection.");
+      setCollaborations([]);
+      setFilteredCollaborations([]);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    // Filtering is now handled by the useEffect hook
+  };
+
+  // Function to apply filters and search term
+  const applyFilters = (currentFilters, currentSearchTerm = searchTerm) => {
+      let tempCollaborations = [...collaborations];
+
+      // Apply search term first
+      if (currentSearchTerm) {
+         const lowerSearchTerm = currentSearchTerm.toLowerCase();
+         tempCollaborations = tempCollaborations.filter(collab =>
+           collab.title?.toLowerCase().includes(lowerSearchTerm) ||
+           collab.description?.toLowerCase().includes(lowerSearchTerm) ||
+           collab.creatorName?.toLowerCase().includes(lowerSearchTerm) // Assuming creatorName exists
+         );
+      }
+
+      // Apply filters
+      if (currentFilters.contentCategory) {
+         tempCollaborations = tempCollaborations.filter(collab => collab.contentCategory?.toLowerCase() === currentFilters.contentCategory.toLowerCase());
+      }
+      if (currentFilters.collaborationType) {
+         tempCollaborations = tempCollaborations.filter(collab => collab.collaborationType?.toLowerCase() === currentFilters.collaborationType.toLowerCase());
+      }
+      if (currentFilters.timeline) {
+         tempCollaborations = tempCollaborations.filter(collab => collab.timeline?.toLowerCase().includes(currentFilters.timeline.toLowerCase()));
+      }
+
+
+      setFilteredCollaborations(tempCollaborations);
+   };
+
+
   const handleCardClick = (collaboration) => {
     setSelectedCollaboration(collaboration);
-    setSubmissionStatus(null); // Reset submission status when a new collaboration is selected
+    setSubmissionStatus(null); // Reset submission status
   };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setApplication({ ...application, [name]: value });
   };
+
   const handleApply = async (e) => {
     e.preventDefault();
     if (!selectedCollaboration) return;
+
+    setSubmissionStatus('Submitting...');
+
     try {
+      // Ensure selectedCollaboration.id exists (using the mapped 'id' which is _id)
+      if (!selectedCollaboration.id && selectedCollaboration.id !== 0) { // Check for 0 just in case
+          throw new Error("Selected collaboration is missing an ID.");
+      }
+
+      // Prepare payload matching backend expectations
+       const payload = {
+         requesterName: application.requesterName,
+         requesterEmail: application.requesterEmail,
+         message: application.message,
+         appliedDate: application.appliedDate, // Send date if required by backend
+         // Add requesterId if needed and available (e.g., from localStorage)
+         requesterId: localStorage.getItem('id') || null
+       };
+
       const response = await axios.post(
         `http://localhost:3001/api/users/collabration/applyForCollab/${selectedCollaboration.id}`,
-        application
+        payload // Send the prepared payload
       );
       setSubmissionStatus("Application submitted successfully!");
-      setApplication({
+      setApplication({ // Reset form
         requesterName: "",
         requesterEmail: "",
         message: "",
         appliedDate: new Date().toISOString().split("T")[0],
-      }); // Reset form
+      });
+       // Close the dialog after successful application
+       setTimeout(() => {
+          setSelectedCollaboration(null);
+       }, 1500); // Close after 1.5 seconds
     } catch (error) {
       console.error("Error applying for collaboration:", error);
-      setSubmissionStatus("Failed to submit application. Please try again.");
+      const errorMessage = error.response?.data?.message || "Failed to submit application. Please try again.";
+      setSubmissionStatus(errorMessage);
     }
   };
+
   return (
-    <div style={styles.container}>
-      <h1 style={styles.pageTitle}>Collaboration Opportunities</h1>
-      <p style={styles.pageDescription}>
-        Explore exciting collaboration opportunities and join hands with
-        like-minded individuals to bring innovative ideas to life.
-      </p>
-      <div style={styles.collaborationsList}>
-        {collaborations.map((collaboration) => (
-          <div
-            key={collaboration.id}
-            style={styles.collaborationCard}
-            onClick={() => handleCardClick(collaboration)}
-          >
-            <h3 style={styles.cardTitle}>{collaboration.title}</h3>
-            <p style={styles.cardText}>{collaboration.description}</p>
-            <p style={styles.cardText}>
-              <strong>Category:</strong> {collaboration.contentCategory}
-            </p>
-            <p style={styles.cardText}>
-              <strong>Type:</strong> {collaboration.collaborationType}
-            </p>
-            <p style={styles.cardText}>
-              <strong>Timeline:</strong> {collaboration.timeline}
-            </p>
-            <button
-              style={styles.applyButton}
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent card click event
-                handleCardClick(collaboration);
-              }}
-            >
-              Apply Now
-            </button>
-          </div>
-        ))}
-      </div>
-      {selectedCollaboration && (
-        <div style={styles.detailsContainer}>
-          <div style={styles.detailsSection}>
-            <h2 style={styles.detailsTitle}>{selectedCollaboration.title}</h2>
-            <p style={styles.detailsText}>
-              {selectedCollaboration.description}
-            </p>
-            <p style={styles.detailsText}>
-              <strong>Category:</strong> {selectedCollaboration.contentCategory}
-            </p>
-            <p style={styles.detailsText}>
-              <strong>Type:</strong> {selectedCollaboration.collaborationType}
-            </p>
-            <p style={styles.detailsText}>
-              <strong>Timeline:</strong> {selectedCollaboration.timeline}
-            </p>
-            <p style={styles.detailsText}>
-              <strong>Status:</strong>{" "}
-              {selectedCollaboration.open ? "Open" : "Closed"}
-            </p>
-          </div>
-          <div style={styles.applicationForm}>
-            <h3 style={styles.formTitle}>Apply for this Collaboration</h3>
-            {submissionStatus && (
-              <p
-                style={{
-                  color: submissionStatus.includes("success") ? "green" : "red",
-                  marginBottom: "20px",
-                  fontSize: "14px",
-                }}
-              >
-                {submissionStatus}
-              </p>
+    <div className="container mx-auto px-4 py-8 space-y-8">
+
+       {/* Header Section */}
+       <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">Find Collaborators</h1>
+          <p className="text-lg text-muted-foreground">Connect with fellow creators for exciting projects and growth.</p>
+       </div>
+
+       {/* How It Works / Info Section (Optional) */}
+       {/* <HowitWorks /> */}
+
+       {/* Search and Main Content Area */}
+       <div className="flex flex-col md:flex-row gap-8">
+
+         {/* Filters Sidebar */}
+         <div className="w-full md:w-1/4 lg:w-1/5">
+            <FilterSidebar filters={filters} setFilters={setFilters} applyFilters={applyFilters} />
+         </div>
+
+         {/* Main Content Grid */}
+         <div className="w-full md:w-3/4 lg:w-4/5 space-y-6">
+
+            {/* Search Bar */}
+            <div className="relative">
+               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+               <Input
+                 type="search"
+                 placeholder="Search by title, creator, description..."
+                 className="pl-10"
+                 value={searchTerm}
+                 onChange={handleSearchChange}
+               />
+            </div>
+
+           {/* Loading and Error States */}
+           {isLoading && (
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[...Array(6)].map((_, i) => (
+                     <Card key={i}>
+                       <CardHeader><Skeleton className="h-5 w-3/4" /></CardHeader>
+                       <CardContent className="space-y-2">
+                         <Skeleton className="h-4 w-1/2" />
+                         <Skeleton className="h-4 w-1/3" />
+                         <Skeleton className="h-4 w-full mt-2" />
+                       </CardContent>
+                       <CardFooter><Skeleton className="h-10 w-full" /></CardFooter>
+                     </Card>
+                  ))}
+               </div>
+           )}
+           {error && (
+             <Alert variant="destructive">
+               <AlertTitle>Error</AlertTitle>
+               <AlertDescription>{error}</AlertDescription>
+               <Button variant="outline" size="sm" onClick={fetchCollaborations} className="mt-2">Retry</Button>
+             </Alert>
+           )}
+
+
+            {/* Collaborations Grid */}
+            {!isLoading && !error && filteredCollaborations.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCollaborations.map((collab) => (
+                  <Card key={collab.id} className="flex flex-col">
+                    <CardHeader>
+                      <CardTitle className="text-lg line-clamp-2">{collab.title}</CardTitle>
+                       <div className="flex flex-wrap gap-1 pt-1">
+                          <Badge variant="secondary">{collab.contentCategory || 'N/A'}</Badge>
+                          <Badge variant="outline">{collab.collaborationType || 'N/A'}</Badge>
+                       </div>
+                       {/* Optionally add Creator Name if available */}
+                        {collab.creatorName && (
+                          <CardDescription className="text-xs pt-2 flex items-center">
+                             By: {collab.creatorName}
+                          </CardDescription>
+                        )}
+                    </CardHeader>
+                    <CardContent className="flex-grow space-y-2">
+                       <p className="text-sm text-muted-foreground line-clamp-3">{collab.description || 'No description.'}</p>
+                       <p className="text-sm flex items-center pt-1"><Clock className="h-4 w-4 mr-1 text-primary"/>Timeline: {collab.timeline || 'N/A'}</p>
+                    </CardContent>
+                    <CardFooter>
+                      <Button
+                        className="w-full"
+                        onClick={() => handleCardClick(collab)}
+                        variant="outline"
+                      >
+                        View & Apply
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
             )}
-            <form onSubmit={handleApply} style={styles.form}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>
-                  Your Name:
-                  <input
-                    type="text"
-                    name="requesterName"
-                    value={application.requesterName}
-                    onChange={handleInputChange}
-                    required
-                    style={styles.input}
-                  />
-                </label>
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>
-                  Your Email:
-                  <input
-                    type="email"
-                    name="requesterEmail"
-                    value={application.requesterEmail}
-                    onChange={handleInputChange}
-                    required
-                    style={styles.input}
-                  />
-                </label>
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>
-                  Message:
-                  <textarea
-                    name="message"
-                    value={application.message}
-                    onChange={handleInputChange}
-                    required
-                    style={{ ...styles.input, height: "100px" }}
-                  />
-                </label>
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>
-                  Application Date:
-                  <input
-                    type="date"
-                    name="appliedDate"
-                    value={application.appliedDate}
-                    onChange={handleInputChange}
-                    required
-                    style={styles.input}
-                  />
-                </label>
-              </div>
-              <button type="submit" style={styles.submitButton}>
-                Submit Application
-              </button>
-            </form>
+            {!isLoading && !error && filteredCollaborations.length === 0 && (
+               <Card className="text-center py-10 border-dashed">
+                  <CardContent className="flex flex-col items-center gap-2">
+                    <Users className="h-12 w-12 text-muted-foreground" />
+                    <p className="text-muted-foreground">No collaborations match your criteria.</p>
+                    <p className="text-xs text-muted-foreground">Try adjusting your search or filters.</p>
+                  </CardContent>
+               </Card>
+            )}
           </div>
         </div>
-      )}
+
+      {/* Application Dialog (Modal) */}
+       <Dialog open={!!selectedCollaboration} onOpenChange={() => setSelectedCollaboration(null)}>
+         <DialogContent className="sm:max-w-[650px]">
+           <DialogHeader>
+             <DialogTitle>{selectedCollaboration?.title}</DialogTitle>
+             <DialogDescription>
+               Send a message to express your interest in this collaboration.
+             </DialogDescription>
+              {/* Display collaboration details concisely */}
+               <div className="text-sm text-muted-foreground space-y-1 pt-2 border-t mt-2">
+                   <p className="flex items-center gap-1.5"><Users className="h-3 w-3"/> Creator: {selectedCollaboration?.creatorName || 'Unknown'}</p>
+                   <p className="flex items-center gap-1.5"><Target className="h-3 w-3"/> Category: {selectedCollaboration?.contentCategory}</p>
+                   <p className="flex items-center gap-1.5"><Clock className="h-3 w-3"/> Timeline: {selectedCollaboration?.timeline}</p>
+                   <p className="mt-2 text-foreground/80">{selectedCollaboration?.description}</p>
+                    {/* Add link to creator's channel/profile if available */}
+                    {selectedCollaboration?.channelLink && (
+                        <p><Link href={selectedCollaboration.channelLink} className="text-primary hover:underline text-xs" target="_blank" rel="noopener noreferrer">View Creator's Channel</Link></p>
+                     )}
+                      {selectedCollaboration?.creatorProfileLink && (
+                         <p><Link href={selectedCollaboration.creatorProfileLink} className="text-primary hover:underline text-xs" target="_blank" rel="noopener noreferrer">View Creator's Profile</Link></p>
+                      )}
+               </div>
+           </DialogHeader>
+
+           {/* Application Form */}
+           <div className="py-4">
+              {submissionStatus && (
+                <Alert variant={submissionStatus.includes("success") ? "default" : "destructive"} className="mb-4">
+                  <AlertTitle>{submissionStatus.includes("success") ? "Success" : "Error"}</AlertTitle>
+                  <AlertDescription>{submissionStatus}</AlertDescription>
+                </Alert>
+              )}
+              <form onSubmit={handleApply} className="space-y-4">
+                <div>
+                  <Label htmlFor="requesterName" className="text-right">Your Name</Label>
+                  <Input id="requesterName" name="requesterName" value={application.requesterName} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
+                </div>
+                <div>
+                  <Label htmlFor="requesterEmail" className="text-right">Your Email</Label>
+                  <Input id="requesterEmail" name="requesterEmail" type="email" value={application.requesterEmail} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
+                </div>
+                <div>
+                  <Label htmlFor="message" className="text-right">Message</Label>
+                  <textarea
+                      id="message"
+                      name="message"
+                      rows={4}
+                      value={application.message}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Introduce yourself and explain why you'd be a good fit for this collaboration..."
+                      className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[80px] text-sm"
+                      disabled={submissionStatus === 'Submitting...'}
+                    />
+                </div>
+                {/* Removed Date Input - assuming backend handles this */}
+                {/* <div>
+                  <Label htmlFor="appliedDate" className="text-right">Application Date</Label>
+                  <Input id="appliedDate" name="appliedDate" type="date" value={application.appliedDate} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
+                </div> */}
+                 <DialogFooter>
+                   <DialogClose asChild>
+                      <Button type="button" variant="outline" disabled={submissionStatus === 'Submitting...'}>Cancel</Button>
+                   </DialogClose>
+                    <Button type="submit" disabled={submissionStatus === 'Submitting...'}>
+                      {submissionStatus === 'Submitting...' ? 'Submitting...' : 'Send Application'}
+                    </Button>
+                 </DialogFooter>
+              </form>
+            </div>
+         </DialogContent>
+       </Dialog>
     </div>
   );
-};
-
-export default Collaborations;
+}
