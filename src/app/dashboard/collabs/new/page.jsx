@@ -54,24 +54,27 @@ export default function PostCollabPage() {
     setIsSubmitting(true);
 
     const token = localStorage.getItem("token");
+    // userId is likely still needed by the backend, possibly inferred from the token or required in the body
     const userId = localStorage.getItem("id");
 
-    if (!token || !userId) {
+    if (!token || !userId) { // Keep userId check as it might be needed in payload
       setError("Authentication failed. Please log in again.");
       setIsSubmitting(false);
       return;
     }
 
     try {
+      // Updated endpoint: use http and remove userId from path
       const response = await fetch(
-        `https://localhost:3001/api/users/collabration/addCollab/${userId}`, // Updated endpoint
+        `http://localhost:3001/api/users/collabration/addCollab/`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ ...data, open: true }), // Include open status
+          // Include necessary data in the body, potentially userId if backend requires it here now
+          body: JSON.stringify({ ...data, open: true, creatorId: userId }), // Example: Adding creatorId to body
         }
       );
 
@@ -88,7 +91,8 @@ export default function PostCollabPage() {
       console.error("Error posting collaboration:", err);
       let fetchErrorMessage = "An unexpected error occurred. Please try again.";
       if (err instanceof TypeError && err.message.includes('fetch')) {
-         fetchErrorMessage = `Error posting collaboration. Could not connect to the server at https://localhost:3001. Please ensure the backend is running, uses HTTPS, and CORS is configured correctly.`;
+         // Updated error message to reflect http
+         fetchErrorMessage = `Error posting collaboration. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and CORS is configured correctly.`;
       }
       setError(fetchErrorMessage);
     } finally {
