@@ -1,20 +1,27 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Import Card components
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Import Card components
 import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
 import Link from "next/link"; // Import Link for URLs
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal, Link as LinkIcon, CheckCircle, User, Mail, Type, Verified, Tv, Hash, Clapperboard } from "lucide-react"; // Import icons
 
 // Moved MyProfile component logic directly into the dashboard page
 const MyProfile = () => {
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false); // State to track client-side mount
 
-  // Fetch user data on component mount
+  // Ensure code runs only on the client
   useEffect(() => {
-    // Check if window is defined (runs only on client)
-    if (typeof window !== 'undefined') {
+    setIsClient(true);
+  }, []);
+
+  // Fetch user data on component mount (client-side only)
+  useEffect(() => {
+    if (isClient) {
       const userId = localStorage.getItem("id");
       const token = localStorage.getItem("token");
 
@@ -24,12 +31,8 @@ const MyProfile = () => {
         setError("User not authenticated. Please log in.");
         setLoading(false);
       }
-    } else {
-       // Handle server-side rendering or situations where localStorage is not available
-       setLoading(false);
-       setError("Cannot fetch user data outside of a browser environment.");
     }
-  }, []);
+  }, [isClient]); // Depend on isClient
 
   // Fetch user data from the backend
   const fetchUserData = async (userId, token) => {
@@ -76,15 +79,20 @@ const MyProfile = () => {
   if (loading) {
     return (
       <div>
-        <h1 className="text-2xl font-bold mb-4">My Profile</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card><CardHeader><Skeleton className="h-5 w-24 mb-1" /></CardHeader><CardContent><Skeleton className="h-4 w-full" /></CardContent></Card>
-          <Card><CardHeader><Skeleton className="h-5 w-24 mb-1" /></CardHeader><CardContent><Skeleton className="h-4 w-full" /></CardContent></Card>
-          <Card><CardHeader><Skeleton className="h-5 w-24 mb-1" /></CardHeader><CardContent><Skeleton className="h-4 w-1/2" /></CardContent></Card>
-          <Card><CardHeader><Skeleton className="h-5 w-24 mb-1" /></CardHeader><CardContent><Skeleton className="h-4 w-1/4" /></CardContent></Card>
-          <Card><CardHeader><Skeleton className="h-5 w-32 mb-1" /></CardHeader><CardContent><Skeleton className="h-4 w-3/4" /></CardContent></Card>
-          <Card><CardHeader><Skeleton className="h-5 w-28 mb-1" /></CardHeader><CardContent><Skeleton className="h-4 w-full" /></CardContent></Card>
-           <Card className="md:col-span-2"><CardHeader><Skeleton className="h-5 w-32 mb-1" /></CardHeader><CardContent><Skeleton className="h-4 w-5/6" /></CardContent></Card>
+        <h1 className="text-2xl font-bold mb-6">My Profile</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, index) => ( // Skeleton for 6 cards
+            <Card key={index}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <Skeleton className="h-5 w-24" />
+                 <Skeleton className="h-4 w-4 rounded-full" />
+              </CardHeader>
+              <CardContent>
+                 <Skeleton className="h-6 w-1/2 mb-1" />
+                 <Skeleton className="h-4 w-full" />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
@@ -95,7 +103,11 @@ const MyProfile = () => {
      return (
         <div>
            <h1 className="text-2xl font-bold mb-4">My Profile</h1>
-           <p className="text-destructive bg-destructive/10 border border-destructive/50 p-3 rounded-md">{error}</p>
+           <Alert variant="destructive">
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+           </Alert>
         </div>
      );
   }
@@ -105,81 +117,118 @@ const MyProfile = () => {
     <div>
       <h1 className="text-2xl font-bold mb-6">My Profile</h1>
       {userData ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Username */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold text-muted-foreground">Username</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Username</CardTitle>
+              <User className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-lg">{userData.username}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-               <CardTitle className="text-base font-semibold text-muted-foreground">Email</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-lg">{userData.email}</p>
-            </CardContent>
-          </Card>
-          <Card>
-             <CardHeader>
-               <CardTitle className="text-base font-semibold text-muted-foreground">User Type</CardTitle>
-             </CardHeader>
-            <CardContent>
-               <p className="text-lg capitalize">{userData.userType || 'N/A'}</p> {/* Added capitalize */}
-            </CardContent>
-          </Card>
-          <Card>
-             <CardHeader>
-               <CardTitle className="text-base font-semibold text-muted-foreground">Verified</CardTitle>
-             </CardHeader>
-            <CardContent>
-              <p className={`text-lg ${userData.verified ? 'text-green-500' : 'text-destructive'}`}>{userData.verified ? "Yes" : "No"}</p>
+              <div className="text-xl font-bold">{userData.username}</div>
+              <p className="text-xs text-muted-foreground">Your public display name</p>
             </CardContent>
           </Card>
 
-          {/* Channel Information (conditionally rendered if user is ChannelOwner) */}
+          {/* Email */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Email</CardTitle>
+              <Mail className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl font-bold break-all">{userData.email}</div>
+              <p className="text-xs text-muted-foreground">Your login email address</p>
+            </CardContent>
+          </Card>
+
+          {/* User Type */}
+          <Card>
+             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardTitle className="text-sm font-medium">User Type</CardTitle>
+               <Type className="h-4 w-4 text-muted-foreground" />
+             </CardHeader>
+            <CardContent>
+               <div className="text-xl font-bold capitalize">{userData.userType?.replace(/([A-Z])/g, ' $1').trim() || 'N/A'}</div>
+               <p className="text-xs text-muted-foreground">Your role on the platform</p>
+            </CardContent>
+          </Card>
+
+           {/* Verified Status */}
+           <Card>
+             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardTitle className="text-sm font-medium">Verified Status</CardTitle>
+                <Verified className={`h-4 w-4 ${userData.verified ? 'text-green-500' : 'text-muted-foreground'}`} />
+             </CardHeader>
+            <CardContent>
+              <div className={`text-xl font-bold ${userData.verified ? 'text-green-600 dark:text-green-400' : 'text-destructive'}`}>
+                {userData.verified ? "Verified" : "Not Verified"}
+              </div>
+              <p className="text-xs text-muted-foreground">Email verification status</p>
+            </CardContent>
+          </Card>
+
+          {/* Channel Information (conditionally rendered) */}
           {userData.userType?.toLowerCase() === 'channelowner' && (
              <>
+                {/* Channel Name */}
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base font-semibold text-muted-foreground">Channel Name</CardTitle>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Channel Name</CardTitle>
+                     <Clapperboard className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                     <p className="text-lg">{userData.channelName || 'N/A'}</p>
+                     <div className="text-xl font-bold">{userData.channelName || 'N/A'}</div>
+                     <p className="text-xs text-muted-foreground">Your channel's name</p>
                   </CardContent>
                  </Card>
+
+                 {/* Channel ID */}
                  <Card>
-                   <CardHeader>
-                      <CardTitle className="text-base font-semibold text-muted-foreground">Channel ID</CardTitle>
+                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Channel ID</CardTitle>
+                      <Hash className="h-4 w-4 text-muted-foreground" />
                    </CardHeader>
                    <CardContent>
-                      <p className="text-lg">{userData.channelId || 'N/A'}</p>
+                      <div className="text-xl font-bold break-all">{userData.channelId || 'N/A'}</div>
+                       <p className="text-xs text-muted-foreground">Your unique channel identifier</p>
                    </CardContent>
                  </Card>
-                 <Card className="md:col-span-2">
-                   <CardHeader>
-                     <CardTitle className="text-base font-semibold text-muted-foreground">Channel URL</CardTitle>
+
+                 {/* Channel URL */}
+                 <Card className="md:col-span-2 lg:col-span-1"> {/* Adjust span */}
+                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                     <CardTitle className="text-sm font-medium">Channel URL</CardTitle>
+                     <Tv className="h-4 w-4 text-muted-foreground" />
                    </CardHeader>
                    <CardContent>
                      {userData.channelURL ? (
-                       <Link
-                         href={userData.channelURL}
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="text-lg text-primary hover:underline break-all"
-                       >
-                         {userData.channelURL}
-                       </Link>
-                     ) : <p className="text-lg text-muted-foreground">N/A</p>}
+                       <>
+                         <div className="text-xl font-bold break-all">
+                           <Link
+                             href={userData.channelURL}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             className="text-primary hover:underline flex items-center gap-1"
+                           >
+                             <span>Visit Channel</span> <LinkIcon className="h-4 w-4" />
+                           </Link>
+                         </div>
+                         <p className="text-xs text-muted-foreground">{userData.channelURL}</p>
+                       </>
+                     ) : (
+                       <>
+                         <div className="text-xl font-bold text-muted-foreground">N/A</div>
+                         <p className="text-xs text-muted-foreground">No URL provided</p>
+                       </>
+                     )}
                    </CardContent>
                  </Card>
              </>
           )}
         </div>
       ) : (
-        <p className="text-muted-foreground">No user data found. There might be an issue retrieving your profile.</p>
+        !loading && <p className="text-muted-foreground">No user data found. There might be an issue retrieving your profile.</p>
       )}
     </div>
   );

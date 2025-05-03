@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, CheckCircle } from "lucide-react";
+import { Terminal, CheckCircle, Loader2 } from "lucide-react"; // Import icons, added Loader2
 import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
 
 const UpdateProfile = () => {
@@ -18,26 +18,36 @@ const UpdateProfile = () => {
     channelName: "",
     channelId: "",
     channelURL: "",
-    password: "", // Add password field for potential updates
+    // password: "", // Remove initial password state
   });
   const [newPassword, setNewPassword] = useState(""); // State for new password input
   const [confirmPassword, setConfirmPassword] = useState(""); // State for confirm password input
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // Added loading state
+  const [isLoading, setIsLoading] = useState(true); // Loading state for fetching
+  const [isSubmitting, setIsSubmitting] = useState(false); // Submitting state for form submission
+  const [isClient, setIsClient] = useState(false); // State to track client-side mount
 
-  // Fetch user data on component mount
+  // Ensure code runs only on the client
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("id");
-
-    if (token && userId) {
-      fetchUserData(userId, token);
-    } else {
-      setError("User not logged in. Please login again.");
-      setIsLoading(false); // Stop loading if not logged in
-    }
+    setIsClient(true);
   }, []);
+
+
+  // Fetch user data on component mount (client-side only)
+  useEffect(() => {
+     if(isClient) {
+        const token = localStorage.getItem("token");
+        const userId = localStorage.getItem("id");
+
+        if (token && userId) {
+          fetchUserData(userId, token);
+        } else {
+          setError("User not logged in. Please login again.");
+          setIsLoading(false); // Stop loading if not logged in
+        }
+     }
+  }, [isClient]); // Depend on isClient
 
   const fetchUserData = async (userId, token) => {
     setIsLoading(true);
@@ -58,7 +68,7 @@ const UpdateProfile = () => {
       if (response.ok) {
         const data = await response.json();
         // Don't pre-fill password fields for security
-        setUserData({ ...data, password: "" });
+        setUserData({ ...data, password: "" }); // Initialize with fetched data, ensure password field is empty
       } else {
         const data = await response.json().catch(() => ({ message: "Failed to fetch user data." }));
         setError(data.message || "Failed to fetch user data.");
@@ -81,50 +91,72 @@ const UpdateProfile = () => {
       ...userData,
       [name]: value,
     });
+     // Clear error/message when user starts typing
+     setError(null);
+     setMessage(null);
   };
 
    // Handle Select component change
    const handleSelectChange = (value) => {
      setUserData({ ...userData, userType: value });
+     setError(null);
+     setMessage(null);
    };
 
   const handlePasswordChange = (e) => {
      setNewPassword(e.target.value);
+     setError(null);
+     setMessage(null);
    };
 
    const handleConfirmPasswordChange = (e) => {
      setConfirmPassword(e.target.value);
+     setError(null);
+     setMessage(null);
    };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setMessage(null);
-    setIsLoading(true); // Indicate loading during submit
+    setIsSubmitting(true); // Indicate submission start
 
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("id");
 
     if (!token || !userId) {
       setError("User not logged in. Please login again.");
-       setIsLoading(false);
+       setIsSubmitting(false);
       return;
     }
 
     // Basic password confirmation validation
      if (newPassword && newPassword !== confirmPassword) {
        setError("New passwords do not match.");
-       setIsLoading(false);
+       setIsSubmitting(false);
        return;
      }
+     // Password strength (example: min 6 chars)
+     if (newPassword && newPassword.length < 6) {
+        setError("New password must be at least 6 characters long.");
+        setIsSubmitting(false);
+        return;
+     }
 
-     // Prepare data payload, including new password only if provided
+
+     // Prepare data payload, including new password only if provided and valid
      const updatePayload = { ...userData };
+     // Ensure channel fields are only sent if userType is ChannelOwner
+     if (userData.userType?.toLowerCase() !== 'channelowner') {
+         delete updatePayload.channelName;
+         delete updatePayload.channelId;
+         delete updatePayload.channelURL;
+     }
+
      if (newPassword) {
        updatePayload.password = newPassword;
      } else {
        // If no new password, remove password field from payload
-       // to avoid sending an empty string or unintended update
        delete updatePayload.password;
      }
 
@@ -147,7 +179,12 @@ const UpdateProfile = () => {
          setNewPassword(""); // Clear password fields on success
          setConfirmPassword("");
          // Optionally re-fetch user data to show updated info, or update state directly
-         fetchUserData(userId, token); // Re-fetch data after update
+         // fetchUserData(userId, token); // Re-fetch data after update (already done in effect)
+         // Update username in localStorage if changed
+         if (updatePayload.username && localStorage.getItem('username') !== updatePayload.username) {
+            localStorage.setItem('username', updatePayload.username);
+            // Optionally trigger a refresh or state update in a higher component if username is displayed elsewhere
+         }
       } else {
         const data = await response.json().catch(() => ({message: "Failed to update profile."}));
         setError(data.message || "Failed to update profile.");
@@ -160,13 +197,13 @@ const UpdateProfile = () => {
        }
       setError(updateErrorMessage);
     } finally {
-       setIsLoading(false); // Stop loading after submit attempt
+       setIsSubmitting(false); // Stop submitting state
     }
   };
 
 
   // Render Loading Skeleton
-   if (isLoading && !userData.username) { // Show skeleton only on initial load
+   if (isLoading) { // Show skeleton only on initial load
      return (
        <Card>
          <CardHeader>
@@ -179,11 +216,22 @@ const UpdateProfile = () => {
              <div className="space-y-2"><Skeleton className="h-4 w-20" /><Skeleton className="h-10 w-full" /></div>
            </div>
            <div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-10 w-full" /></div>
-           {/* Add more skeletons for other fields */}
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div className="space-y-2"><Skeleton className="h-4 w-28" /><Skeleton className="h-10 w-full" /></div>
-             <div className="space-y-2"><Skeleton className="h-4 w-28" /><Skeleton className="h-10 w-full" /></div>
-           </div>
+            {/* Conditional Skeleton based on potential user type */}
+            <div className="space-y-4 pt-4 border-t">
+               <Skeleton className="h-5 w-32 mb-2" />
+              <div className="space-y-2"><Skeleton className="h-4 w-28" /><Skeleton className="h-10 w-full" /></div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-10 w-full" /></div>
+                  <div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-10 w-full" /></div>
+               </div>
+            </div>
+             <div className="space-y-4 pt-4 border-t">
+                <Skeleton className="h-5 w-48 mb-2" />
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2"><Skeleton className="h-4 w-28" /><Skeleton className="h-10 w-full" /></div>
+                  <div className="space-y-2"><Skeleton className="h-4 w-36" /><Skeleton className="h-10 w-full" /></div>
+                </div>
+             </div>
          </CardContent>
          <CardFooter>
            <Skeleton className="h-10 w-32" />
@@ -208,10 +256,10 @@ const UpdateProfile = () => {
             </Alert>
           )}
           {message && (
-            <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700">
-              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-              <AlertTitle className="text-green-800 dark:text-green-300">Success</AlertTitle>
-              <AlertDescription className="text-green-700 dark:text-green-400">{message}</AlertDescription>
+            <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300">
+               <CheckCircle className="h-4 w-4 text-current" /> {/* Use text-current */}
+               <AlertTitle className="text-current font-semibold">Success</AlertTitle> {/* Use text-current */}
+              <AlertDescription className="text-current">{message}</AlertDescription> {/* Use text-current */}
             </Alert>
           )}
 
@@ -221,10 +269,10 @@ const UpdateProfile = () => {
               <Input
                 id="username"
                 name="username"
-                value={userData.username}
+                value={userData.username || ''}
                 onChange={handleChange}
                 required
-                disabled={isLoading}
+                disabled={isSubmitting}
               />
             </div>
             <div className="space-y-2">
@@ -233,10 +281,10 @@ const UpdateProfile = () => {
                 type="email"
                 id="email"
                 name="email"
-                value={userData.email}
+                value={userData.email || ''}
                 onChange={handleChange}
                 required
-                disabled={isLoading}
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -245,10 +293,10 @@ const UpdateProfile = () => {
             <Label htmlFor="userType">User Type</Label>
              <Select
                  name="userType"
-                 value={userData.userType}
+                 value={userData.userType || ''}
                  onValueChange={handleSelectChange}
                  required
-                 disabled={isLoading}
+                 disabled={isSubmitting}
                >
                  <SelectTrigger id="userType">
                    <SelectValue placeholder="Select your role" />
@@ -262,8 +310,8 @@ const UpdateProfile = () => {
 
           {/* Conditionally render channel fields */}
           {userData.userType?.toLowerCase() === 'channelowner' && (
-            <div className="space-y-4 pt-4 border-t">
-               <h3 className="text-md font-medium text-muted-foreground">Channel Details</h3>
+            <div className="space-y-4 pt-4 border-t border-border/50"> {/* Added border */}
+               <h3 className="text-md font-semibold text-muted-foreground">Channel Details</h3>
               <div className="space-y-2">
                 <Label htmlFor="channelName">Channel Name</Label>
                 <Input
@@ -272,7 +320,8 @@ const UpdateProfile = () => {
                   value={userData.channelName || ''}
                   onChange={handleChange}
                    required={userData.userType === 'ChannelOwner'}
-                   disabled={isLoading}
+                   disabled={isSubmitting}
+                   placeholder="Your YouTube Channel Name"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -284,7 +333,8 @@ const UpdateProfile = () => {
                      value={userData.channelId || ''}
                      onChange={handleChange}
                      required={userData.userType === 'ChannelOwner'}
-                     disabled={isLoading}
+                     disabled={isSubmitting}
+                     placeholder="Your YouTube Channel ID"
                    />
                  </div>
                  <div className="space-y-2">
@@ -296,15 +346,16 @@ const UpdateProfile = () => {
                      value={userData.channelURL || ''}
                      onChange={handleChange}
                       required={userData.userType === 'ChannelOwner'}
-                      disabled={isLoading}
+                      disabled={isSubmitting}
+                      placeholder="https://youtube.com/..."
                    />
                  </div>
               </div>
             </div>
           )}
 
-          <div className="space-y-4 pt-4 border-t">
-             <h3 className="text-md font-medium text-muted-foreground">Update Password (Optional)</h3>
+          <div className="space-y-4 pt-4 border-t border-border/50"> {/* Added border */}
+             <h3 className="text-md font-semibold text-muted-foreground">Update Password (Optional)</h3>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="newPassword">New Password</Label>
@@ -314,8 +365,9 @@ const UpdateProfile = () => {
                     name="newPassword"
                     value={newPassword}
                     onChange={handlePasswordChange}
-                    placeholder="Enter new password"
-                    disabled={isLoading}
+                    placeholder="Enter new password (min. 6 chars)"
+                    disabled={isSubmitting}
+                    minLength={6} // Added minLength for basic validation hint
                   />
                 </div>
                 <div className="space-y-2">
@@ -327,16 +379,25 @@ const UpdateProfile = () => {
                     value={confirmPassword}
                     onChange={handleConfirmPasswordChange}
                      placeholder="Confirm new password"
-                     disabled={isLoading}
+                     disabled={isSubmitting}
+                     minLength={6}
                   />
                 </div>
               </div>
+              <p className="text-xs text-muted-foreground">Leave blank to keep your current password.</p>
           </div>
 
         </CardContent>
         <CardFooter>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Updating..." : "Update Profile"}
+          <Button type="submit" disabled={isSubmitting || isLoading}>
+             {isSubmitting ? (
+               <>
+                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                 Updating...
+               </>
+             ) : (
+               "Update Profile"
+             )}
           </Button>
         </CardFooter>
       </form>

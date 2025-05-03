@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react'; // Added useEffect, useMemo
@@ -17,7 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bell, Settings, User, Edit3, PlusCircle, Mail, FileText, LogOut, BarChart, Zap, Users as UsersIcon } from 'lucide-react'; // Added more icons
+import { Bell, Settings, User, Edit3, PlusCircle, Mail, FileText, LogOut, BarChart, Zap, Users as UsersIcon, ListChecks } from 'lucide-react'; // Added more icons
 import { useRouter, usePathname } from 'next/navigation'; // For navigation, added usePathname
 import Link from 'next/link'; // For internal links
 import { useIsMobile } from '@/hooks/use-mobile'; // Import useIsMobile hook
@@ -29,11 +28,11 @@ import { cn } from '@/lib/utils'; // Import cn utility function
 // Define the structure for sidebar links
 const sidebarLinks = [
     { id: '/dashboard', label: 'My Profile', icon: User },
-    { id: '/dashboard/update', label: 'Update Profile', icon: Edit3 }, // Assuming route structure
+    { id: '/dashboard/update', label: 'Update Profile', icon: Edit3 },
     { id: '/dashboard/opportunities/new', label: 'Post Opportunity', icon: PlusCircle },
-    { id: '/dashboard/collabs/new', label: 'Post Collab', icon: PlusCircle }, // Assuming route structure
-    { id: '/dashboard/collabs/myrequests', label: 'My Collab Requests', icon: Mail }, // Assuming route structure
-    { id: '/dashboard/opportunities/myapps', label: 'My Opportunity Apps', icon: FileText }, // Assuming route structure
+    { id: '/dashboard/collabs/new', label: 'Post Collab', icon: PlusCircle },
+    { id: '/dashboard/opportunities/myopportunities', label: 'My Opportunities', icon: ListChecks }, // Renamed & updated icon
+    { id: '/dashboard/collabs/myrequests', label: 'My Collabs', icon: ListChecks }, // Updated icon
     // Adding links to main app sections for convenience
     { id: '/generate', label: 'Generate Ideas', icon: Zap },
     { id: '/predict', label: 'Predict Performance', icon: BarChart },
@@ -60,8 +59,16 @@ export default function DashboardClient({ children }) {
       setUsername(storedUsername);
     }
      // Close mobile sidebar on navigation if it's open
-     setOpenMobile(false);
-  }, [pathname]); // Add pathname dependency
+     // setOpenMobile(false); // Removed this line to keep mobile sidebar state persistent across navigations unless explicitly closed
+  }, []); // Removed pathname dependency to avoid closing sidebar on every route change
+
+  // Add effect to close mobile sidebar specifically on pathname change if it's open
+  useEffect(() => {
+    if (isMobile && openMobile) {
+      setOpenMobile(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, isMobile]); // Dependency on pathname and isMobile
 
   const handleLogout = () => {
     // Clear local storage
@@ -76,9 +83,7 @@ export default function DashboardClient({ children }) {
 
   const handleNavigation = (path) => {
     router.push(path);
-    if (isMobile) {
-      setOpenMobile(false); // Close mobile sidebar on nav click
-    }
+    // Mobile sidebar closing is handled by the useEffect hook reacting to pathname change
   };
 
   // Sidebar Context Value
