@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Inbox, Mail, Briefcase, MapPin, DollarSign, CalendarDays, User, Loader2, FileText, ExternalLink, Eye } from "lucide-react"; // Import icons
+import { Inbox, Mail, Briefcase, MapPin, DollarSign, CalendarDays, User, Loader2, FileText, ExternalLink, Eye, PlusCircle } from "lucide-react"; // Import icons, added PlusCircle
 import Link from "next/link";
 
 export default function MyOpportunitiesPage() {
@@ -186,12 +186,15 @@ export default function MyOpportunitiesPage() {
 
       {/* Opportunities List */}
        {opportunities.length === 0 && !isLoadingOpps && !error && (
-           <Card className="text-center py-8">
-              <CardContent className="flex flex-col items-center gap-2">
+           <Card className="text-center py-8 border-dashed">
+              <CardContent className="flex flex-col items-center gap-3"> {/* Increased gap */}
                  <Inbox className="h-12 w-12 text-muted-foreground" />
                  <p className="text-muted-foreground">You haven't posted any opportunities yet.</p>
-                 <Button variant="outline" size="sm" asChild>
-                    <Link href="/dashboard/opportunities/new">Post Your First Opportunity</Link>
+                 {/* Updated Button */}
+                 <Button variant="default" size="sm" asChild>
+                     <Link href="/dashboard/opportunities/new" className="flex items-center gap-1">
+                         <PlusCircle className="h-4 w-4" /> Post Your First Opportunity
+                     </Link>
                  </Button>
                </CardContent>
            </Card>

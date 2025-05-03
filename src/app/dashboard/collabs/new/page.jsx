@@ -66,7 +66,7 @@ export default function PostCollabPage() {
     try {
       // Updated endpoint: use http and remove userId from path
       const response = await fetch(
-        `http://localhost:3001/api/users/collabration/addCollab/`,
+        `http://localhost:3001/api/users/collabration/addCollab/${userId}`,
         {
           method: "POST",
           headers: {

@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Inbox, Mail, MessageSquare, CalendarDays, User, Loader2, Clock, FileText, Eye, Users } from "lucide-react"; // Import icons
+import { Inbox, Mail, MessageSquare, CalendarDays, User, Loader2, Clock, FileText, Eye, Users, PlusCircle } from "lucide-react"; // Import icons, added PlusCircle
 import Link from "next/link";
 
 export default function MyCollabsPage() {
@@ -186,12 +186,15 @@ export default function MyCollabsPage() {
 
        {/* Collaborations List */}
        {collaborations.length === 0 && !isLoadingCollabs && !error && (
-           <Card className="text-center py-8">
-              <CardContent className="flex flex-col items-center gap-2">
+           <Card className="text-center py-8 border-dashed">
+              <CardContent className="flex flex-col items-center gap-3"> {/* Increased gap */}
                  <Inbox className="h-12 w-12 text-muted-foreground" />
                  <p className="text-muted-foreground">You haven't posted any collaborations yet.</p>
-                 <Button variant="outline" size="sm" asChild>
-                     <Link href="/dashboard/collabs/new">Post Your First Collab</Link>
+                 {/* Updated Button */}
+                 <Button variant="default" size="sm" asChild>
+                     <Link href="/dashboard/collabs/new" className="flex items-center gap-1">
+                         <PlusCircle className="h-4 w-4" /> Post Your First Collab
+                     </Link>
                  </Button>
                </CardContent>
            </Card>
