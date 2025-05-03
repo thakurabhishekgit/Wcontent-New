@@ -97,7 +97,7 @@ export default function Navbar() {
                     </Button>
 
                   </Link> 
-                ))}
+                )}
               </div>
             </SheetContent>
           </Sheet>
