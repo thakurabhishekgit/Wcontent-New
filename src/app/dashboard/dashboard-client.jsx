@@ -78,6 +78,12 @@ export default function DashboardClient({ children }) {
      }
     // Redirect to login page
     router.push('/auth');
+     // Optionally force refresh or use state management to update globally
+     // This might be needed if other parts of the app rely on the logged-in state
+     // without re-checking localStorage or context.
+     // Consider a more robust state management solution (like Context API or Zustand)
+     // for complex applications instead of relying on reload.
+     // window.location.reload();
   };
 
   const handleNavigation = (path) => {
@@ -107,90 +113,99 @@ export default function DashboardClient({ children }) {
 
   // Prevent rendering potentially mismatching content on the server
    if (!isClient) {
-     return null; // Or a loading skeleton
+     // Return a basic layout skeleton or null
+      return (
+        <div className="flex min-h-screen">
+          {/* Placeholder Sidebar */}
+          <div className="hidden md:block w-16 md:w-64 bg-muted border-r"></div>
+          {/* Placeholder Main Content */}
+          <div className="flex-1 p-6">Loading...</div>
+        </div>
+      );
    }
 
   return (
     // Provide the sidebar context to all children
     <TooltipProvider delayDuration={0}>
     <SidebarContext.Provider value={contextValue}>
-        {/* Render Sidebar - it will consume the context now provided by TooltipProvider too */}
-        <Sidebar>
-            <SidebarHeader className="border-b border-sidebar-border">
-            <div className="flex items-center justify-between p-2">
-                {/* Mobile Trigger - Correctly uses context now */}
-                <SidebarTrigger className="md:hidden"/>
-                {/* Desktop User Info */}
-                <div className="hidden md:flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                    <AvatarImage src={`https://i.pravatar.cc/40?u=${username}`} alt={username} />
-                    <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    {/* Use context state to conditionally hide username */}
-                    <span className={cn("text-sm font-medium", contextValue.state === 'collapsed' && 'sr-only group-data-[collapsible=icon]:hidden')}>
-                    {username}
-                    </span>
-                </div>
-                {/* Actions (Notifications/Settings) */}
-                <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" aria-label="Notifications">
-                        <Bell className="size-4" />
-                    </Button>
-                    {/* Link to profile settings */}
-                    <Link href="/dashboard/update" passHref legacyBehavior>
-                        <Button variant="ghost" size="icon" aria-label="Settings">
-                            <Settings className="size-4" />
+        {/* Use flex container for overall layout */}
+        <div className="flex min-h-screen">
+            {/* Render Sidebar - it will consume the context */}
+            <Sidebar>
+                <SidebarHeader className="border-b border-sidebar-border">
+                <div className="flex items-center justify-between p-2">
+                    {/* Mobile Trigger - Correctly uses context now */}
+                    <SidebarTrigger className="md:hidden"/>
+                    {/* Desktop User Info */}
+                    <div className="hidden md:flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                        <AvatarImage src={`https://i.pravatar.cc/40?u=${username}`} alt={username} />
+                        <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        {/* Use context state to conditionally hide username */}
+                        <span className={cn("text-sm font-medium", contextValue.state === 'collapsed' && 'sr-only group-data-[collapsible=icon]:hidden')}>
+                        {username}
+                        </span>
+                    </div>
+                    {/* Actions (Notifications/Settings) */}
+                    <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" aria-label="Notifications">
+                            <Bell className="size-4" />
                         </Button>
-                    </Link>
+                        {/* Link to profile settings */}
+                        <Link href="/dashboard/update" passHref legacyBehavior>
+                            <Button variant="ghost" size="icon" aria-label="Settings">
+                                <Settings className="size-4" />
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
-            </div>
-            </SidebarHeader>
-            <SidebarContent>
-            <SidebarMenu>
-                {sidebarLinks.map(link => (
-                <SidebarMenuItem key={link.id}>
-                    <SidebarMenuButton
-                    onClick={() => handleNavigation(link.id)}
-                    isActive={pathname === link.id} // Use pathname for active state
-                    tooltip={link.label} // Tooltip for collapsed view
-                    >
-                    <link.icon />
-                    <span>{link.label}</span>
+                </SidebarHeader>
+                <SidebarContent>
+                <SidebarMenu>
+                    {sidebarLinks.map(link => (
+                    <SidebarMenuItem key={link.id}>
+                        <SidebarMenuButton
+                        onClick={() => handleNavigation(link.id)}
+                        isActive={pathname === link.id} // Use pathname for active state
+                        tooltip={link.label} // Tooltip for collapsed view
+                        >
+                        <link.icon />
+                        <span>{link.label}</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+                </SidebarContent>
+                <SidebarFooter className="border-t border-sidebar-border mt-auto">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                    <SidebarMenuButton tooltip="Logout" onClick={handleLogout}>
+                        <LogOut />
+                        <span>Logout</span>
                     </SidebarMenuButton>
-                </SidebarMenuItem>
-                ))}
-            </SidebarMenu>
-            </SidebarContent>
-            <SidebarFooter className="border-t border-sidebar-border mt-auto">
-            <SidebarMenu>
-                <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Logout" onClick={handleLogout}>
-                    <LogOut />
-                    <span>Logout</span>
-                </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-            </SidebarFooter>
-        </Sidebar>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+                </SidebarFooter>
+            </Sidebar>
 
-        {/* Main Content Area - Renders the actual page content */}
-        {/* Added flex flex-col h-full to ensure this takes full height within its parent flex container */}
-        <SidebarInset className="flex flex-col h-full">
-            {/* Header for main content area, including the mobile trigger */}
-            <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0">
-                {/* Find the current page title */}
-            <h2 className="text-xl font-semibold capitalize">
-                {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
-            </h2>
-            {/* This trigger now works correctly because context is provided above */}
-            <SidebarTrigger />
-            </header>
-            {/* Render the specific page component passed as children */}
-            {/* Removed flex-grow, relying on flex-1 on SidebarInset */}
-            <div className="p-4 md:p-6 overflow-auto"> {/* Added overflow-auto */}
-            {children}
-            </div>
-        </SidebarInset>
+            {/* Main Content Area - Renders the actual page content */}
+            <SidebarInset className="flex flex-col h-full">
+                {/* Header for main content area, including the mobile trigger */}
+                <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0">
+                    {/* Find the current page title */}
+                <h2 className="text-xl font-semibold capitalize">
+                    {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
+                </h2>
+                {/* This trigger now works correctly because context is provided above */}
+                <SidebarTrigger />
+                </header>
+                {/* Render the specific page component passed as children */}
+                <div className="flex-1 p-4 md:p-6 overflow-auto"> {/* Ensure this grows and scrolls */}
+                {children}
+                </div>
+            </SidebarInset>
+         </div>
     </SidebarContext.Provider>
     </TooltipProvider>
   );
