@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react'; // Import useEffect
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, LogIn } from "lucide-react";
+import { Terminal, LogIn, Lightbulb, Sparkles, Bot } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,20 +23,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"; // Import AlertDialog components
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs
 
+
+// Schema now includes tone and format, defaulting to optional strings
 const formSchema = z.object({
   prompt: z.string().min(10, { message: 'Prompt must be at least 10 characters long.' }).max(500, { message: 'Prompt cannot exceed 500 characters.' }),
+  tone: z.string().optional(),
+  format: z.string().optional(),
+  generationMode: z.string().default('ideas'), // Added generationMode
 });
 
 export default function GeneratePage() {
-  const [generatedIdeas, setGeneratedIdeas] = useState([]);
+  const [generationResult, setGenerationResult] = useState(null); // Can store string array or other structures
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isClient, setIsClient] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [generationCount, setGenerationCount] = useState(0);
   const [showLoginAlert, setShowLoginAlert] = useState(false);
+  const [activeTab, setActiveTab] = useState('ideas'); // State for active tab
   const router = useRouter();
 
   useEffect(() => {
@@ -54,8 +62,16 @@ export default function GeneratePage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       prompt: '',
+      tone: '',
+      format: '',
+      generationMode: 'ideas',
     },
   });
+
+  // Update generationMode when tab changes
+  useEffect(() => {
+    form.setValue('generationMode', activeTab);
+  }, [activeTab, form]);
 
   const onSubmit = async (data) => {
     // Check login status and generation count
@@ -66,23 +82,26 @@ export default function GeneratePage() {
 
     setIsLoading(true);
     setError(null);
-    setGeneratedIdeas([]); // Clear previous ideas
+    setGenerationResult(null); // Clear previous result
 
     try {
-      const result = await generateContentIdeas({ prompt: data.prompt });
-      if (result && result.ideas) {
-        setGeneratedIdeas(result.ideas);
-        // Increment generation count only on successful generation
-        const newCount = generationCount + 1;
-        setGenerationCount(newCount);
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('generationCount', newCount.toString());
-        }
-      } else {
-         setError('Failed to generate ideas. The AI returned an unexpected response.');
-      }
+      // Pass all form data, including tone, format, and generationMode
+      const result = await generateContentIdeas(data);
+
+      // Check the structure of the result based on generationMode
+       if (result) {
+          setGenerationResult(result); // Store the entire result object
+          // Increment generation count only on successful generation
+          const newCount = generationCount + 1;
+          setGenerationCount(newCount);
+          if (typeof window !== 'undefined') {
+              localStorage.setItem('generationCount', newCount.toString());
+          }
+       } else {
+           setError('Failed to generate content. The AI returned an unexpected response.');
+       }
     } catch (err) {
-      console.error('Error generating content ideas:', err);
+      console.error(`Error generating ${data.generationMode}:`, err);
        setError(`An error occurred: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`);
     } finally {
       setIsLoading(false);
@@ -97,83 +116,180 @@ export default function GeneratePage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl md:text-4xl font-bold">Generate Content Ideas</h1>
-      <p className="text-lg text-foreground/80">
-        Stuck in a creative rut? Enter a topic or keyword, and let our AI brainstorm content ideas for you.
-        {!isLoggedIn && <span className="text-sm block text-muted-foreground">(First generation is free! Login for unlimited access.)</span>}
-      </p>
+      <section className="text-center pt-8 pb-4">
+         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 bg-gradient-to-r from-primary via-teal-400 to-teal-600 bg-clip-text text-transparent">
+           AI Content Generation Suite
+         </h1>
+         <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+           Fuel your creativity! Generate content ideas, headlines, outlines, and more with the power of AI.
+           {!isLoggedIn && <span className="text-sm block text-primary mt-1">(First generation is free! Login for unlimited access.)</span>}
+         </p>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Idea Generator</CardTitle>
-          <CardDescription>Describe your topic or desired content angle below.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="prompt"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Your Prompt</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="e.g., 'sustainable living tips for beginners', 'unique video ideas for a cooking channel', 'blog post topics about AI in marketing'"
-                        className="resize-none"
-                        rows={4}
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 md:max-w-md mx-auto"> {/* Adjusted width */}
+          <TabsTrigger value="ideas"> <Lightbulb className="mr-2 h-4 w-4" /> Ideas</TabsTrigger>
+          <TabsTrigger value="headlines"> <Sparkles className="mr-2 h-4 w-4" /> Headlines</TabsTrigger>
+          {/* Add more tabs here later e.g., Outlines, Social Posts */}
+        </TabsList>
+
+        {/* Shared Form Card */}
+         <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"> <Bot className="h-6 w-6 text-primary"/> Content Generator</CardTitle>
+              <CardDescription>Describe your topic and select desired options below.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="prompt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Your Core Topic / Prompt</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="e.g., 'sustainable living tips for beginners', 'unique video ideas for a cooking channel', 'benefits of AI in marketing'"
+                            className="resize-none"
+                            rows={4}
+                            {...field}
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Optional Inputs: Tone and Format */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <FormField
+                       control={form.control}
+                       name="tone"
+                       render={({ field }) => (
+                         <FormItem>
+                           <FormLabel>Desired Tone (Optional)</FormLabel>
+                           <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                             <FormControl>
+                               <SelectTrigger>
+                                 <SelectValue placeholder="Select a tone" />
+                               </SelectTrigger>
+                             </FormControl>
+                             <SelectContent>
+                                <SelectItem value="">Any / Default</SelectItem>
+                                <SelectItem value="Formal">Formal</SelectItem>
+                                <SelectItem value="Casual">Casual</SelectItem>
+                                <SelectItem value="Humorous">Humorous</SelectItem>
+                                <SelectItem value="Professional">Professional</SelectItem>
+                                <SelectItem value="Enthusiastic">Enthusiastic</SelectItem>
+                                <SelectItem value="Informative">Informative</SelectItem>
+                             </SelectContent>
+                           </Select>
+                           <FormMessage />
+                         </FormItem>
+                       )}
+                     />
+                     <FormField
+                       control={form.control}
+                       name="format"
+                       render={({ field }) => (
+                         <FormItem>
+                           <FormLabel>Desired Format (Optional)</FormLabel>
+                           <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                             <FormControl>
+                               <SelectTrigger>
+                                 <SelectValue placeholder="Select a format" />
+                               </SelectTrigger>
+                             </FormControl>
+                             <SelectContent>
+                               <SelectItem value="">Any / General</SelectItem>
+                               <SelectItem value="Blog Post">Blog Post</SelectItem>
+                               <SelectItem value="Video Script">Video Script</SelectItem>
+                               <SelectItem value="Tweet">Tweet</SelectItem>
+                               <SelectItem value="LinkedIn Post">LinkedIn Post</SelectItem>
+                               <SelectItem value="Email Newsletter">Email Newsletter</SelectItem>
+                               <SelectItem value="Presentation Outline">Presentation Outline</SelectItem>
+                             </SelectContent>
+                           </Select>
+                           <FormMessage />
+                         </FormItem>
+                       )}
+                     />
+                  </div>
+
+                  {/* Hidden field for generationMode - value set by Tabs */}
+                   <FormField control={form.control} name="generationMode" render={({ field }) => <input type="hidden" {...field} />} />
+
+
+                  <Button type="submit" disabled={isLoading} className="w-full md:w-auto">
+                    {isLoading ? (
+                       <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating {activeTab}... </>
+                    ) : `Generate ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`}
+                     {!isLoggedIn && generationCount > 0 && <span className="ml-2 text-xs">(Login Required)</span>}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+
+
+        {/* Content area for results - shown below the form card */}
+        <div className="mt-8">
+            {error && (
+             <Alert variant="destructive" className="mb-6">
+               <Terminal className="h-4 w-4" />
+               <AlertTitle>Error</AlertTitle>
+               <AlertDescription>{error}</AlertDescription>
+             </Alert>
+           )}
+
+          {(isLoading || generationResult) && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Generated {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-5/6" />
+                     <Skeleton className="h-6 w-4/5" />
+                  </div>
+                ) : (
+                   generationResult && (
+                     // Display logic based on the active tab / result structure
+                     <TabsContent value={activeTab} forceMount={true}> {/* Use forceMount to ensure content renders immediately */}
+                       {activeTab === 'ideas' && generationResult.ideas && (
+                         <ul className="list-disc space-y-2 pl-5 text-foreground/90">
+                           {generationResult.ideas.map((idea, index) => (
+                             <li key={index}>{idea}</li>
+                           ))}
+                         </ul>
+                       )}
+                       {activeTab === 'headlines' && generationResult.headlines && (
+                         <ul className="list-decimal space-y-2 pl-5 text-foreground/90">
+                           {generationResult.headlines.map((headline, index) => (
+                             <li key={index}>{headline}</li>
+                           ))}
+                         </ul>
+                       )}
+                        {/* Add rendering for other types (e.g., outlines) here */}
+
+                         {/* Fallback if result structure doesn't match expected */}
+                         {activeTab === 'ideas' && !generationResult.ideas && <p className="text-foreground/60">No ideas generated or unexpected format received.</p>}
+                         {activeTab === 'headlines' && !generationResult.headlines && <p className="text-foreground/60">No headlines generated or unexpected format received.</p>}
+                     </TabsContent>
+                   )
                 )}
-              />
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Generating...' : 'Generate Ideas'}
-                 {!isLoggedIn && generationCount > 0 && <span className="ml-2 text-xs">(Login Required)</span>}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                {!isLoading && !generationResult && !error && <p className="text-foreground/60">Enter a prompt and click Generate.</p>}
+              </CardContent>
+            </Card>
+          )}
+         </div>
+      </Tabs>
 
-      {error && (
-         <Alert variant="destructive">
-           <Terminal className="h-4 w-4" />
-           <AlertTitle>Error</AlertTitle>
-           <AlertDescription>{error}</AlertDescription>
-         </Alert>
-       )}
-
-      {(isLoading || generatedIdeas.length > 0) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Generated Ideas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-5/6" />
-                 <Skeleton className="h-6 w-4/5" />
-              </div>
-            ) : (
-               generatedIdeas.length > 0 ? (
-                <ul className="list-disc space-y-2 pl-5 text-foreground/90">
-                  {generatedIdeas.map((idea, index) => (
-                    <li key={index}>{idea}</li>
-                  ))}
-                </ul>
-               ) : (
-                 !error && <p className="text-foreground/60">No ideas generated. Try refining your prompt.</p>
-               )
-            )}
-          </CardContent>
-        </Card>
-      )}
 
        {/* Login Required Alert Dialog */}
        <AlertDialog open={showLoginAlert} onOpenChange={setShowLoginAlert}>
@@ -181,7 +297,7 @@ export default function GeneratePage() {
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2"> <LogIn className="h-5 w-5"/> Login Required</AlertDialogTitle>
               <AlertDialogDescription>
-                You've used your free generation. Please log in or sign up to continue generating unlimited content ideas.
+                You've used your free generation. Please log in or sign up to continue generating unlimited content.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
