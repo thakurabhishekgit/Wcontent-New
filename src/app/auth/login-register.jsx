@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Loader2 } from 'lucide-react'; // Import Loader2 icon
 
 
 const Login = ({ handleLogin }) => {
@@ -26,6 +27,12 @@ const Login = ({ handleLogin }) => {
   const [channelURL, setChannelURL] = useState(""); // Added channel URL state
   const [isClient, setIsClient] = useState(false);
 
+  // Loading states
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [isRegisteringSubmit, setIsRegisteringSubmit] = useState(false);
+
   const router = useRouter();
 
    useEffect(() => {
@@ -36,6 +43,7 @@ const Login = ({ handleLogin }) => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setIsLoggingIn(true); // Start loading
 
     try {
       const backendUrl = "http://localhost:3001/api/users/login";
@@ -82,6 +90,8 @@ const Login = ({ handleLogin }) => {
           networkErrorMessage = `Error logging in. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and that CORS is configured correctly on the server to allow requests from your frontend origin (${window.location.origin}).`;
        }
        setError(networkErrorMessage);
+    } finally {
+      setIsLoggingIn(false); // Stop loading
     }
   };
 
@@ -90,6 +100,7 @@ const Login = ({ handleLogin }) => {
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setIsSendingOtp(true); // Start loading
 
     try {
       const backendUrl = `http://localhost:3001/api/users/request-otp?email=${encodeURIComponent(email)}`;
@@ -123,6 +134,8 @@ const Login = ({ handleLogin }) => {
           networkErrorMessage = `Error sending OTP. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
        }
        setError(networkErrorMessage);
+    } finally {
+      setIsSendingOtp(false); // Stop loading
     }
   };
 
@@ -130,6 +143,7 @@ const Login = ({ handleLogin }) => {
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
      setError("");
+     setIsVerifyingOtp(true); // Start loading
 
     try {
       const backendUrl = `http://localhost:3001/api/users/verify-otp?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`;
@@ -163,6 +177,8 @@ const Login = ({ handleLogin }) => {
          networkErrorMessage = `Error verifying OTP. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
        }
       setError(networkErrorMessage);
+    } finally {
+       setIsVerifyingOtp(false); // Stop loading
     }
   };
 
@@ -170,14 +186,17 @@ const Login = ({ handleLogin }) => {
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
      setError("");
+     setIsRegisteringSubmit(true); // Start loading
 
     if (!userType) {
       setError("Please select a user type.");
+      setIsRegisteringSubmit(false);
       return;
     }
      // Basic password confirmation validation
      if (password.length < 6) {
         setError("Password must be at least 6 characters long.");
+         setIsRegisteringSubmit(false);
         return;
      }
 
@@ -233,6 +252,8 @@ const Login = ({ handleLogin }) => {
          networkErrorMessage = `Error registering. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
        }
        setError(networkErrorMessage);
+    } finally {
+       setIsRegisteringSubmit(false); // Stop loading
     }
   };
 
@@ -250,6 +271,11 @@ const Login = ({ handleLogin }) => {
     setChannelId("");
     setChannelURL("");
     setError("");
+    // Reset loading states
+    setIsLoggingIn(false);
+    setIsSendingOtp(false);
+    setIsVerifyingOtp(false);
+    setIsRegisteringSubmit(false);
   };
 
 
@@ -299,6 +325,7 @@ const Login = ({ handleLogin }) => {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       placeholder="you@example.com"
+                      disabled={isLoggingIn}
                     />
                   </div>
                   <div>
@@ -310,10 +337,17 @@ const Login = ({ handleLogin }) => {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       placeholder="••••••••"
+                      disabled={isLoggingIn}
                     />
                   </div>
-                  <Button type="submit" className="w-full">
-                    Login
+                  <Button type="submit" className="w-full" disabled={isLoggingIn}>
+                    {isLoggingIn ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logging In...
+                      </>
+                    ) : (
+                      'Login'
+                    )}
                   </Button>
                 </form>
               )}
@@ -334,11 +368,18 @@ const Login = ({ handleLogin }) => {
                           onChange={(e) => setEmail(e.target.value)}
                           required
                           placeholder="you@example.com"
+                          disabled={isSendingOtp}
                         />
                          <p className="text-xs text-muted-foreground mt-1">We'll send an OTP to verify your email.</p>
                       </div>
-                      <Button type="submit" className="w-full">
-                        Send OTP
+                      <Button type="submit" className="w-full" disabled={isSendingOtp}>
+                        {isSendingOtp ? (
+                           <>
+                             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending OTP...
+                           </>
+                         ) : (
+                           'Send OTP'
+                         )}
                       </Button>
                     </form>
                      </>
@@ -357,11 +398,18 @@ const Login = ({ handleLogin }) => {
                           required
                           placeholder="Enter the 6-digit code"
                           maxLength={6}
+                          disabled={isVerifyingOtp}
                         />
                          <p className="text-xs text-muted-foreground mt-1">Check your email for the verification code.</p>
                       </div>
-                      <Button type="submit" className="w-full">
-                        Verify OTP
+                      <Button type="submit" className="w-full" disabled={isVerifyingOtp}>
+                        {isVerifyingOtp ? (
+                           <>
+                             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...
+                           </>
+                         ) : (
+                           'Verify OTP'
+                         )}
                       </Button>
                     </form>
                   )}
@@ -378,6 +426,7 @@ const Login = ({ handleLogin }) => {
                           onChange={(e) => setUsername(e.target.value)}
                           required
                           placeholder="Choose a username"
+                          disabled={isRegisteringSubmit}
                         />
                       </div>
                       <div>
@@ -390,11 +439,12 @@ const Login = ({ handleLogin }) => {
                           required
                            placeholder="Choose a strong password (min. 6 chars)"
                            minLength={6} // Add hint for minimum length
+                           disabled={isRegisteringSubmit}
                         />
                       </div>
                       <div>
                         <Label htmlFor="userType">User Type</Label>
-                         <Select onValueChange={setUserType} value={userType} required>
+                         <Select onValueChange={setUserType} value={userType} required disabled={isRegisteringSubmit}>
                             <SelectTrigger id="userType">
                               <SelectValue placeholder="Select your role" />
                             </SelectTrigger>
@@ -415,6 +465,7 @@ const Login = ({ handleLogin }) => {
                                  onChange={(e) => setChannelName(e.target.value)}
                                  // required={userType === 'ChannelOwner'} // Remove requirement here, let backend validate if needed
                                  placeholder="Your YouTube Channel Name"
+                                 disabled={isRegisteringSubmit}
                                />
                            </div>
                            <div>
@@ -426,6 +477,7 @@ const Login = ({ handleLogin }) => {
                                  onChange={(e) => setChannelId(e.target.value)}
                                  // required={userType === 'ChannelOwner'}
                                   placeholder="Your YouTube Channel ID"
+                                  disabled={isRegisteringSubmit}
                                />
                            </div>
                            <div>
@@ -437,11 +489,18 @@ const Login = ({ handleLogin }) => {
                                  onChange={(e) => setChannelURL(e.target.value)}
                                  // required={userType === 'ChannelOwner'}
                                  placeholder="https://youtube.com/..."
+                                 disabled={isRegisteringSubmit}
                               />
                            </div>
                        </>
-                      <Button type="submit" className="w-full">
-                        Sign Up
+                      <Button type="submit" className="w-full" disabled={isRegisteringSubmit}>
+                        {isRegisteringSubmit ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing Up...
+                          </>
+                        ) : (
+                          'Sign Up'
+                        )}
                       </Button>
                     </form>
                   )}
@@ -451,7 +510,7 @@ const Login = ({ handleLogin }) => {
             <CardFooter className="flex justify-center">
                <p className="text-sm text-muted-foreground">
                 {isRegistering ? "Already have an account?" : "No account?"}{" "}
-                <Button variant="link" className="p-0 h-auto text-primary" onClick={toggleMode}>
+                <Button variant="link" className="p-0 h-auto text-primary" onClick={toggleMode} disabled={isLoggingIn || isSendingOtp || isVerifyingOtp || isRegisteringSubmit}>
                   {isRegistering ? "Login" : "Sign Up"}
                 </Button>
               </p>
