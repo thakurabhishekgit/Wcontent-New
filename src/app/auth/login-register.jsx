@@ -298,9 +298,9 @@ const Login = ({ handleLogin }) => {
             we've got you covered. {/* Updated description */}
           </p>
           <Image
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s" // Use provided image URL
+            src="https://picsum.photos/400/300" // Updated image URL
             alt="Content Creation Illustration"
-            data-ai-hint="content marketing social media promotion" // Updated hint
+            data-ai-hint="content creation youtube analytics" // Updated hint
             width={400} // Keep original dimensions or adjust if needed
             height={300}
             className="rounded-lg object-cover shadow-lg"

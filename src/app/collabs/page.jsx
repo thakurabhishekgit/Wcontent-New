@@ -347,10 +347,10 @@ export default function CollaborationsPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
-            { icon: UsersIcon, title: 'Find Partners', description: 'Discover creators in your niche or explore new ones.', hint: 'people network connection' },
-            { icon: Zap, title: 'Spark Creativity', description: 'Brainstorm ideas and create unique content together.', hint: 'lightbulb idea creativity spark' },
-            { icon: Target, title: 'Reach New Audiences', description: 'Cross-promote to grow your combined following.', hint: 'target audience growth graph' },
-            { icon: Handshake, title: 'Build Relationships', description: 'Network with peers and build lasting partnerships.', hint: 'handshake partnership deal relationship' },
+            { icon: UsersIcon, title: 'Find Partners', description: 'Discover creators in your niche or explore new ones.', hint: 'collaboration network people' },
+            { icon: Zap, title: 'Spark Creativity', description: 'Brainstorm ideas and create unique content together.', hint: 'lightbulb innovation ideas' },
+            { icon: Target, title: 'Reach New Audiences', description: 'Cross-promote to grow your combined following.', hint: 'audience growth charts' },
+            { icon: Handshake, title: 'Build Relationships', description: 'Network with peers and build lasting partnerships.', hint: 'partnership agreement deal' },
           ].map((feature, index) => (
             <Card key={index} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
@@ -360,7 +360,7 @@ export default function CollaborationsPage() {
               </CardHeader>
               <CardContent className="flex-grow flex items-end">
                 <Image
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s" // Use provided image URL
+                  src={`https://picsum.photos/400/250?random=${index}`} // Use picsum photos
                   alt={feature.title}
                   data-ai-hint={feature.hint}
                   width={400}

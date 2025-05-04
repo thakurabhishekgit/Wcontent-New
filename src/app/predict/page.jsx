@@ -41,7 +41,6 @@ const FeatureCard = ({ icon: Icon, title, description, img, hint }) => (
          width={400}
          height={250}
          className="rounded-md object-cover w-full h-auto mt-4"
-         unoptimized={img.includes('encrypted-tbn0.gstatic.com')} // Add unoptimized for external image
        />
      </CardContent>
    </Card>
@@ -323,22 +322,22 @@ function Ml() {
             icon={Search}
             title="Comment Sentiment Analysis"
             description="Quickly understand what your audience thinks by analyzing comment sections."
-            img="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s" // Use provided image URL
-            hint="comments feedback sentiment analysis"
+            img="https://picsum.photos/400/250?random=20" // Use picsum photos
+            hint="comments feedback sentiment graph"
           />
           <FeatureCard
             icon={Lightbulb}
             title="Actionable Improvement Ideas"
             description="Get AI-powered suggestions on how to make your next video even better based on feedback."
-            img="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s" // Use provided image URL
-            hint="lightbulb ideas improvement suggestions"
+            img="https://picsum.photos/400/250?random=21" // Use picsum photos
+            hint="lightbulb idea strategy improvement"
           />
            <FeatureCard
              icon={TrendingUp}
              title="Future Reach Prediction (Beta)"
              description="Estimate the potential viewership of your planned content based on topic and your channel stats."
-             img="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s" // Use provided image URL
-             hint="graph trending up prediction forecast"
+             img="https://picsum.photos/400/250?random=22" // Use picsum photos
+             hint="graph chart prediction forecast"
            />
         </div>
        </section>

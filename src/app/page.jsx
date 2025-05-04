@@ -25,23 +25,22 @@ const FeatureShowcaseSlider = () => (
   </div>
 );
 
-// Define content for the hero slider using the provided image
-const providedImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s";
+// Define content for the hero slider using picsum images
 const heroSlides = [
   {
-    imageUrl: providedImageUrl,
-    imageHint: 'content marketing social media promotion',
+    imageUrl: 'https://picsum.photos/1200/800?random=1',
+    imageHint: 'content creation analysis youtube',
     title: 'Empower Your Content Creation with Wcontent', // Updated title
     description: 'Wcontent is the ultimate platform for creators, providing AI-powered tools to streamline your workflow, generate fresh ideas, and connect with collaborators.', // Updated description
   },
   {
-    imageUrl: providedImageUrl, // Use the same image for all slides for now
+    imageUrl: 'https://picsum.photos/1200/800?random=2',
     imageHint: 'brainstorming ideas lightbulb team',
     title: 'Generate Ideas Instantly',
     description: 'Break through creative blocks using our AI idea generator for videos, blogs, and social media.',
   },
   {
-    imageUrl: providedImageUrl, // Use the same image for all slides for now
+    imageUrl: 'https://picsum.photos/1200/800?random=3',
     imageHint: 'networking connection people world',
     title: 'Connect & Collaborate',
     description: 'Find opportunities and collaborate with other creators to expand your reach and impact.',
@@ -81,7 +80,6 @@ export default function Home() {
               'object-cover transition-opacity duration-1000 ease-in-out -z-10', // Use z-index -10
               index === activeIndex ? 'opacity-100' : 'opacity-0'
             )}
-            unoptimized={slide.imageUrl.includes('encrypted-tbn0.gstatic.com')} // Add unoptimized for external image
           />
         ))}
         {/* Overlay for text readability */}
@@ -160,13 +158,12 @@ export default function Home() {
                 </CardHeader>
                 <CardContent className="flex-grow flex items-end"> {/* Use flex-grow and items-end */}
                   <Image
-                    src={providedImageUrl} // Use provided image URL
+                    src={`https://picsum.photos/400/250?random=${index + 10}`} // Use picsum photos with different seeds
                     alt={feature.title}
                     data-ai-hint={feature.hint}
                     width={400}
                     height={250}
                     className="rounded-md object-cover w-full h-auto mt-4" // Ensure image scales well
-                    unoptimized // Add unoptimized for external image
                   />
                 </CardContent>
               </Card>

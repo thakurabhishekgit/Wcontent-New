@@ -336,10 +336,10 @@ export default function OpportunitiesPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
-            { icon: Award, title: 'Curated Gigs', description: 'Access opportunities specifically for content creators.', hint: 'award medal opportunity' },
-            { icon: Filter, title: 'Smart Filters', description: 'Easily find relevant gigs by type, location, and budget.', hint: 'filter search options' },
-            { icon: Target, title: 'Direct Applications', description: 'Apply directly to opportunities through the platform.', hint: 'target application form submit' },
-            { icon: Briefcase, title: 'Diverse Roles', description: 'From paid gigs to full-time roles, find what fits you.', hint: 'briefcase portfolio job variety' },
+            { icon: Award, title: 'Curated Gigs', description: 'Access opportunities specifically for content creators.', hint: 'trophy award job' },
+            { icon: Filter, title: 'Smart Filters', description: 'Easily find relevant gigs by type, location, and budget.', hint: 'filter search find' },
+            { icon: Target, title: 'Direct Applications', description: 'Apply directly to opportunities through the platform.', hint: 'apply form submit' },
+            { icon: Briefcase, title: 'Diverse Roles', description: 'From paid gigs to full-time roles, find what fits you.', hint: 'job work project' },
           ].map((feature, index) => (
             <Card key={index} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
@@ -349,7 +349,7 @@ export default function OpportunitiesPage() {
               </CardHeader>
               <CardContent className="flex-grow flex items-end">
                 <Image
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s" // Use provided image URL
+                  src={`https://picsum.photos/400/250?random=${index+5}`} // Use picsum photos with different seeds
                   alt={feature.title}
                   data-ai-hint={feature.hint}
                   width={400}
