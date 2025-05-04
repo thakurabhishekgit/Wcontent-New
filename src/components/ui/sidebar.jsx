@@ -200,7 +200,21 @@ const SidebarInset = React.forwardRef(({ className, ...props }, ref) => {
       ref={ref}
       className={cn(
         // flex-1 allows this component to take up remaining space
-        "relative flex flex-col flex-1 bg-background overflow-hidden", // Removed md:peer styles and margin calculation styles
+        // Re-add margin styles based on sidebar state for desktop
+        "relative flex flex-col flex-1 bg-background overflow-hidden",
+        "md:peer-data-[side=left]:ml-[--sidebar-width]",
+        "md:peer-data-[side=right]:mr-[--sidebar-width]",
+        "md:peer-data-[collapsible=icon]:peer-data-[side=left]:ml-[var(--sidebar-width-icon)]",
+        "md:peer-data-[collapsible=icon]:peer-data-[side=right]:mr-[var(--sidebar-width-icon)]",
+        "md:peer-data-[collapsible=offcanvas]:peer-data-[side=left]:ml-0",
+        "md:peer-data-[collapsible=offcanvas]:peer-data-[side=right]:mr-0",
+        "md:peer-data-[variant=floating]:peer-data-[side=left]:ml-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+_2px)]",
+        "md:peer-data-[variant=floating]:peer-data-[side=right]:mr-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+_2px)]",
+        "md:peer-data-[variant=inset]:peer-data-[side=left]:ml-[calc(var(--sidebar-width)_+2px)]",
+        "md:peer-data-[variant=inset]:peer-data-[side=right]:mr-[calc(var(--sidebar-width)_+2px)]",
+        "md:peer-data-[variant=inset]:peer-data-[collapsible=icon]:peer-data-[side=left]:ml-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]",
+        "md:peer-data-[variant=inset]:peer-data-[collapsible=icon]:peer-data-[side=right]:mr-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]",
+        "md:transition-[margin] md:duration-200 md:ease-linear",
         className
       )}
       {...props}
@@ -571,5 +585,6 @@ export {
   SidebarTrigger,
   useSidebar, // Keep useSidebar export
 }
+
 
 
