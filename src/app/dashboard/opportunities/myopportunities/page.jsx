@@ -64,7 +64,11 @@ export default function MyOpportunitiesPage() {
         }
       } catch (error) {
         console.error("Error fetching opportunities:", error);
-        setError("Error fetching opportunities. Please try again.");
+         let fetchErrorMessage = "Error fetching opportunities. Please try again.";
+         if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
+             fetchErrorMessage = `Error fetching opportunities. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
+         }
+         setError(fetchErrorMessage);
          setOpportunities([]);
       } finally {
         setIsLoadingOpps(false);
@@ -101,7 +105,11 @@ export default function MyOpportunitiesPage() {
       }
     } catch (error) {
       console.error("Error fetching applications:", error);
-      setError("Error fetching applications. Please try again."); // Set specific error
+      let fetchErrorMessage = "Error fetching applications. Please try again.";
+       if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
+           fetchErrorMessage = `Error fetching applications. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
+       }
+       setError(fetchErrorMessage); // Set specific error
        setApplications([]);
     } finally {
       setIsLoadingApps(false);
@@ -319,3 +327,5 @@ export default function MyOpportunitiesPage() {
     </div>
   );
 }
+
+    

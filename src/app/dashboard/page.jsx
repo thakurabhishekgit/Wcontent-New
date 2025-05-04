@@ -69,7 +69,7 @@ const MyProfile = () => {
     } catch (error) {
       console.error("Network or other error fetching user data:", error);
        let fetchErrorMessage = "Error fetching user data. Please check your connection and ensure the backend is running.";
-       if (error instanceof TypeError && error.message === 'Failed to fetch') {
+       if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
            fetchErrorMessage = `Error fetching user data. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
        }
       setError(fetchErrorMessage);
@@ -212,3 +212,5 @@ export default function DashboardPage() {
   // Render the MyProfile component content directly
   return <MyProfile />;
 }
+
+    

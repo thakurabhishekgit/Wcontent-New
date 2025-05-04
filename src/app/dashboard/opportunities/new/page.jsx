@@ -93,7 +93,7 @@ export default function NewOpportunityPage() {
     } catch (err) {
       console.error("Error posting opportunity:", err);
       let fetchErrorMessage = "An unexpected error occurred. Please try again.";
-      if (err instanceof TypeError && err.message.includes('fetch')) {
+      if (isClient && err instanceof TypeError && err.message.includes('fetch')) {
          // Updated error message to reflect deployed URL
          fetchErrorMessage = `Error posting opportunity. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
        }
@@ -297,3 +297,5 @@ export default function NewOpportunityPage() {
     </Card>
   );
 }
+
+    

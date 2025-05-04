@@ -76,7 +76,7 @@ const UpdateProfile = () => {
     } catch (error) {
        console.error("Fetch User Data Error:", error);
        let fetchErrorMessage = "Error fetching profile data. Please check your connection.";
-       if (error instanceof TypeError && error.message === 'Failed to fetch') {
+       if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
          fetchErrorMessage = `Error fetching profile. Could not connect to the server at https://wcontent-app-latest.onrender.com. Ensure the backend is running and CORS is configured.`;
        }
       setError(fetchErrorMessage);
@@ -195,7 +195,7 @@ const UpdateProfile = () => {
     } catch (error) {
       console.error("Update Profile Error:", error);
       let updateErrorMessage = "Error updating profile. Please try again.";
-       if (error instanceof TypeError && error.message === 'Failed to fetch') {
+       if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
          updateErrorMessage = `Error updating profile. Could not connect to the server at https://wcontent-app-latest.onrender.com. Ensure the backend is running and CORS is configured.`;
        }
       setError(updateErrorMessage);
@@ -409,3 +409,5 @@ const UpdateProfile = () => {
 };
 
 export default UpdateProfile;
+
+    

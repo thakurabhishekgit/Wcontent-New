@@ -92,6 +92,7 @@ const Login = ({ handleLogin }) => {
     } catch (error) {
        console.error("Login network error:", error);
        let networkErrorMessage = "Error logging in. Please check your connection and try again.";
+       // Check if it's a fetch error (often CORS or network related)
        if (isClient && error instanceof TypeError && error.message.includes('fetch')) { // More robust check
           networkErrorMessage = `Error logging in. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and that CORS is configured correctly on the server to allow requests from your frontend origin (${window.location.origin}).`;
        }
@@ -532,3 +533,5 @@ const Login = ({ handleLogin }) => {
 };
 
 export default Login;
+
+    

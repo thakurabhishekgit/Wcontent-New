@@ -64,7 +64,11 @@ export default function MyCollabsPage() {
       }
     } catch (error) {
       console.error("Error fetching collaborations:", error);
-      setError("Error fetching collaborations. Please try again.");
+      let fetchErrorMessage = "Error fetching collaborations. Please try again.";
+      if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
+          fetchErrorMessage = `Error fetching collaborations. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
+      }
+      setError(fetchErrorMessage);
        setCollaborations([]);
     } finally {
       setIsLoadingCollabs(false);
@@ -100,7 +104,11 @@ export default function MyCollabsPage() {
       }
     } catch (error) {
       console.error("Error fetching collaboration requests:", error);
-      setError("Error fetching collaboration requests. Please try again."); // Set specific error
+      let fetchErrorMessage = "Error fetching collaboration requests. Please try again.";
+      if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
+          fetchErrorMessage = `Error fetching collaboration requests. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
+      }
+      setError(fetchErrorMessage); // Set specific error
        setCollabRequests([]);
     } finally {
       setIsLoadingRequests(false);
@@ -320,3 +328,5 @@ export default function MyCollabsPage() {
     </div>
   );
 }
+
+    

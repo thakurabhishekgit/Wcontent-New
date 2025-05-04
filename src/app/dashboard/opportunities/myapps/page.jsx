@@ -51,7 +51,11 @@ export default function MyApplicationsPage() {
                     }
                 } catch (err) {
                     console.error("Error fetching applications:", err);
-                    setError("Error fetching your applications. Please try again.");
+                    let fetchErrorMessage = "Error fetching your applications. Please try again.";
+                    if (isClient && err instanceof TypeError && err.message.includes('fetch')) {
+                        fetchErrorMessage = `Error fetching applications. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
+                    }
+                    setError(fetchErrorMessage);
                     setApplications([]);
                 } finally {
                     setIsLoading(false);
@@ -173,3 +177,5 @@ export default function MyApplicationsPage() {
         </div>
     );
 }
+
+    

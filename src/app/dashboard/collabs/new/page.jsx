@@ -90,7 +90,7 @@ export default function PostCollabPage() {
     } catch (err) {
       console.error("Error posting collaboration:", err);
       let fetchErrorMessage = "An unexpected error occurred. Please try again.";
-      if (err instanceof TypeError && err.message.includes('fetch')) {
+      if (isClient && err instanceof TypeError && err.message.includes('fetch')) {
          // Updated error message to reflect deployed URL
          fetchErrorMessage = `Error posting collaboration. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
       }
@@ -268,3 +268,5 @@ export default function PostCollabPage() {
     </Card>
   );
 }
+
+    
