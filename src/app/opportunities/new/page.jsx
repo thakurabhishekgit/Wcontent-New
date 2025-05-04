@@ -35,7 +35,7 @@ const NewOpportunity = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/users/opportunities/opportunity/${userId}`,
+        `https://wcontent-app-latest.onrender.com/api/users/opportunities/opportunity/${userId}`,
         {
           method: "POST",
           headers: {
