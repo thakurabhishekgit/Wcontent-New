@@ -26,7 +26,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark"> {/* Ensure html has lang and dark class */}
+    <html lang="en" className="dark">{/* Ensure html has lang and dark class */}
       <body
         className={cn(
           geistSans.variable,
