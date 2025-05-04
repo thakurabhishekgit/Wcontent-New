@@ -349,7 +349,7 @@ export default function OpportunitiesPage() {
               </CardHeader>
               <CardContent className="flex-grow flex items-end">
                 <Image
-                  src={`https://picsum.photos/400/250?random=${index+5}`} // Use picsum photos with different seeds
+                   src={`https://picsum.photos/400/250?random=${index+5}&grayscale&blur=1`} // Use blurred grayscale picsum photos
                   alt={feature.title}
                   data-ai-hint={feature.hint}
                   width={400}

@@ -322,21 +322,21 @@ function Ml() {
             icon={Search}
             title="Comment Sentiment Analysis"
             description="Quickly understand what your audience thinks by analyzing comment sections."
-            img="https://picsum.photos/400/250?random=20" // Use picsum photos
+            img="https://picsum.photos/400/250?random=20&grayscale&blur=1" // Use blurred grayscale picsum photos
             hint="comments feedback sentiment graph"
           />
           <FeatureCard
             icon={Lightbulb}
             title="Actionable Improvement Ideas"
             description="Get AI-powered suggestions on how to make your next video even better based on feedback."
-            img="https://picsum.photos/400/250?random=21" // Use picsum photos
+            img="https://picsum.photos/400/250?random=21&grayscale&blur=1" // Use blurred grayscale picsum photos
             hint="lightbulb idea strategy improvement"
           />
            <FeatureCard
              icon={TrendingUp}
              title="Future Reach Prediction (Beta)"
              description="Estimate the potential viewership of your planned content based on topic and your channel stats."
-             img="https://picsum.photos/400/250?random=22" // Use picsum photos
+             img="https://picsum.photos/400/250?random=22&grayscale&blur=1" // Use blurred grayscale picsum photos
              hint="graph chart prediction forecast"
            />
         </div>

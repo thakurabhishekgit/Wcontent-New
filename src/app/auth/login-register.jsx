@@ -298,10 +298,10 @@ const Login = ({ handleLogin }) => {
             we've got you covered. {/* Updated description */}
           </p>
           <Image
-            src="https://picsum.photos/400/300" // Updated image URL
-            alt="Content Creation Illustration"
-            data-ai-hint="content creation youtube analytics" // Updated hint
-            width={400} // Keep original dimensions or adjust if needed
+            src="https://picsum.photos/400/300?grayscale&blur=2" // Updated image URL with grayscale and blur
+            alt="Abstract background for content creation platform"
+            data-ai-hint="abstract dark texture background" // Updated hint
+            width={400}
             height={300}
             className="rounded-lg object-cover shadow-lg"
           />

@@ -15,20 +15,20 @@ import FeatureShowcase from '@/components/home/feature-showcase'; // Import the 
 // Define content for the hero slider using picsum images
 const heroSlides = [
   {
-    imageUrl: 'https://picsum.photos/1200/800?random=1',
-    imageHint: 'content creation analysis youtube',
+    imageUrl: 'https://picsum.photos/1200/800?random=1&grayscale&blur=2', // Blurred grayscale
+    imageHint: 'abstract dark texture background',
     title: 'Empower Your Content Creation with Wcontent', // Updated title
     description: 'Wcontent is the ultimate platform for creators, providing AI-powered tools to streamline your workflow, generate fresh ideas, and connect with collaborators.', // Updated description
   },
   {
-    imageUrl: 'https://picsum.photos/1200/800?random=2',
-    imageHint: 'brainstorming ideas lightbulb team',
+    imageUrl: 'https://picsum.photos/1200/800?random=2&grayscale&blur=2', // Blurred grayscale
+    imageHint: 'abstract dark blue texture background',
     title: 'Generate Ideas Instantly',
     description: 'Break through creative blocks using our AI idea generator for videos, blogs, and social media.',
   },
   {
-    imageUrl: 'https://picsum.photos/1200/800?random=3',
-    imageHint: 'networking connection people world',
+    imageUrl: 'https://picsum.photos/1200/800?random=3&grayscale&blur=2', // Blurred grayscale
+    imageHint: 'abstract dark network connection background',
     title: 'Connect & Collaborate',
     description: 'Find opportunities and collaborate with other creators to expand your reach and impact.',
   },
@@ -70,7 +70,7 @@ export default function Home() {
           />
         ))}
         {/* Overlay for text readability */}
-        <div className="absolute inset-0 bg-black/40 z-[-5]"></div>
+        <div className="absolute inset-0 bg-black/50 z-[-5]"></div> {/* Slightly darker overlay */}
 
         {/* Content Overlay - Constrained width */}
         <div className="container mx-auto px-4 z-10">

@@ -360,7 +360,7 @@ export default function CollaborationsPage() {
               </CardHeader>
               <CardContent className="flex-grow flex items-end">
                 <Image
-                  src={`https://picsum.photos/400/250?random=${index}`} // Use picsum photos
+                  src={`https://picsum.photos/400/250?random=${index}&grayscale&blur=1`} // Use blurred grayscale picsum photos
                   alt={feature.title}
                   data-ai-hint={feature.hint}
                   width={400}
