@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from "react";
@@ -22,9 +21,9 @@ const Login = ({ handleLogin }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [username, setUsername] = useState("");
   const [userType, setUserType] = useState("");
-  const [channelName, setChannelName] = useState("");
-  const [channelId, setChannelId] = useState("");
-  const [channelURL, setChannelURL] = useState("");
+  const [channelName, setChannelName] = useState(""); // Added channel name state
+  const [channelId, setChannelId] = useState(""); // Added channel ID state
+  const [channelURL, setChannelURL] = useState(""); // Added channel URL state
   const [isClient, setIsClient] = useState(false);
 
   const router = useRouter();
