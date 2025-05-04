@@ -32,9 +32,10 @@ const TabsTrigger = React.forwardRef(({ className, ...props }, ref) => (
 ))
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
 
-const TabsContent = React.forwardRef(({ className, ...props }, ref) => (
+const TabsContent = React.forwardRef(({ className, forceMount = true, ...props }, ref) => ( // Added forceMount prop
   <TabsPrimitive.Content
     ref={ref}
+    forceMount={forceMount} // Pass forceMount to the underlying component
     className={cn(
       "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       className

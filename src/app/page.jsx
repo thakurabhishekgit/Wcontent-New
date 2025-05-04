@@ -9,21 +9,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { ArrowRight, Zap, BarChart, Users, Award, Star } from 'lucide-react';
 import { cn } from '@/lib/utils'; // Import cn utility function
 import WcontentLogo from '@/components/icons/wcontent-logo'; // Import the logo
+import FeatureShowcase from '@/components/home/feature-showcase'; // Import the new FeatureShowcase component
 
-// Placeholder for a future Carousel component
-const FeatureShowcaseSlider = () => (
-  <div className="bg-muted/50 rounded-lg p-8 text-center border border-dashed border-border">
-    <h3 className="text-xl font-semibold mb-4">Dynamic Feature Showcase</h3>
-    <p className="text-muted-foreground mb-4">
-      (Placeholder: A carousel/slider component could go here to dynamically showcase features, testimonials, or success stories. Consider using libraries like Embla Carousel with Shadcn UI integration.)
-    </p>
-    <div className="flex justify-center space-x-4">
-      <div className="w-24 h-16 bg-border rounded animate-pulse"></div>
-      <div className="w-24 h-16 bg-border rounded animate-pulse delay-150"></div>
-      <div className="w-24 h-16 bg-border rounded animate-pulse delay-300"></div>
-    </div>
-  </div>
-);
 
 // Define content for the hero slider using picsum images
 const heroSlides = [
@@ -142,37 +129,10 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl font-bold mb-3">Core Features</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">Tools designed to boost your content creation journey.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Feature Cards */}
-            {[
-              { icon: Zap, title: 'AI Content Ideas', description: 'Break through creative blocks with AI-generated content suggestions.', hint: 'artificial intelligence brain creativity' },
-              { icon: BarChart, title: 'Predictive Analytics', description: 'Gain insights into potential content performance (feature coming soon!).', hint: 'chart graph data analytics' },
-              { icon: Award, title: 'Opportunity Hub', description: 'Find paid gigs and exciting projects posted by brands and businesses.', hint: 'job board opportunity handshake' },
-              { icon: Users, title: 'Collaboration Platform', description: 'Connect with fellow creators for joint ventures and cross-promotions.', hint: 'teamwork collaboration people connect' },
-            ].map((feature, index) => (
-              <Card key={index} className="flex flex-col overflow-hidden hover:shadow-xl hover:border-primary/50 transition-all duration-300 ease-in-out transform hover:-translate-y-1">
-                <CardHeader>
-                  <feature.icon className="h-8 w-8 mb-2 text-primary" />
-                  <CardTitle>{feature.title}</CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-grow flex items-end"> {/* Use flex-grow and items-end */}
-                  <Image
-                    src={`https://picsum.photos/400/250?random=${index + 10}`} // Use picsum photos with different seeds
-                    alt={feature.title}
-                    data-ai-hint={feature.hint}
-                    width={400}
-                    height={250}
-                    className="rounded-md object-cover w-full h-auto mt-4" // Ensure image scales well
-                  />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          {/* Feature Showcase Slider Placeholder */}
-          <div className="mt-16">
-            <FeatureShowcaseSlider />
-          </div>
+           {/* Replace the old grid with the FeatureShowcase carousel */}
+           <div className="mt-12">
+             <FeatureShowcase />
+           </div>
         </section>
 
         {/* Testimonials Section */}
