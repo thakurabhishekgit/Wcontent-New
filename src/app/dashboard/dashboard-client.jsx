@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bell, Settings, User, Edit3, PlusCircle, Mail, FileText, LogOut, BarChart, Zap, Users as UsersIcon, ListChecks } from 'lucide-react';
+import { Bell, Settings, User, Edit3, PlusCircle, Mail, FileText, LogOut, BarChart, Zap, Users as UsersIcon, ListChecks, Loader2 } from 'lucide-react'; // Added Loader2
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -56,6 +56,7 @@ export default function DashboardClient({ children }) {
   const [isClient, setIsClient] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // State for logout confirmation dialog
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // Loading state for logout
 
   // Sidebar state management lifted here
   const isMobile = useIsMobile();
@@ -102,22 +103,22 @@ export default function DashboardClient({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, isMobile]);
 
-  // Opens the logout confirmation dialog
-  const handleLogoutClick = () => {
-    setShowLogoutConfirm(true);
-  };
 
   // Performs the actual logout
   const confirmLogout = () => {
-    if (typeof window !== 'undefined') {
-       localStorage.removeItem("token");
-       localStorage.removeItem("id");
-       localStorage.removeItem("username");
-       window.dispatchEvent(new CustomEvent('authChange'));
-    }
-    setShowLogoutConfirm(false); // Close dialog
-    setOpenMobile(false); // Close mobile menu if open
-    router.push('/auth');
+    setIsLoggingOut(true); // Start loading
+    setTimeout(() => { // Simulate logout delay
+      if (typeof window !== 'undefined') {
+         localStorage.removeItem("token");
+         localStorage.removeItem("id");
+         localStorage.removeItem("username");
+         window.dispatchEvent(new CustomEvent('authChange'));
+      }
+      setShowLogoutConfirm(false); // Close dialog
+      setOpenMobile(false); // Close mobile menu if open
+      setIsLoggingOut(false); // Stop loading
+      router.push('/auth');
+    }, 500); // Simulate 0.5 second delay
   };
 
   const handleNavigation = (path) => {
@@ -205,12 +206,12 @@ export default function DashboardClient({ children }) {
                 <SidebarFooter className="border-t border-sidebar-border mt-auto">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                     {/* Wrap the button in AlertDialogTrigger */}
+                     {/* Wrap the button and dialog content in AlertDialog */}
                      <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
                         <AlertDialogTrigger asChild>
-                             <SidebarMenuButton tooltip="Logout">
+                             <SidebarMenuButton tooltip="Logout" disabled={isLoggingOut}>
                                <>
-                                 <LogOut />
+                                 {isLoggingOut ? <Loader2 className="animate-spin" /> : <LogOut />}
                                  <span>Logout</span>
                                </>
                              </SidebarMenuButton>
@@ -223,8 +224,11 @@ export default function DashboardClient({ children }) {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={confirmLogout}>Logout</AlertDialogAction>
+                            <AlertDialogCancel disabled={isLoggingOut}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={confirmLogout} disabled={isLoggingOut}>
+                              {isLoggingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                              Logout
+                            </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                      </AlertDialog>

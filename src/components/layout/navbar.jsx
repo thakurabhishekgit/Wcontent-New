@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'; // Import useRouter
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, LogOut } from 'lucide-react'; // Added LogOut
+import { Menu, LogOut, Loader2 } from 'lucide-react'; // Added LogOut and Loader2
 import { useState, useEffect } from 'react'; // Import useEffect
 import WcontentLogo from '@/components/icons/wcontent-logo'; // Import the new logo
 import {
@@ -36,6 +36,7 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isClient, setIsClient] = useState(false); // Track client-side mount
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // State for logout confirmation
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // Loading state for logout
 
   // Function to check login status
   const checkLoginStatus = () => {
@@ -68,16 +69,20 @@ export default function Navbar() {
 
   // Function to perform the actual logout action
   const confirmLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      localStorage.removeItem('id');
-      localStorage.removeItem('username');
-      // Dispatch custom event to notify navbar (and potentially other components)
-      window.dispatchEvent(new CustomEvent('authChange'));
-    }
-    setShowLogoutConfirm(false); // Close dialog
-    setIsMobileMenuOpen(false); // Close mobile menu if open
-    router.push('/auth'); // Redirect to login page
+    setIsLoggingOut(true); // Start loading
+    setTimeout(() => { // Simulate logout process delay
+        if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('id');
+        localStorage.removeItem('username');
+        // Dispatch custom event to notify navbar (and potentially other components)
+        window.dispatchEvent(new CustomEvent('authChange'));
+        }
+        setShowLogoutConfirm(false); // Close dialog
+        setIsMobileMenuOpen(false); // Close mobile menu if open
+        setIsLoggingOut(false); // Stop loading
+        router.push('/auth'); // Redirect to login page
+    }, 500); // Simulate 0.5 second delay
   };
 
 
@@ -133,23 +138,41 @@ export default function Navbar() {
         </nav>
          {/* Desktop Login/Logout Button - Moved to the end */}
         <div className="hidden md:flex items-center ml-auto">
-           {isLoggedIn ? (
-             <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="text-sm font-medium transition-colors hover:text-primary text-foreground/60"
-                  // onClick={handleLogoutClick} // Now handled by AlertDialogTrigger
-                >
-                  <LogOut className="mr-2 h-4 w-4" /> Logout
-                </Button>
-              </AlertDialogTrigger>
-           ) : (
-             <Button asChild variant="outline" size="sm">
-                 <Link href="/auth">
-                    Login / Sign Up
-                 </Link>
-             </Button>
-           )}
+           {/* Wrap the trigger and content in AlertDialog */}
+           <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+             {isLoggedIn ? (
+               <AlertDialogTrigger asChild>
+                 <Button
+                   variant="ghost"
+                   className="text-sm font-medium transition-colors hover:text-primary text-foreground/60"
+                   disabled={isLoggingOut}
+                 >
+                   {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+                    Logout
+                 </Button>
+               </AlertDialogTrigger>
+             ) : (
+               <Button asChild variant="outline" size="sm">
+                 <Link href="/auth">Login / Sign Up</Link>
+               </Button>
+             )}
+              {/* Dialog Content is part of the AlertDialog */}
+             <AlertDialogContent>
+               <AlertDialogHeader>
+                 <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+                 <AlertDialogDescription>
+                   You will be returned to the login page.
+                 </AlertDialogDescription>
+               </AlertDialogHeader>
+               <AlertDialogFooter>
+                 <AlertDialogCancel disabled={isLoggingOut}>Cancel</AlertDialogCancel>
+                 <AlertDialogAction onClick={confirmLogout} disabled={isLoggingOut}>
+                     {isLoggingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                     Logout
+                 </AlertDialogAction>
+               </AlertDialogFooter>
+             </AlertDialogContent>
+           </AlertDialog>
          </div>
         <div className="flex flex-1 items-center justify-end space-x-4 md:hidden">
            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -179,47 +202,52 @@ export default function Navbar() {
                   </Link>
                 ))}
                 {/* Conditional Login/Logout in Mobile Menu */}
-                {isLoggedIn ? (
-                   <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="justify-start px-0 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
-                        // onClick={handleLogoutClick} // Handled by trigger
-                      >
-                        <LogOut className="mr-2 h-4 w-4" /> Logout
-                      </Button>
-                   </AlertDialogTrigger>
-                ) : (
-                  <Link
-                    href="/auth"
-                    className="text-sm font-medium transition-colors hover:text-primary text-foreground/80"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Login / Sign Up
-                  </Link>
-                )}
+                {/* Wrap the mobile trigger in AlertDialog as well */}
+                <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+                    {isLoggedIn ? (
+                        <AlertDialogTrigger asChild>
+                            <Button
+                            variant="ghost"
+                            className="justify-start px-0 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+                            disabled={isLoggingOut}
+                            >
+                             {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+                                Logout
+                            </Button>
+                        </AlertDialogTrigger>
+                    ) : (
+                    <Link
+                        href="/auth"
+                        className="text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        Login / Sign Up
+                    </Link>
+                    )}
+                     {/* Dialog Content (shared logic, could be extracted to a component) */}
+                     <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                            You will be returned to the login page.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel disabled={isLoggingOut}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={confirmLogout} disabled={isLoggingOut}>
+                                {isLoggingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Logout
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
               </div>
             </SheetContent>
           </Sheet>
         </div>
       </div>
     </header>
-
-     {/* Logout Confirmation Dialog - Place outside header but within component */}
-     <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
-       <AlertDialogContent>
-         <AlertDialogHeader>
-           <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
-           <AlertDialogDescription>
-             You will be returned to the login page.
-           </AlertDialogDescription>
-         </AlertDialogHeader>
-         <AlertDialogFooter>
-           <AlertDialogCancel>Cancel</AlertDialogCancel>
-           <AlertDialogAction onClick={confirmLogout}>Logout</AlertDialogAction>
-         </AlertDialogFooter>
-       </AlertDialogContent>
-     </AlertDialog>
+    {/* Removed redundant AlertDialog here */}
     </>
   );
 }
