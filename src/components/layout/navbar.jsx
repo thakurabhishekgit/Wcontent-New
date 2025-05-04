@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -6,9 +5,20 @@ import { usePathname, useRouter } from 'next/navigation'; // Import useRouter
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react'; // Added LogOut
 import { useState, useEffect } from 'react'; // Import useEffect
 import WcontentLogo from '@/components/icons/wcontent-logo'; // Import the new logo
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -25,6 +35,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isClient, setIsClient] = useState(false); // Track client-side mount
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // State for logout confirmation
 
   // Function to check login status
   const checkLoginStatus = () => {
@@ -55,8 +66,8 @@ export default function Navbar() {
   }, []); // Run only once on mount
 
 
-  // Handle logout
-  const handleLogout = () => {
+  // Function to perform the actual logout action
+  const confirmLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
       localStorage.removeItem('id');
@@ -64,7 +75,7 @@ export default function Navbar() {
       // Dispatch custom event to notify navbar (and potentially other components)
       window.dispatchEvent(new CustomEvent('authChange'));
     }
-    // setIsLoggedIn(false); // State update now handled by event listener
+    setShowLogoutConfirm(false); // Close dialog
     setIsMobileMenuOpen(false); // Close mobile menu if open
     router.push('/auth'); // Redirect to login page
   };
@@ -99,6 +110,7 @@ export default function Navbar() {
 
 
   return (
+    <>
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
@@ -122,13 +134,15 @@ export default function Navbar() {
          {/* Desktop Login/Logout Button - Moved to the end */}
         <div className="hidden md:flex items-center ml-auto">
            {isLoggedIn ? (
-             <Button
-               variant="ghost"
-               className="text-sm font-medium transition-colors hover:text-primary text-foreground/60" // Match link style
-               onClick={handleLogout}
-             >
-               Logout
-             </Button>
+             <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="text-sm font-medium transition-colors hover:text-primary text-foreground/60"
+                  // onClick={handleLogoutClick} // Now handled by AlertDialogTrigger
+                >
+                  <LogOut className="mr-2 h-4 w-4" /> Logout
+                </Button>
+              </AlertDialogTrigger>
            ) : (
              <Button asChild variant="outline" size="sm">
                  <Link href="/auth">
@@ -166,13 +180,15 @@ export default function Navbar() {
                 ))}
                 {/* Conditional Login/Logout in Mobile Menu */}
                 {isLoggedIn ? (
-                  <Button
-                    variant="ghost"
-                    className="justify-start px-0 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </Button>
+                   <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="justify-start px-0 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+                        // onClick={handleLogoutClick} // Handled by trigger
+                      >
+                        <LogOut className="mr-2 h-4 w-4" /> Logout
+                      </Button>
+                   </AlertDialogTrigger>
                 ) : (
                   <Link
                     href="/auth"
@@ -188,5 +204,22 @@ export default function Navbar() {
         </div>
       </div>
     </header>
+
+     {/* Logout Confirmation Dialog - Place outside header but within component */}
+     <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+       <AlertDialogContent>
+         <AlertDialogHeader>
+           <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+           <AlertDialogDescription>
+             You will be returned to the login page.
+           </AlertDialogDescription>
+         </AlertDialogHeader>
+         <AlertDialogFooter>
+           <AlertDialogCancel>Cancel</AlertDialogCancel>
+           <AlertDialogAction onClick={confirmLogout}>Logout</AlertDialogAction>
+         </AlertDialogFooter>
+       </AlertDialogContent>
+     </AlertDialog>
+    </>
   );
 }

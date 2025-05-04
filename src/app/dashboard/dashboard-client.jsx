@@ -22,6 +22,17 @@ import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
 
 // Define the structure for sidebar links
 const sidebarLinks = [
@@ -44,6 +55,7 @@ export default function DashboardClient({ children }) {
   const [username, setUsername] = useState('User');
   const [isClient, setIsClient] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // State for logout confirmation dialog
 
   // Sidebar state management lifted here
   const isMobile = useIsMobile();
@@ -90,13 +102,20 @@ export default function DashboardClient({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, isMobile]);
 
-  const handleLogout = () => {
-     if (typeof window !== 'undefined') {
-        localStorage.removeItem("token");
-        localStorage.removeItem("id");
-        localStorage.removeItem("username");
-        window.dispatchEvent(new CustomEvent('authChange'));
-     }
+  // Opens the logout confirmation dialog
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  // Performs the actual logout
+  const confirmLogout = () => {
+    if (typeof window !== 'undefined') {
+       localStorage.removeItem("token");
+       localStorage.removeItem("id");
+       localStorage.removeItem("username");
+       window.dispatchEvent(new CustomEvent('authChange'));
+    }
+    setShowLogoutConfirm(false); // Close dialog
     setOpenMobile(false); // Close mobile menu if open
     router.push('/auth');
   };
@@ -175,7 +194,7 @@ export default function DashboardClient({ children }) {
                             isActive={pathname === link.id}
                             tooltip={link.label}
                         >
-                           {/* Removed fragment - pass children directly */}
+                           {/* Pass icon component directly */}
                            <link.icon />
                            <span>{link.label}</span>
                         </SidebarMenuButton>
@@ -186,28 +205,45 @@ export default function DashboardClient({ children }) {
                 <SidebarFooter className="border-t border-sidebar-border mt-auto">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                    <SidebarMenuButton tooltip="Logout" onClick={handleLogout}>
-                      <>
-                        <LogOut />
-                        <span>Logout</span>
-                      </>
-                    </SidebarMenuButton>
+                     {/* Wrap the button in AlertDialogTrigger */}
+                     <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+                        <AlertDialogTrigger asChild>
+                             <SidebarMenuButton tooltip="Logout">
+                               <>
+                                 <LogOut />
+                                 <span>Logout</span>
+                               </>
+                             </SidebarMenuButton>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              You will be returned to the login page.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={confirmLogout}>Logout</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                     </AlertDialog>
                     </SidebarMenuItem>
                 </SidebarMenu>
                 </SidebarFooter>
             </Sidebar>
 
              {/* Main Content Area */}
-            <SidebarInset className="flex flex-col flex-1 overflow-hidden"> {/* Changed overflow-y-auto to overflow-hidden */}
+             <SidebarInset className="flex-1 overflow-auto"> {/* Removed flex flex-col */}
                 {/* Header for main content area (mobile only) */}
-                <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0 bg-background z-10">
+                <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0 bg-background z-10 sticky top-0"> {/* Added sticky top-0 */}
                     <h2 className="text-xl font-semibold capitalize">
                         {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
                     </h2>
                     <SidebarTrigger />
                 </header>
                 {/* Render the specific page component passed as children */}
-                <div className="flex-1 p-4 md:p-6 overflow-y-auto"> {/* Added overflow-y-auto here */}
+                <div className="p-4 md:p-6"> {/* Removed flex-1 and overflow-y-auto */}
                    {children}
                 </div>
             </SidebarInset>
