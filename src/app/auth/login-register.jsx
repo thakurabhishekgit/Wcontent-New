@@ -178,6 +178,25 @@ const Login = ({ handleLogin }) => {
         return;
      }
 
+    // Prepare payload based on userType
+     const payload = {
+       username,
+       email,
+       password,
+       userType,
+     };
+
+     if (userType === 'ChannelOwner') {
+       // Add channel fields only if ChannelOwner
+        if (!channelName || !channelId || !channelURL) {
+           setError("Channel Name, ID, and URL are required for Channel Owners.");
+           return;
+        }
+       payload.channelName = channelName;
+       payload.channelId = channelId;
+       payload.channelURL = channelURL;
+     }
+
     try {
       const backendUrl = "http://localhost:3001/api/users/register";
       const response = await fetch(backendUrl, {
@@ -185,15 +204,7 @@ const Login = ({ handleLogin }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-          userType,
-          channelName,
-          channelId,
-          channelURL,
-        }),
+        body: JSON.stringify(payload), // Send the dynamically built payload
       });
 
       if (response.ok) {
