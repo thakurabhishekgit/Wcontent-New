@@ -1,4 +1,3 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
@@ -14,6 +13,18 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'picsum.photos',
+        port: '',
+        pathname: '/**',
+      },
+      { // Added pattern for encrypted-tbn0.gstatic.com
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
+        port: '',
+        pathname: '/**',
+      },
+      { // Added pattern for avatar.vercel.sh (used for avatars)
+        protocol: 'https',
+        hostname: 'avatar.vercel.sh',
         port: '',
         pathname: '/**',
       },
