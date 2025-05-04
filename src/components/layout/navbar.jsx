@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, LogOut, Loader2, User } from 'lucide-react'; // Added User icon
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet'; // Added SheetHeader, SheetTitle, SheetDescription
+import { Menu, LogOut, Loader2, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import WcontentLogo from '@/components/icons/wcontent-logo';
 import {
@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -35,7 +35,7 @@ export default function Navbar() {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState(''); // Add state for username
+  const [username, setUsername] = useState('');
   const [isClient, setIsClient] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -43,9 +43,9 @@ export default function Navbar() {
   const checkLoginStatus = () => {
      if (typeof window !== 'undefined') {
        const token = localStorage.getItem('token');
-       const user = localStorage.getItem('username'); // Get username
+       const user = localStorage.getItem('username');
        setIsLoggedIn(!!token);
-       setUsername(user || ''); // Set username state
+       setUsername(user || '');
      }
    };
 
@@ -54,18 +54,19 @@ export default function Navbar() {
     setIsClient(true);
     checkLoginStatus();
 
+    // Listen for the custom authChange event
     const handleAuthChange = () => {
-       console.log("Auth change detected, updating navbar state...");
+      console.log("Auth change detected in navbar, updating state...");
       checkLoginStatus();
     };
-
     window.addEventListener('authChange', handleAuthChange);
 
+    // Cleanup listener on component unmount
     return () => {
       window.removeEventListener('authChange', handleAuthChange);
     };
 
-  }, []);
+  }, []); // Run only on client-side mount
 
 
   const confirmLogout = () => {
@@ -75,6 +76,7 @@ export default function Navbar() {
         localStorage.removeItem('token');
         localStorage.removeItem('id');
         localStorage.removeItem('username');
+        // Dispatch custom event to notify other components (like sidebar)
         window.dispatchEvent(new CustomEvent('authChange'));
         }
         setShowLogoutConfirm(false);
@@ -86,6 +88,7 @@ export default function Navbar() {
 
 
   if (!isClient) {
+    // Basic skeleton or loading state during SSR/hydration
     return (
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center">
@@ -108,7 +111,7 @@ export default function Navbar() {
 
 
   return (
-    <>
+    <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
@@ -130,55 +133,35 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center ml-auto space-x-4"> {/* Added space-x-4 */}
-           {/* Wrap the trigger and content in AlertDialog */}
-           <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
-             {isLoggedIn ? (
-               <>
-                 {/* Avatar */}
-                 <Link href="/dashboard" className="flex items-center gap-2"> {/* Link avatar to dashboard */}
-                   <Avatar className="h-8 w-8">
-                     {/* Use Vercel Avatars (geometric) */}
-                     <AvatarImage src={`https://avatar.vercel.sh/${username}.svg?size=40`} alt={username} />
-                     <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
-                   </Avatar>
-                   <span className="text-sm font-medium text-foreground/80 hidden lg:inline">{username}</span> {/* Optionally show username */}
-                 </Link>
+        <div className="hidden md:flex items-center ml-auto space-x-4">
+           {isLoggedIn ? (
+             <>
+               {/* Avatar */}
+               <Link href="/dashboard" className="flex items-center gap-2">
+                 <Avatar className="h-8 w-8">
+                   <AvatarImage src={`https://avatar.vercel.sh/${username}.svg?size=40`} alt={username} />
+                   <AvatarFallback>{username ? username.substring(0, 1).toUpperCase() : 'U'}</AvatarFallback>
+                 </Avatar>
+                 <span className="text-sm font-medium text-foreground/80 hidden lg:inline">{username}</span>
+               </Link>
 
-                 {/* Logout Button */}
-                 <AlertDialogTrigger asChild>
-                   <Button
-                     variant="ghost"
-                     className="text-sm font-medium transition-colors hover:text-primary text-foreground/60"
-                     disabled={isLoggingOut}
-                   >
-                     {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
-                      Logout
-                   </Button>
-                 </AlertDialogTrigger>
-               </>
-             ) : (
-               <Button asChild variant="outline" size="sm">
-                 <Link href="/auth">Login / Sign Up</Link>
-               </Button>
-             )}
-              {/* Dialog Content is part of the AlertDialog */}
-             <AlertDialogContent>
-               <AlertDialogHeader>
-                 <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
-                 <AlertDialogDescription>
-                   You will be returned to the login page.
-                 </AlertDialogDescription>
-               </AlertDialogHeader>
-               <AlertDialogFooter>
-                 <AlertDialogCancel disabled={isLoggingOut}>Cancel</AlertDialogCancel>
-                 <AlertDialogAction onClick={confirmLogout} disabled={isLoggingOut}>
-                     {isLoggingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                     Logout
-                 </AlertDialogAction>
-               </AlertDialogFooter>
-             </AlertDialogContent>
-           </AlertDialog>
+               {/* Logout Button */}
+               <AlertDialogTrigger asChild>
+                 <Button
+                   variant="ghost"
+                   className="text-sm font-medium transition-colors hover:text-primary text-foreground/60"
+                   disabled={isLoggingOut}
+                 >
+                   {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+                    Logout
+                 </Button>
+               </AlertDialogTrigger>
+             </>
+           ) : (
+             <Button asChild variant="outline" size="sm">
+               <Link href="/auth">Login / Sign Up</Link>
+             </Button>
+           )}
          </div>
         <div className="flex flex-1 items-center justify-end space-x-4 md:hidden">
            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -189,6 +172,12 @@ export default function Navbar() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="pr-0">
+               {/* Visually hidden title for accessibility */}
+               <SheetHeader className="sr-only">
+                 <SheetTitle>Mobile Navigation Menu</SheetTitle>
+                 <SheetDescription>Links to navigate the Wcontent website.</SheetDescription>
+               </SheetHeader>
+
                {/* Mobile Menu Header */}
                <div className="flex items-center justify-between p-4 border-b">
                   <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
@@ -200,7 +189,7 @@ export default function Navbar() {
                      <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                        <Avatar className="h-8 w-8">
                          <AvatarImage src={`https://avatar.vercel.sh/${username}.svg?size=40`} alt={username} />
-                         <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
+                          <AvatarFallback>{username ? username.substring(0, 1).toUpperCase() : 'U'}</AvatarFallback>
                        </Avatar>
                      </Link>
                    )}
@@ -221,60 +210,59 @@ export default function Navbar() {
                   </Link>
                 ))}
                 {/* Conditional Login/Logout in Mobile Menu */}
-                <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
-                    {isLoggedIn ? (
-                       <>
-                         {/* Show username in mobile menu */}
-                          <Link
-                           href="/dashboard"
-                           onClick={() => setIsMobileMenuOpen(false)}
-                           className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+                  {isLoggedIn ? (
+                     <>
+                       {/* Show username in mobile menu */}
+                        <Link
+                         href="/dashboard"
+                         onClick={() => setIsMobileMenuOpen(false)}
+                         className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+                         >
+                         <User className="h-4 w-4" /> {username}
+                       </Link>
+                       {/* Logout Trigger */}
+                       <AlertDialogTrigger asChild>
+                           <Button
+                           variant="ghost"
+                           className="justify-start px-0 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+                           disabled={isLoggingOut}
                            >
-                           <User className="h-4 w-4" /> {username}
-                         </Link>
-                         {/* Logout Trigger */}
-                         <AlertDialogTrigger asChild>
-                             <Button
-                             variant="ghost"
-                             className="justify-start px-0 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
-                             disabled={isLoggingOut}
-                             >
-                              {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
-                                 Logout
-                             </Button>
-                         </AlertDialogTrigger>
-                       </>
-                    ) : (
-                    <Link
-                        href="/auth"
-                        className="text-sm font-medium transition-colors hover:text-primary text-foreground/80"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                        Login / Sign Up
-                    </Link>
-                    )}
-                     <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                            You will be returned to the login page.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel disabled={isLoggingOut}>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={confirmLogout} disabled={isLoggingOut}>
-                                {isLoggingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Logout
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                            {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+                               Logout
+                           </Button>
+                       </AlertDialogTrigger>
+                     </>
+                  ) : (
+                  <Link
+                      href="/auth"
+                      className="text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                      Login / Sign Up
+                  </Link>
+                  )}
               </div>
             </SheetContent>
           </Sheet>
         </div>
       </div>
     </header>
-    </>
+      {/* Logout Confirmation Dialog Content */}
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+          <AlertDialogDescription>
+            You will be returned to the login page.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isLoggingOut}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={confirmLogout} disabled={isLoggingOut}>
+              {isLoggingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Logout
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
