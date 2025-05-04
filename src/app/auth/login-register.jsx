@@ -67,7 +67,11 @@ const Login = ({ handleLogin }) => {
              // Check if response text gives a clue
              const text = await response.text().catch(() => '');
              console.error("Login error response text:", text);
-             errorMessage = `Login failed with status: ${response.status} ${response.statusText}. Check server logs for details.`;
+             if (response.status === 500 && text.includes('String.equals(Object)') && text.includes('User.getPassword()')) {
+                errorMessage = "Login failed: There seems to be an issue with your account data on the server (password might be null). Please contact support or try resetting your password if possible.";
+             } else {
+                errorMessage = `Login failed with status: ${response.status} ${response.statusText}. Check server logs for details.`;
+             }
         }
          setError(errorMessage);
       }
@@ -177,24 +181,16 @@ const Login = ({ handleLogin }) => {
         return;
      }
 
-    // Prepare payload based on userType
+    // Prepare payload
      const payload = {
        username,
        email,
        password,
        userType,
+       channelName, // Always include channel fields
+       channelId,   // Backend should handle if they are optional for RoleSeeker
+       channelURL,
      };
-
-     if (userType === 'ChannelOwner') {
-       // Add channel fields only if ChannelOwner
-        if (!channelName || !channelId || !channelURL) {
-           setError("Channel Name, ID, and URL are required for Channel Owners.");
-           return;
-        }
-       payload.channelName = channelName;
-       payload.channelId = channelId;
-       payload.channelURL = channelURL;
-     }
 
     try {
       const backendUrl = "http://localhost:3001/api/users/register";
@@ -203,7 +199,7 @@ const Login = ({ handleLogin }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload), // Send the dynamically built payload
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -408,44 +404,42 @@ const Login = ({ handleLogin }) => {
                            </SelectContent>
                           </Select>
                       </div>
-                       {/* Conditionally show Channel fields only if ChannelOwner is selected */}
-                        {userType === 'ChannelOwner' && (
-                           <>
-                               <div>
-                                  <Label htmlFor="channelName">Channel Name</Label>
-                                  <Input
-                                     id="channelName"
-                                     type="text"
-                                     value={channelName}
-                                     onChange={(e) => setChannelName(e.target.value)}
-                                     required={userType === 'ChannelOwner'}
-                                     placeholder="Your YouTube Channel Name"
-                                   />
-                               </div>
-                               <div>
-                                  <Label htmlFor="channelId">Channel ID</Label>
-                                  <Input
-                                     id="channelId"
-                                     type="text"
-                                     value={channelId}
-                                     onChange={(e) => setChannelId(e.target.value)}
-                                     required={userType === 'ChannelOwner'}
-                                      placeholder="Your YouTube Channel ID"
-                                   />
-                               </div>
-                               <div>
-                                 <Label htmlFor="channelURL">Channel URL</Label>
-                                  <Input
-                                     id="channelURL"
-                                     type="url"
-                                     value={channelURL}
-                                     onChange={(e) => setChannelURL(e.target.value)}
-                                     required={userType === 'ChannelOwner'}
-                                     placeholder="https://youtube.com/..."
-                                  />
-                               </div>
-                           </>
-                        )}
+                       {/* Always show Channel fields, remove conditional rendering */}
+                       <>
+                           <div>
+                              <Label htmlFor="channelName">Channel Name (Optional)</Label>
+                              <Input
+                                 id="channelName"
+                                 type="text"
+                                 value={channelName}
+                                 onChange={(e) => setChannelName(e.target.value)}
+                                 // required={userType === 'ChannelOwner'} // Remove requirement here, let backend validate if needed
+                                 placeholder="Your YouTube Channel Name"
+                               />
+                           </div>
+                           <div>
+                              <Label htmlFor="channelId">Channel ID (Optional)</Label>
+                              <Input
+                                 id="channelId"
+                                 type="text"
+                                 value={channelId}
+                                 onChange={(e) => setChannelId(e.target.value)}
+                                 // required={userType === 'ChannelOwner'}
+                                  placeholder="Your YouTube Channel ID"
+                               />
+                           </div>
+                           <div>
+                             <Label htmlFor="channelURL">Channel URL (Optional)</Label>
+                              <Input
+                                 id="channelURL"
+                                 type="url"
+                                 value={channelURL}
+                                 onChange={(e) => setChannelURL(e.target.value)}
+                                 // required={userType === 'ChannelOwner'}
+                                 placeholder="https://youtube.com/..."
+                              />
+                           </div>
+                       </>
                       <Button type="submit" className="w-full">
                         Sign Up
                       </Button>
