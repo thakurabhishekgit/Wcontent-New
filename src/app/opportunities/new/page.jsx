@@ -1,3 +1,5 @@
+'use client'; // Add 'use client' directive
+
 import React, { useState } from "react";
 
 const NewOpportunity = () => {
@@ -48,6 +50,17 @@ const NewOpportunity = () => {
 
       if (response.ok) {
         setMessage("Opportunity posted successfully!");
+        // Clear form or redirect user
+        setOpportunityData({
+           title: "",
+           description: "",
+           requirements: "",
+           location: "",
+           type: "",
+           salaryRange: "",
+           isFilled: false,
+           email: "",
+        });
       } else {
         const data = await response.json();
         setError(data.message || "Failed to post opportunity.");
