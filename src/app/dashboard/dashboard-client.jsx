@@ -173,8 +173,8 @@ export default function DashboardClient({ children }) {
                     <div className="hidden md:flex items-center gap-2 flex-grow min-w-0"> {/* Added flex-grow and min-w-0 */}
                         <Link href="/dashboard" className="flex items-center gap-2 min-w-0"> {/* Link to profile */}
                            <Avatar className="h-8 w-8 flex-shrink-0"> {/* Added flex-shrink-0 */}
-                              {/* Use pravatar for placeholder */}
-                              <AvatarImage src={`https://i.pravatar.cc/40?u=${username}`} alt={username} />
+                              {/* Use Vercel Avatars (geometric) */}
+                              <AvatarImage src={`https://avatar.vercel.sh/${username}.svg?size=40`} alt={username} />
                               <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
                            </Avatar>
                            {/* Use context state to conditionally hide username */}
@@ -255,9 +255,10 @@ export default function DashboardClient({ children }) {
                      </h2>
                      {/* Mobile Trigger is outside SidebarInset on mobile */}
                  </header>
-                <div className="p-4 md:p-6 overflow-y-auto h-full"> {/* Added overflow-y-auto and h-full */}
+                 {/* Adjusted padding and removed h-full to let content determine height */}
+                 <div className="p-4 md:p-6 overflow-y-auto">
                    {children}
-                </div>
+                 </div>
             </SidebarInset>
          </div>
     </SidebarContext.Provider>

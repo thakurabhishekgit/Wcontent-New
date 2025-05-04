@@ -138,8 +138,8 @@ export default function Navbar() {
                  {/* Avatar */}
                  <Link href="/dashboard" className="flex items-center gap-2"> {/* Link avatar to dashboard */}
                    <Avatar className="h-8 w-8">
-                     {/* Use pravatar with username */}
-                     <AvatarImage src={`https://i.pravatar.cc/40?u=${username}`} alt={username} />
+                     {/* Use Vercel Avatars (geometric) */}
+                     <AvatarImage src={`https://avatar.vercel.sh/${username}.svg?size=40`} alt={username} />
                      <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
                    </Avatar>
                    <span className="text-sm font-medium text-foreground/80 hidden lg:inline">{username}</span> {/* Optionally show username */}

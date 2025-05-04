@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -89,8 +88,8 @@ export default function CollabDetailPage() {
             <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center space-x-3">
                    <Avatar className="h-10 w-10">
-                     {/* Use pravatar for placeholder */}
-                     <AvatarImage src={`https://i.pravatar.cc/40?u=${collab.creatorName}`} alt={collab.creatorName} />
+                     {/* Use Vercel Avatars (geometric) */}
+                     <AvatarImage src={`https://avatar.vercel.sh/${collab.creatorName}.svg?size=40`} alt={collab.creatorName} />
                      <AvatarFallback>{collab.creatorName.substring(0, 1)}</AvatarFallback>
                    </Avatar>
                     <div>
