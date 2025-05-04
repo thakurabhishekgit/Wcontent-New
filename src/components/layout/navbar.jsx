@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation'; // Import useRouter
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, LogOut, Loader2 } from 'lucide-react'; // Added LogOut and Loader2
-import { useState, useEffect } from 'react'; // Import useEffect
-import WcontentLogo from '@/components/icons/wcontent-logo'; // Import the new logo
+import { Menu, LogOut, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import WcontentLogo from '@/components/icons/wcontent-logo';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +18,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"; // Import AlertDialog components
+} from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -31,81 +32,73 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isClient, setIsClient] = useState(false); // Track client-side mount
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // State for logout confirmation
-  const [isLoggingOut, setIsLoggingOut] = useState(false); // Loading state for logout
+  const [username, setUsername] = useState(''); // Add state for username
+  const [isClient, setIsClient] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Function to check login status
   const checkLoginStatus = () => {
      if (typeof window !== 'undefined') {
        const token = localStorage.getItem('token');
+       const user = localStorage.getItem('username'); // Get username
        setIsLoggedIn(!!token);
+       setUsername(user || ''); // Set username state
      }
    };
 
 
   useEffect(() => {
-    setIsClient(true); // Indicate component has mounted
-    checkLoginStatus(); // Initial check
+    setIsClient(true);
+    checkLoginStatus();
 
-    // Listen for custom 'authChange' event
     const handleAuthChange = () => {
-       console.log("Auth change detected, updating navbar state..."); // Debug log
+       console.log("Auth change detected, updating navbar state...");
       checkLoginStatus();
     };
 
     window.addEventListener('authChange', handleAuthChange);
 
-    // Cleanup listener on component unmount
     return () => {
       window.removeEventListener('authChange', handleAuthChange);
     };
 
-  }, []); // Run only once on mount
+  }, []);
 
 
-  // Function to perform the actual logout action
   const confirmLogout = () => {
-    setIsLoggingOut(true); // Start loading
-    setTimeout(() => { // Simulate logout process delay
+    setIsLoggingOut(true);
+    setTimeout(() => {
         if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('id');
         localStorage.removeItem('username');
-        // Dispatch custom event to notify navbar (and potentially other components)
         window.dispatchEvent(new CustomEvent('authChange'));
         }
-        setShowLogoutConfirm(false); // Close dialog
-        setIsMobileMenuOpen(false); // Close mobile menu if open
-        setIsLoggingOut(false); // Stop loading
-        router.push('/auth'); // Redirect to login page
-    }, 500); // Simulate 0.5 second delay
+        setShowLogoutConfirm(false);
+        setIsMobileMenuOpen(false);
+        setIsLoggingOut(false);
+        router.push('/auth');
+    }, 500);
   };
 
 
-  // Don't render navbar content on the server to prevent hydration mismatch for login status
   if (!isClient) {
-    // You can return a placeholder or null during server render / initial hydration
     return (
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center">
-          {/* Basic structure without dynamic elements */}
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <WcontentLogo className="h-6 w-6" /> {/* Use new logo */}
-            <span className="font-bold sm:inline-block">Wcontent</span> {/* Use new name */}
+            <WcontentLogo className="h-6 w-6" />
+            <span className="font-bold sm:inline-block">Wcontent</span>
           </Link>
-          {/* Placeholder for nav items or just the mobile trigger */}
            <div className="flex flex-1 items-center justify-end space-x-4 md:hidden">
-             {/* Mobile trigger placeholder */}
              <Button variant="ghost" size="icon" disabled>
                 <Menu className="h-5 w-5" />
              </Button>
            </div>
            <nav className="hidden flex-1 items-center space-x-4 md:flex justify-end">
-             {/* Placeholder Login Button */}
               <Button variant="outline" disabled>Loading...</Button>
            </nav>
         </div>
@@ -119,8 +112,8 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <WcontentLogo className="h-6 w-6" /> {/* Use new logo */}
-          <span className="font-bold sm:inline-block">Wcontent</span> {/* Use new name */}
+          <WcontentLogo className="h-6 w-6" />
+          <span className="font-bold sm:inline-block">Wcontent</span>
         </Link>
         <nav className="hidden flex-1 items-center space-x-4 md:flex">
           {navLinks.map((link) => (
@@ -136,21 +129,34 @@ export default function Navbar() {
             </Link>
           ))}
         </nav>
-         {/* Desktop Login/Logout Button - Moved to the end */}
-        <div className="hidden md:flex items-center ml-auto">
+
+        <div className="hidden md:flex items-center ml-auto space-x-4"> {/* Added space-x-4 */}
            {/* Wrap the trigger and content in AlertDialog */}
            <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
              {isLoggedIn ? (
-               <AlertDialogTrigger asChild>
-                 <Button
-                   variant="ghost"
-                   className="text-sm font-medium transition-colors hover:text-primary text-foreground/60"
-                   disabled={isLoggingOut}
-                 >
-                   {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
-                    Logout
-                 </Button>
-               </AlertDialogTrigger>
+               <>
+                 {/* Avatar */}
+                 <Link href="/dashboard" className="flex items-center gap-2"> {/* Link avatar to dashboard */}
+                   <Avatar className="h-8 w-8">
+                     {/* Use pravatar with username */}
+                     <AvatarImage src={`https://i.pravatar.cc/40?u=${username}`} alt={username} />
+                     <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
+                   </Avatar>
+                   <span className="text-sm font-medium text-foreground/80 hidden lg:inline">{username}</span> {/* Optionally show username */}
+                 </Link>
+
+                 {/* Logout Button */}
+                 <AlertDialogTrigger asChild>
+                   <Button
+                     variant="ghost"
+                     className="text-sm font-medium transition-colors hover:text-primary text-foreground/60"
+                     disabled={isLoggingOut}
+                   >
+                     {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+                      Logout
+                   </Button>
+                 </AlertDialogTrigger>
+               </>
              ) : (
                <Button asChild variant="outline" size="sm">
                  <Link href="/auth">Login / Sign Up</Link>
@@ -184,8 +190,8 @@ export default function Navbar() {
             </SheetTrigger>
             <SheetContent side="left" className="pr-0">
               <Link href="/" className="mr-6 flex items-center space-x-2 p-4 border-b" onClick={() => setIsMobileMenuOpen(false)}>
-                 <WcontentLogo className="h-6 w-6" /> {/* Use new logo */}
-                 <span className="font-bold">Wcontent</span> {/* Use new name */}
+                 <WcontentLogo className="h-6 w-6" />
+                 <span className="font-bold">Wcontent</span>
               </Link>
               <div className="flex flex-col space-y-3 p-4">
                 {navLinks.map((link) => (
@@ -202,7 +208,6 @@ export default function Navbar() {
                   </Link>
                 ))}
                 {/* Conditional Login/Logout in Mobile Menu */}
-                {/* Wrap the mobile trigger in AlertDialog as well */}
                 <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
                     {isLoggedIn ? (
                         <AlertDialogTrigger asChild>
@@ -224,7 +229,6 @@ export default function Navbar() {
                         Login / Sign Up
                     </Link>
                     )}
-                     {/* Dialog Content (shared logic, could be extracted to a component) */}
                      <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
@@ -247,7 +251,6 @@ export default function Navbar() {
         </div>
       </div>
     </header>
-    {/* Removed redundant AlertDialog here */}
     </>
   );
 }

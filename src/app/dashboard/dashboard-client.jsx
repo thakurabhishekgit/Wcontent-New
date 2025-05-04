@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bell, Settings, User, Edit3, PlusCircle, Mail, FileText, LogOut, BarChart, Zap, Users as UsersIcon, ListChecks, Loader2 } from 'lucide-react'; // Added Loader2
+import { Bell, Settings, User, Edit3, PlusCircle, Mail, FileText, LogOut, BarChart, Zap, Users as UsersIcon, ListChecks, Loader2, Inbox, Briefcase } from 'lucide-react'; // Added missing icons
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -32,20 +32,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"; // Import AlertDialog components
+} from "@/components/ui/alert-dialog";
 
-// Define the structure for sidebar links
+// Updated sidebar links to include new pages
 const sidebarLinks = [
     { id: '/dashboard', label: 'My Profile', icon: User },
     { id: '/dashboard/update', label: 'Update Profile', icon: Edit3 },
     { id: '/dashboard/opportunities/new', label: 'Post Opportunity', icon: PlusCircle },
+    { id: '/dashboard/opportunities/myopportunities', label: 'My Opportunities', icon: Briefcase }, // View posted opportunities
+    { id: '/dashboard/opportunities/myapps', label: 'My Applications', icon: FileText }, // View applications sent
     { id: '/dashboard/collabs/new', label: 'Post Collab', icon: PlusCircle },
-    { id: '/dashboard/opportunities/myopportunities', label: 'My Opportunities', icon: ListChecks },
-    { id: '/dashboard/collabs/myrequests', label: 'My Collabs', icon: ListChecks },
-    // Adding links to main app sections for convenience
+    { id: '/dashboard/collabs/myrequests', label: 'My Collabs', icon: Inbox }, // View requests received for own collabs
+    // Added '/dashboard/collabs/myapplications' - Link to view applications sent for others' collabs (Needs a page)
+    // { id: '/dashboard/collabs/myapplications', label: 'Applied Collabs', icon: Mail },
     { id: '/generate', label: 'Generate Ideas', icon: Zap },
-    { id: '/predict', label: 'Predict Performance', icon: BarChart },
-    { id: '/opportunities', label: 'Browse Opportunities', icon: FileText },
+    // { id: '/predict', label: 'Predict Performance', icon: BarChart }, // Can be re-added if predict page is fixed/used
+    { id: '/opportunities', label: 'Browse Opportunities', icon: Briefcase },
     { id: '/collabs', label: 'Browse Collabs', icon: UsersIcon },
 ];
 
@@ -55,40 +57,40 @@ export default function DashboardClient({ children }) {
   const [username, setUsername] = useState('User');
   const [isClient, setIsClient] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // State for logout confirmation dialog
-  const [isLoggingOut, setIsLoggingOut] = useState(false); // Loading state for logout
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Sidebar state management lifted here
   const isMobile = useIsMobile();
-  const [open, setOpen] = useState(true); // Desktop sidebar state
-  const [openMobile, setOpenMobile] = useState(false); // Mobile sidebar state
+  const [open, setOpen] = useState(!isMobile); // Default open on desktop, closed on mobile
+  const [openMobile, setOpenMobile] = useState(false);
 
-   // Function to check login status
    const checkLoginStatus = () => {
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem('token');
         const user = localStorage.getItem('username');
         setIsLoggedIn(!!token);
         if (user) setUsername(user);
+        else setUsername('User'); // Default if no username
       }
     };
 
-  // Get active path and username on client-side mount
   useEffect(() => {
     setIsClient(true);
     checkLoginStatus();
 
+    // Check if user is logged in, redirect if not
+     if (!localStorage.getItem("token")) {
+         router.push('/auth');
+     }
+
     const handleAuthChange = () => {
         checkLoginStatus();
+        // If token is removed during auth change, redirect
+        if (!localStorage.getItem("token")) {
+            router.push('/auth');
+        }
     };
     window.addEventListener('authChange', handleAuthChange);
-
-
-    if (!localStorage.getItem("token")) {
-        router.push('/auth');
-    }
-
-     window.addEventListener('authChange', handleAuthChange);
 
      return () => {
        window.removeEventListener('authChange', handleAuthChange);
@@ -97,35 +99,37 @@ export default function DashboardClient({ children }) {
   }, [router]);
 
   useEffect(() => {
+    // Close mobile sidebar on navigation
     if (isMobile && openMobile) {
       setOpenMobile(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, isMobile]);
+    // Adjust desktop sidebar state based on window size if needed
+    setOpen(!isMobile);
+
+  }, [pathname, isMobile]); // React to pathname and isMobile changes
 
 
-  // Performs the actual logout
   const confirmLogout = () => {
-    setIsLoggingOut(true); // Start loading
-    setTimeout(() => { // Simulate logout delay
+    setIsLoggingOut(true);
+    setTimeout(() => {
       if (typeof window !== 'undefined') {
          localStorage.removeItem("token");
          localStorage.removeItem("id");
          localStorage.removeItem("username");
          window.dispatchEvent(new CustomEvent('authChange'));
       }
-      setShowLogoutConfirm(false); // Close dialog
-      setOpenMobile(false); // Close mobile menu if open
-      setIsLoggingOut(false); // Stop loading
+      setShowLogoutConfirm(false);
+      setOpenMobile(false);
+      setIsLoggingOut(false);
       router.push('/auth');
-    }, 500); // Simulate 0.5 second delay
+    }, 500);
   };
 
   const handleNavigation = (path) => {
     router.push(path);
+     if (isMobile) setOpenMobile(false); // Close mobile menu on nav
   };
 
-  // Sidebar Context Value
   const contextValue = useMemo(() => {
     const state = open ? "expanded" : "collapsed";
     const toggleSidebar = () => {
@@ -145,45 +149,52 @@ export default function DashboardClient({ children }) {
   }, [open, setOpen, isMobile, openMobile, setOpenMobile]);
 
 
-   if (!isClient || !isLoggedIn) {
+   if (!isClient || !isLoggedIn) { // Keep loading state until client-side check is complete and logged in
       return (
         <div className="flex min-h-screen items-center justify-center">
-          <p>Loading...</p>
+          {/* You might want a more sophisticated loader here */}
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="ml-2">Loading Dashboard...</p>
         </div>
       );
    }
 
   return (
-    <TooltipProvider delayDuration={0}>
+    // Wrap with TooltipProvider only once at the root level
+    // <TooltipProvider delayDuration={0}>
     <SidebarContext.Provider value={contextValue}>
         <div className="flex h-screen overflow-hidden">
             <Sidebar>
                 <SidebarHeader className="border-b border-sidebar-border">
                 <div className="flex items-center justify-between p-2">
-                    {/* Mobile Trigger */}
+                    {/* Mobile Trigger (only shows on mobile) */}
                     <SidebarTrigger className="md:hidden"/>
-                    {/* Desktop User Info */}
-                    <div className="hidden md:flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                        {/* Use pravatar for placeholder */}
-                        <AvatarImage src={`https://i.pravatar.cc/40?u=${username}`} alt={username} />
-                        <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        {/* Use context state to conditionally hide username */}
-                        <span className={cn("text-sm font-medium", contextValue.state === 'collapsed' && 'sr-only group-data-[collapsible=icon]:hidden')}>
-                          {username}
-                        </span>
+                    {/* Desktop User Info (only shows on desktop) */}
+                    <div className="hidden md:flex items-center gap-2 flex-grow min-w-0"> {/* Added flex-grow and min-w-0 */}
+                        <Link href="/dashboard" className="flex items-center gap-2 min-w-0"> {/* Link to profile */}
+                           <Avatar className="h-8 w-8 flex-shrink-0"> {/* Added flex-shrink-0 */}
+                              {/* Use pravatar for placeholder */}
+                              <AvatarImage src={`https://i.pravatar.cc/40?u=${username}`} alt={username} />
+                              <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
+                           </Avatar>
+                           {/* Use context state to conditionally hide username */}
+                           <span className={cn("text-sm font-medium truncate", contextValue.state === 'collapsed' && 'sr-only group-data-[collapsible=icon]:hidden')}> {/* Added truncate */}
+                             {username}
+                           </span>
+                        </Link>
                     </div>
-                    {/* Actions (Notifications/Settings) */}
+                    {/* Actions (Notifications/Settings) - always visible */}
                     <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" aria-label="Notifications">
+                        {/* <Button variant="ghost" size="icon" aria-label="Notifications">
                             <Bell className="size-4" />
-                        </Button>
+                        </Button> */}
                         <Link href="/dashboard/update" passHref legacyBehavior>
                             <Button variant="ghost" size="icon" aria-label="Settings">
                                 <Settings className="size-4" />
                             </Button>
                         </Link>
+                         {/* Desktop trigger (only shows on desktop) */}
+                        <SidebarTrigger className="hidden md:flex"/>
                     </div>
                 </div>
                 </SidebarHeader>
@@ -196,7 +207,6 @@ export default function DashboardClient({ children }) {
                             isActive={pathname === link.id}
                             tooltip={link.label}
                         >
-                           {/* Pass icon component directly */}
                            <link.icon />
                            <span>{link.label}</span>
                         </SidebarMenuButton>
@@ -207,7 +217,6 @@ export default function DashboardClient({ children }) {
                 <SidebarFooter className="border-t border-sidebar-border mt-auto">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                     {/* Wrap the button and dialog content in AlertDialog */}
                      <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
                         <AlertDialogTrigger asChild>
                              <SidebarMenuButton tooltip="Logout" disabled={isLoggingOut}>
@@ -238,22 +247,20 @@ export default function DashboardClient({ children }) {
                 </SidebarFooter>
             </Sidebar>
 
-             {/* Main Content Area */}
-             <SidebarInset className="flex-1 overflow-auto"> {/* Removed flex flex-col */}
+             <SidebarInset>
                 {/* Header for main content area (mobile only) */}
-                <header className="flex items-center justify-between p-4 border-b md:hidden shrink-0 bg-background z-10 sticky top-0"> {/* Added sticky top-0 */}
-                    <h2 className="text-xl font-semibold capitalize">
-                        {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
-                    </h2>
-                    <SidebarTrigger />
-                </header>
-                {/* Render the specific page component passed as children */}
-                <div className="p-4 md:p-6"> {/* Removed flex-1 and overflow-y-auto */}
+                 <header className="flex items-center justify-between p-4 border-b md:hidden sticky top-0 bg-background z-10">
+                     <h2 className="text-xl font-semibold capitalize truncate">
+                         {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
+                     </h2>
+                     {/* Mobile Trigger is outside SidebarInset on mobile */}
+                 </header>
+                <div className="p-4 md:p-6 overflow-y-auto h-full"> {/* Added overflow-y-auto and h-full */}
                    {children}
                 </div>
             </SidebarInset>
          </div>
     </SidebarContext.Provider>
-    </TooltipProvider>
+    // </TooltipProvider>
   );
 }
