@@ -146,12 +146,8 @@ const UpdateProfile = () => {
 
      // Prepare data payload, including new password only if provided and valid
      const updatePayload = { ...userData };
-     // Ensure channel fields are only sent if userType is ChannelOwner
-     if (userData.userType?.toLowerCase() !== 'channelowner') {
-         delete updatePayload.channelName;
-         delete updatePayload.channelId;
-         delete updatePayload.channelURL;
-     }
+     // Always send all fields, backend should handle null/optional based on userType if needed
+     // We don't conditionally delete fields anymore
 
      if (newPassword) {
        updatePayload.password = newPassword;
@@ -178,13 +174,20 @@ const UpdateProfile = () => {
         setMessage("Profile updated successfully!");
          setNewPassword(""); // Clear password fields on success
          setConfirmPassword("");
-         // Optionally re-fetch user data to show updated info, or update state directly
-         // fetchUserData(userId, token); // Re-fetch data after update (already done in effect)
+
          // Update username in localStorage if changed
          if (updatePayload.username && localStorage.getItem('username') !== updatePayload.username) {
             localStorage.setItem('username', updatePayload.username);
-            // Optionally trigger a refresh or state update in a higher component if username is displayed elsewhere
+            // Dispatch the authChange event to update navbar/sidebar immediately
+            window.dispatchEvent(new CustomEvent('authChange'));
          }
+
+         // Re-fetch user data to update the form with potentially other changed data from backend response (if any)
+         // Commenting out as immediate refetch might overwrite success message too quickly.
+         // User can see updated data on next page load or if explicitly refreshed.
+         // fetchUserData(userId, token);
+
+
       } else {
         const data = await response.json().catch(() => ({message: "Failed to update profile."}));
         setError(data.message || "Failed to update profile.");
@@ -308,51 +311,51 @@ const UpdateProfile = () => {
                </Select>
           </div>
 
-          {/* Conditionally render channel fields */}
-          {userData.userType?.toLowerCase() === 'channelowner' && (
-            <div className="space-y-4 pt-4 border-t border-border/50"> {/* Added border */}
-               <h3 className="text-md font-semibold text-muted-foreground">Channel Details</h3>
-              <div className="space-y-2">
-                <Label htmlFor="channelName">Channel Name</Label>
-                <Input
-                  id="channelName"
-                  name="channelName"
-                  value={userData.channelName || ''}
-                  onChange={handleChange}
-                   required={userData.userType === 'ChannelOwner'}
-                   disabled={isSubmitting}
-                   placeholder="Your YouTube Channel Name"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                   <Label htmlFor="channelId">Channel ID</Label>
-                   <Input
-                     id="channelId"
-                     name="channelId"
-                     value={userData.channelId || ''}
-                     onChange={handleChange}
-                     required={userData.userType === 'ChannelOwner'}
-                     disabled={isSubmitting}
-                     placeholder="Your YouTube Channel ID"
-                   />
-                 </div>
-                 <div className="space-y-2">
-                   <Label htmlFor="channelURL">Channel URL</Label>
-                   <Input
-                     type="url"
-                     id="channelURL"
-                     name="channelURL"
-                     value={userData.channelURL || ''}
-                     onChange={handleChange}
-                      required={userData.userType === 'ChannelOwner'}
-                      disabled={isSubmitting}
-                      placeholder="https://youtube.com/..."
-                   />
-                 </div>
-              </div>
+          {/* Always show channel fields, allow them to be edited */}
+          {/* Backend should handle whether these are required based on userType if necessary */}
+          <div className="space-y-4 pt-4 border-t border-border/50">
+             <h3 className="text-md font-semibold text-muted-foreground">Channel Details (Optional for Role Seekers)</h3>
+            <div className="space-y-2">
+              <Label htmlFor="channelName">Channel Name</Label>
+              <Input
+                id="channelName"
+                name="channelName"
+                value={userData.channelName || ''}
+                onChange={handleChange}
+                 // required={userData.userType === 'ChannelOwner'} // Removed frontend requirement
+                 disabled={isSubmitting}
+                 placeholder="Your YouTube Channel Name"
+              />
             </div>
-          )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="space-y-2">
+                 <Label htmlFor="channelId">Channel ID</Label>
+                 <Input
+                   id="channelId"
+                   name="channelId"
+                   value={userData.channelId || ''}
+                   onChange={handleChange}
+                   // required={userData.userType === 'ChannelOwner'} // Removed frontend requirement
+                   disabled={isSubmitting}
+                   placeholder="Your YouTube Channel ID"
+                 />
+               </div>
+               <div className="space-y-2">
+                 <Label htmlFor="channelURL">Channel URL</Label>
+                 <Input
+                   type="url"
+                   id="channelURL"
+                   name="channelURL"
+                   value={userData.channelURL || ''}
+                   onChange={handleChange}
+                    // required={userData.userType === 'ChannelOwner'} // Removed frontend requirement
+                    disabled={isSubmitting}
+                    placeholder="https://youtube.com/..."
+                 />
+               </div>
+            </div>
+          </div>
+
 
           <div className="space-y-4 pt-4 border-t border-border/50"> {/* Added border */}
              <h3 className="text-md font-semibold text-muted-foreground">Update Password (Optional)</h3>

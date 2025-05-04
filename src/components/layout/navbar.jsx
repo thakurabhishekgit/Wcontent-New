@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, LogOut, Loader2 } from 'lucide-react';
+import { Menu, LogOut, Loader2, User } from 'lucide-react'; // Added User icon
 import { useState, useEffect } from 'react';
 import WcontentLogo from '@/components/icons/wcontent-logo';
 import {
@@ -189,10 +189,23 @@ export default function Navbar() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="pr-0">
-              <Link href="/" className="mr-6 flex items-center space-x-2 p-4 border-b" onClick={() => setIsMobileMenuOpen(false)}>
-                 <WcontentLogo className="h-6 w-6" />
-                 <span className="font-bold">Wcontent</span>
-              </Link>
+               {/* Mobile Menu Header */}
+               <div className="flex items-center justify-between p-4 border-b">
+                  <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
+                     <WcontentLogo className="h-6 w-6" />
+                     <span className="font-bold">Wcontent</span>
+                  </Link>
+                   {/* Avatar in mobile menu if logged in */}
+                   {isLoggedIn && (
+                     <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                       <Avatar className="h-8 w-8">
+                         <AvatarImage src={`https://avatar.vercel.sh/${username}.svg?size=40`} alt={username} />
+                         <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
+                       </Avatar>
+                     </Link>
+                   )}
+                </div>
+
               <div className="flex flex-col space-y-3 p-4">
                 {navLinks.map((link) => (
                   <Link
@@ -210,16 +223,27 @@ export default function Navbar() {
                 {/* Conditional Login/Logout in Mobile Menu */}
                 <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
                     {isLoggedIn ? (
-                        <AlertDialogTrigger asChild>
-                            <Button
-                            variant="ghost"
-                            className="justify-start px-0 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
-                            disabled={isLoggingOut}
-                            >
-                             {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
-                                Logout
-                            </Button>
-                        </AlertDialogTrigger>
+                       <>
+                         {/* Show username in mobile menu */}
+                          <Link
+                           href="/dashboard"
+                           onClick={() => setIsMobileMenuOpen(false)}
+                           className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+                           >
+                           <User className="h-4 w-4" /> {username}
+                         </Link>
+                         {/* Logout Trigger */}
+                         <AlertDialogTrigger asChild>
+                             <Button
+                             variant="ghost"
+                             className="justify-start px-0 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+                             disabled={isLoggingOut}
+                             >
+                              {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+                                 Logout
+                             </Button>
+                         </AlertDialogTrigger>
+                       </>
                     ) : (
                     <Link
                         href="/auth"
