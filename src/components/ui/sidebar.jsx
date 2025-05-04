@@ -17,6 +17,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  TooltipProvider, // Import TooltipProvider
 } from "@/components/ui/tooltip"
 
 const SIDEBAR_WIDTH = "16rem"
@@ -201,7 +202,7 @@ const SidebarInset = React.forwardRef(({ className, ...props }, ref) => {
       className={cn(
         // flex-1 allows this component to take up remaining space
         // Re-add margin styles based on sidebar state for desktop
-        "relative flex flex-col flex-1 bg-background overflow-hidden",
+        "relative flex flex-col flex-1 bg-background", // Removed overflow-hidden
         "md:peer-data-[side=left]:ml-[--sidebar-width]",
         "md:peer-data-[side=right]:mr-[--sidebar-width]",
         "md:peer-data-[collapsible=icon]:peer-data-[side=left]:ml-[var(--sidebar-width-icon)]",
@@ -400,7 +401,8 @@ const SidebarMenuButton = React.forwardRef(
       size = "default",
       tooltip,
       className,
-      ...props // Keep remaining props, including children
+      children, // Explicitly get children
+      ...props
     },
     ref
   ) => {
@@ -415,8 +417,10 @@ const SidebarMenuButton = React.forwardRef(
         data-size={size}
         data-active={isActive}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
-        {...props} // Pass all props, including children
-      />
+        {...props}
+      >
+         {children} {/* Render children */}
+      </Comp>
     );
 
     if (!tooltip) {
@@ -428,16 +432,21 @@ const SidebarMenuButton = React.forwardRef(
 
     // Wrap the button element with TooltipTrigger when tooltip is present
     return (
-      <Tooltip>
-        <TooltipTrigger asChild>{buttonElement}</TooltipTrigger>
-        <TooltipContent
-          side="right"
-          align="center"
-          // Use explicit check for collapsed state, avoid showing on mobile
-          hidden={state !== "collapsed" || isMobile}
-          {...tooltipProps} // Spread tooltip props here
-        />
-      </Tooltip>
+      <TooltipProvider> {/* Wrap with TooltipProvider */}
+        <Tooltip>
+          <TooltipTrigger asChild>{buttonElement}</TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            // Use explicit check for collapsed state, avoid showing on mobile
+            hidden={state !== "collapsed" || isMobile}
+            {...tooltipProps} // Spread tooltip props here
+          >
+            {/* Render tooltip content if it's a string */}
+            {typeof tooltip === "string" ? tooltip : tooltip?.children}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 );
@@ -585,6 +594,3 @@ export {
   SidebarTrigger,
   useSidebar, // Keep useSidebar export
 }
-
-
-

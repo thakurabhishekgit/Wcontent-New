@@ -160,15 +160,13 @@ export default function DashboardClient({ children }) {
    }
 
   return (
-    // Wrap with TooltipProvider only once at the root level
-    // <TooltipProvider delayDuration={0}>
     <SidebarContext.Provider value={contextValue}>
         <div className="flex h-screen overflow-hidden">
             <Sidebar>
                 <SidebarHeader className="border-b border-sidebar-border">
                 <div className="flex items-center justify-between p-2">
-                    {/* Mobile Trigger (only shows on mobile) */}
-                    <SidebarTrigger className="md:hidden"/>
+                    {/* Mobile Trigger (only shows on mobile) - REMOVED FROM HERE */}
+                    {/* <SidebarTrigger className="md:hidden"/> */}
                     {/* Desktop User Info (only shows on desktop) */}
                     <div className="hidden md:flex items-center gap-2 flex-grow min-w-0"> {/* Added flex-grow and min-w-0 */}
                         <Link href="/dashboard" className="flex items-center gap-2 min-w-0"> {/* Link to profile */}
@@ -250,18 +248,25 @@ export default function DashboardClient({ children }) {
              <SidebarInset>
                 {/* Header for main content area (mobile only) */}
                  <header className="flex items-center justify-between p-4 border-b md:hidden sticky top-0 bg-background z-10">
+                     {/* Mobile Trigger Added Here */}
+                     <SidebarTrigger />
                      <h2 className="text-xl font-semibold capitalize truncate">
                          {sidebarLinks.find(link => link.id === pathname)?.label || 'Dashboard'}
                      </h2>
-                     {/* Mobile Trigger is outside SidebarInset on mobile */}
+                     {/* Placeholder for avatar or other actions if needed */}
+                      <Link href="/dashboard">
+                        <Avatar className="h-8 w-8">
+                           <AvatarImage src={`https://avatar.vercel.sh/${username}.svg?size=40`} alt={username} />
+                           <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                      </Link>
                  </header>
                  {/* Adjusted padding and removed h-full to let content determine height */}
-                 <div className="p-4 md:p-6 overflow-y-auto">
+                 <div className="p-4 md:p-6 overflow-y-auto flex-1"> {/* Added flex-1 */}
                    {children}
                  </div>
             </SidebarInset>
          </div>
     </SidebarContext.Provider>
-    // </TooltipProvider>
   );
 }
