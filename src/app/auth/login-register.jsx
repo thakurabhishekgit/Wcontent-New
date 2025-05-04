@@ -68,18 +68,24 @@ const Login = ({ handleLogin }) => {
       } else {
         let errorMessage = "Login failed. Please check credentials and try again.";
         try {
-            const data = await response.json();
-            errorMessage = data.message || errorMessage;
+            const data = await response.json().catch(() => null); // Catch potential JSON parsing errors
+            errorMessage = data?.message || errorMessage;
+
+             // Specific check for the null password error
+             if (response.status === 500 && data?.message?.includes('Cannot invoke "String.equals(Object)"')) {
+                 errorMessage = "Login failed: Account data issue. Please try resetting your password or contact support.";
+             }
+
         } catch (jsonError) {
             console.error("Could not parse error response:", jsonError);
              // Check if response text gives a clue
              const text = await response.text().catch(() => '');
              console.error("Login error response text:", text);
-             if (response.status === 500 && text.includes('String.equals(Object)') && text.includes('User.getPassword()')) {
-                errorMessage = "Login failed: There seems to be an issue with your account data on the server (password might be null). Please contact support or try resetting your password if possible.";
-             } else {
-                errorMessage = `Login failed with status: ${response.status} ${response.statusText}. Check server logs for details.`;
-             }
+              if (response.status === 500 && text.includes('Cannot invoke "String.equals(Object)"')) {
+                  errorMessage = "Login failed: Account data issue. Please try resetting your password or contact support.";
+              } else {
+                 errorMessage = `Login failed with status: ${response.status} ${response.statusText}. Check server logs for details.`;
+              }
         }
          setError(errorMessage);
       }
@@ -292,10 +298,10 @@ const Login = ({ handleLogin }) => {
             we've got you covered. {/* Updated description */}
           </p>
           <Image
-            src="https://picsum.photos/400/300?random=auth" // Use picsum for placeholder
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s" // Use provided image URL
             alt="Content Creation Illustration"
-            data-ai-hint="team collaboration digital content"
-            width={400}
+            data-ai-hint="content marketing social media promotion" // Updated hint
+            width={400} // Keep original dimensions or adjust if needed
             height={300}
             className="rounded-lg object-cover shadow-lg"
           />
@@ -457,19 +463,20 @@ const Login = ({ handleLogin }) => {
                        {/* Always show Channel fields, remove conditional rendering */}
                        <>
                            <div>
-                              <Label htmlFor="channelName">Channel Name (Optional)</Label>
+                              <Label htmlFor="channelName">Channel Name</Label> {/* Removed Optional */}
                               <Input
                                  id="channelName"
                                  type="text"
                                  value={channelName}
                                  onChange={(e) => setChannelName(e.target.value)}
-                                 // required={userType === 'ChannelOwner'} // Remove requirement here, let backend validate if needed
+                                 // required={userType === 'ChannelOwner'} // Backend validates based on type
                                  placeholder="Your YouTube Channel Name"
                                  disabled={isRegisteringSubmit}
                                />
+                                <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p> {/* Add hint */}
                            </div>
                            <div>
-                              <Label htmlFor="channelId">Channel ID (Optional)</Label>
+                              <Label htmlFor="channelId">Channel ID</Label> {/* Removed Optional */}
                               <Input
                                  id="channelId"
                                  type="text"
@@ -479,9 +486,10 @@ const Login = ({ handleLogin }) => {
                                   placeholder="Your YouTube Channel ID"
                                   disabled={isRegisteringSubmit}
                                />
+                                <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p> {/* Add hint */}
                            </div>
                            <div>
-                             <Label htmlFor="channelURL">Channel URL (Optional)</Label>
+                             <Label htmlFor="channelURL">Channel URL</Label> {/* Removed Optional */}
                               <Input
                                  id="channelURL"
                                  type="url"
@@ -491,6 +499,7 @@ const Login = ({ handleLogin }) => {
                                  placeholder="https://youtube.com/..."
                                  disabled={isRegisteringSubmit}
                               />
+                               <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p> {/* Add hint */}
                            </div>
                        </>
                       <Button type="submit" className="w-full" disabled={isRegisteringSubmit}>

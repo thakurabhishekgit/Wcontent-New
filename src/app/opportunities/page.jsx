@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, MapPin, Briefcase, DollarSign, Filter, X, ArrowRight, Star, Award, Target, Users as UsersIcon } from "lucide-react"; // Added more icons
+import { Search, MapPin, Briefcase, DollarSign, Filter, X, ArrowRight, Star, Award, Target, Users as UsersIcon, LogIn } from "lucide-react"; // Added more icons, added LogIn
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Import Dialog components
 import { Label } from "@/components/ui/label"; // Import Label
 import {
@@ -126,6 +126,13 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
   );
 };
 
+// Dummy Opportunity Data
+const dummyOpportunities = [
+    { id: 201, title: 'Dummy Tech Review Gig', company: 'TechGadgets Demo', type: 'Paid Gig', location: 'Remote', postedDate: '1 day ago', salaryRange: '$400 - $800', description: 'Create a short review video for our demo product. Link portfolio.' },
+    { id: 202, title: 'Dummy Travel Blog Post', company: 'Explore Examples', type: 'Travel Opportunity', location: 'Example City (Remote Option)', postedDate: '2 days ago', salaryRange: 'Expenses Covered', description: 'Write a blog post about travel planning tips. SEO skills preferred.' },
+    { id: 203, title: 'Dummy Social Media Manager Role', company: 'Brand Builders Inc.', type: 'Part-Time Role', location: 'Remote', postedDate: '3 days ago', salaryRange: '$20/hour', description: 'Manage social media accounts for a sample brand. Experience required.' }
+];
+
 
 export default function OpportunitiesPage() {
   const [opportunities, setOpportunities] = useState([]);
@@ -151,7 +158,7 @@ export default function OpportunitiesPage() {
     setIsClient(true);
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
-    fetchOpportunities();
+    fetchOpportunities(!!token); // Pass login status to fetch function
   }, []);
 
   // Apply search and filters whenever opportunities, searchTerm, or filteredOpportunities change
@@ -162,32 +169,48 @@ export default function OpportunitiesPage() {
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [opportunities]); // Only depends on opportunities list itself
 
-   const fetchOpportunities = async () => {
+   const fetchOpportunities = async (loggedIn) => {
      setIsLoading(true);
      setError(null);
      try {
-       // Always fetch opportunities, regardless of login status
-       const response = await axios.get(
-         "http://localhost:3001/api/users/opportunities/opportunitiesGetAll"
-       );
-       if (Array.isArray(response.data)) {
-         const opportunitiesWithId = response.data.map((opp, index) => ({
-           ...opp,
-           id: opp.id || opp._id || index
-         }));
-         setOpportunities(opportunitiesWithId);
-         setFilteredOpportunities(opportunitiesWithId); // Initialize filtered list
-       } else {
-         console.error("API response is not an array:", response.data);
-         setError("Received invalid data format from the server.");
-         setOpportunities([]);
-         setFilteredOpportunities([]);
-       }
+        if (loggedIn) {
+            // Fetch real data if logged in
+           const response = await axios.get(
+             "http://localhost:3001/api/users/opportunities/opportunitiesGetAll"
+           );
+           if (Array.isArray(response.data)) {
+             const opportunitiesWithId = response.data.map((opp, index) => ({
+               ...opp,
+               id: opp.id || opp._id || index // Use _id, fallback to id, then index
+             }));
+             setOpportunities(opportunitiesWithId);
+             setFilteredOpportunities(opportunitiesWithId); // Initialize filtered list
+           } else {
+             console.error("API response is not an array:", response.data);
+             setError("Received invalid data format from the server.");
+             setOpportunities([]);
+             setFilteredOpportunities([]);
+           }
+        } else {
+            // Show dummy data if not logged in
+            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
+            setOpportunities(dummyOpportunities);
+            setFilteredOpportunities(dummyOpportunities);
+        }
      } catch (error) {
        console.error("Error fetching opportunities:", error);
-       setError("Failed to fetch opportunities. Please check the API endpoint and your connection.");
-       setOpportunities([]);
-       setFilteredOpportunities([]);
+       if (loggedIn) {
+            setError("Failed to fetch opportunities. Please check the API endpoint and your connection.");
+       } else {
+           setError("Failed to load opportunity data. Displaying examples."); // Error for dummy data scenario
+           setOpportunities(dummyOpportunities); // Fallback to dummy on error
+           setFilteredOpportunities(dummyOpportunities);
+       }
+       // Ensure lists are empty if not falling back to dummy data on error
+       if (loggedIn) {
+            setOpportunities([]);
+            setFilteredOpportunities([]);
+       }
      } finally {
        setIsLoading(false);
      }
@@ -301,6 +324,7 @@ export default function OpportunitiesPage() {
          </h1>
          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
            Find paid gigs, sponsorships, roles, and projects tailored specifically for digital creators like you.
+            {!isLoggedIn && <span className="text-sm block text-primary mt-1">(Login to view and apply to all opportunities)</span>}
          </p>
       </section>
 
@@ -312,10 +336,10 @@ export default function OpportunitiesPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
-            { icon: Award, title: 'Curated Gigs', description: 'Access opportunities specifically for content creators.', img: 'https://picsum.photos/400/250?random=5', hint: 'award medal opportunity' },
-            { icon: Filter, title: 'Smart Filters', description: 'Easily find relevant gigs by type, location, and budget.', img: 'https://picsum.photos/400/250?random=6', hint: 'filter search options' },
-            { icon: Target, title: 'Direct Applications', description: 'Apply directly to opportunities through the platform.', img: 'https://picsum.photos/400/250?random=7', hint: 'target application form submit' },
-            { icon: Briefcase, title: 'Diverse Roles', description: 'From paid gigs to full-time roles, find what fits you.', img: 'https://picsum.photos/400/250?random=8', hint: 'briefcase portfolio job variety' },
+            { icon: Award, title: 'Curated Gigs', description: 'Access opportunities specifically for content creators.', hint: 'award medal opportunity' },
+            { icon: Filter, title: 'Smart Filters', description: 'Easily find relevant gigs by type, location, and budget.', hint: 'filter search options' },
+            { icon: Target, title: 'Direct Applications', description: 'Apply directly to opportunities through the platform.', hint: 'target application form submit' },
+            { icon: Briefcase, title: 'Diverse Roles', description: 'From paid gigs to full-time roles, find what fits you.', hint: 'briefcase portfolio job variety' },
           ].map((feature, index) => (
             <Card key={index} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
@@ -325,7 +349,7 @@ export default function OpportunitiesPage() {
               </CardHeader>
               <CardContent className="flex-grow flex items-end">
                 <Image
-                  src={feature.img}
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s" // Use provided image URL
                   alt={feature.title}
                   data-ai-hint={feature.hint}
                   width={400}
@@ -388,7 +412,8 @@ export default function OpportunitiesPage() {
                <Alert variant="destructive">
                  <AlertTitle>Error</AlertTitle>
                  <AlertDescription>{error}</AlertDescription>
-                 <Button variant="outline" size="sm" onClick={fetchOpportunities} className="mt-2">Retry</Button>
+                  {!isLoggedIn && <Button variant="outline" size="sm" onClick={() => fetchOpportunities(false)} className="mt-2">Retry with Example Data</Button>}
+                  {isLoggedIn && <Button variant="outline" size="sm" onClick={() => fetchOpportunities(true)} className="mt-2">Retry Fetching</Button>}
                </Alert>
              )}
 
@@ -418,7 +443,7 @@ export default function OpportunitiesPage() {
                           onClick={() => handleCardClick(opportunity)}
                           variant="outline"
                         >
-                          View & Apply
+                          {isLoggedIn ? 'View & Apply' : 'View Details (Login to Apply)'}
                         </Button>
                       </CardFooter>
                     </Card>
@@ -475,9 +500,11 @@ export default function OpportunitiesPage() {
                Post an Opportunity <ArrowRight className="ml-2 h-5 w-5" />
              </Link>
            </Button>
-           <Button asChild variant="outline" size="lg">
-             <Link href="/auth">Login / Sign Up</Link>
-           </Button>
+           {!isLoggedIn && (
+             <Button asChild variant="outline" size="lg">
+               <Link href="/auth">Login / Sign Up</Link>
+             </Button>
+            )}
          </div>
        </section>
 
@@ -542,14 +569,14 @@ export default function OpportunitiesPage() {
         <AlertDialog open={showLoginAlert} onOpenChange={setShowLoginAlert}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Login Required</AlertDialogTitle>
+              <AlertDialogTitle className="flex items-center gap-2"><LogIn className="h-5 w-5"/> Login Required</AlertDialogTitle>
               <AlertDialogDescription>
-                You need to be logged in to apply for opportunities.
+                You need to be logged in to view details and apply for opportunities.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => router.push('/auth')}>Login</AlertDialogAction>
+              <AlertDialogAction onClick={() => router.push('/auth')}>Login / Sign Up</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

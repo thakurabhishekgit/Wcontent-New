@@ -41,6 +41,7 @@ const FeatureCard = ({ icon: Icon, title, description, img, hint }) => (
          width={400}
          height={250}
          className="rounded-md object-cover w-full h-auto mt-4"
+         unoptimized={img.includes('encrypted-tbn0.gstatic.com')} // Add unoptimized for external image
        />
      </CardContent>
    </Card>
@@ -307,6 +308,7 @@ function Ml() {
          </h1>
          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
            Leverage AI to understand audience sentiment and forecast the potential reach of your next big video idea.
+           {!isLoggedIn && <span className="text-sm block text-primary mt-1">(First prediction/analysis is free! Login for unlimited access.)</span>}
          </p>
        </section>
 
@@ -321,21 +323,21 @@ function Ml() {
             icon={Search}
             title="Comment Sentiment Analysis"
             description="Quickly understand what your audience thinks by analyzing comment sections."
-            img="https://picsum.photos/400/250?random=13"
+            img="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s" // Use provided image URL
             hint="comments feedback sentiment analysis"
           />
           <FeatureCard
             icon={Lightbulb}
             title="Actionable Improvement Ideas"
             description="Get AI-powered suggestions on how to make your next video even better based on feedback."
-            img="https://picsum.photos/400/250?random=14"
+            img="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s" // Use provided image URL
             hint="lightbulb ideas improvement suggestions"
           />
            <FeatureCard
              icon={TrendingUp}
              title="Future Reach Prediction (Beta)"
              description="Estimate the potential viewership of your planned content based on topic and your channel stats."
-             img="https://picsum.photos/400/250?random=15"
+             img="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s" // Use provided image URL
              hint="graph trending up prediction forecast"
            />
         </div>
@@ -390,7 +392,7 @@ function Ml() {
                 ) : (
                   'Analyze Comments'
                 )}
-                {!isLoggedIn && predictionCount > 0 && <span className="ml-2 text-xs">(Login Required)</span>}
+                {!isLoggedIn && predictionCount >= 1 && <span className="ml-2 text-xs">(Login Required)</span>}
               </Button>
 
               {/* Results Section */}
@@ -425,7 +427,7 @@ function Ml() {
                           <Lightbulb className="mr-2 h-4 w-4" /> Get Improvement Suggestions
                         </>
                       )}
-                       {!isLoggedIn && predictionCount > 0 && <span className="ml-2 text-xs">(Login Required)</span>}
+                       {!isLoggedIn && predictionCount >= 1 && <span className="ml-2 text-xs">(Login Required)</span>}
                     </Button>
 
                     {geminiLoading && (
@@ -459,7 +461,7 @@ function Ml() {
               <CardTitle className="text-2xl font-bold">Estimate Your Video's Potential</CardTitle>
               <CardDescription className="text-md text-muted-foreground">
                 Provide details about your planned content and current channel stats to get an AI-driven reach prediction.
-                {!isLoggedIn && <span className="text-sm block text-primary">(Login required to use this feature.)</span>}
+                {!isLoggedIn && <span className="text-sm block text-primary">(First prediction is free! Login for unlimited access.)</span>}
               </CardDescription>
             </CardHeader>
             <CardContent className="max-w-3xl mx-auto space-y-6">
@@ -551,7 +553,7 @@ function Ml() {
                   ) : (
                     'Predict Future Reach'
                   )}
-                  {!isLoggedIn && <span className="ml-2 text-xs">(Login Required)</span>}
+                  {!isLoggedIn && predictionCount >= 1 && <span className="ml-2 text-xs">(Login Required)</span>}
                 </Button>
 
                 {/* Prediction Result Section */}
@@ -620,7 +622,7 @@ function Ml() {
                                  <Lightbulb className="mr-2 h-4 w-4" /> Get Improvement Tips
                                </>
                              )}
-                              {!isLoggedIn && <span className="ml-2 text-xs">(Login Required)</span>}
+                              {!isLoggedIn && predictionCount >= 1 && <span className="ml-2 text-xs">(Login Required)</span>}
                           </Button>
 
                           {tipsLoading && (

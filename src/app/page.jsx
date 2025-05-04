@@ -1,4 +1,3 @@
-
 'use client'; // Required for useState and useEffect
 
 import React, { useState, useEffect } from 'react'; // Import hooks
@@ -26,22 +25,23 @@ const FeatureShowcaseSlider = () => (
   </div>
 );
 
-// Define content for the hero slider
+// Define content for the hero slider using the provided image
+const providedImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s";
 const heroSlides = [
   {
-    imageUrl: 'https://picsum.photos/1920/1080?random=10',
-    imageHint: 'digital creation laptop desk',
+    imageUrl: providedImageUrl,
+    imageHint: 'content marketing social media promotion',
     title: 'Empower Your Content Creation with Wcontent', // Updated title
     description: 'Wcontent is the ultimate platform for creators, providing AI-powered tools to streamline your workflow, generate fresh ideas, and connect with collaborators.', // Updated description
   },
   {
-    imageUrl: 'https://picsum.photos/1920/1080?random=11',
+    imageUrl: providedImageUrl, // Use the same image for all slides for now
     imageHint: 'brainstorming ideas lightbulb team',
     title: 'Generate Ideas Instantly',
     description: 'Break through creative blocks using our AI idea generator for videos, blogs, and social media.',
   },
   {
-    imageUrl: 'https://picsum.photos/1920/1080?random=12',
+    imageUrl: providedImageUrl, // Use the same image for all slides for now
     imageHint: 'networking connection people world',
     title: 'Connect & Collaborate',
     description: 'Find opportunities and collaborate with other creators to expand your reach and impact.',
@@ -81,6 +81,7 @@ export default function Home() {
               'object-cover transition-opacity duration-1000 ease-in-out -z-10', // Use z-index -10
               index === activeIndex ? 'opacity-100' : 'opacity-0'
             )}
+            unoptimized={slide.imageUrl.includes('encrypted-tbn0.gstatic.com')} // Add unoptimized for external image
           />
         ))}
         {/* Overlay for text readability */}
@@ -146,10 +147,10 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Feature Cards */}
             {[
-              { icon: Zap, title: 'AI Content Ideas', description: 'Break through creative blocks with AI-generated content suggestions.', img: 'https://picsum.photos/400/250?random=1', hint: 'artificial intelligence brain creativity' },
-              { icon: BarChart, title: 'Predictive Analytics', description: 'Gain insights into potential content performance (feature coming soon!).', img: 'https://picsum.photos/400/250?random=2', hint: 'chart graph data analytics' },
-              { icon: Award, title: 'Opportunity Hub', description: 'Find paid gigs and exciting projects posted by brands and businesses.', img: 'https://picsum.photos/400/250?random=3', hint: 'job board opportunity handshake' },
-              { icon: Users, title: 'Collaboration Platform', description: 'Connect with fellow creators for joint ventures and cross-promotions.', img: 'https://picsum.photos/400/250?random=4', hint: 'teamwork collaboration people connect' },
+              { icon: Zap, title: 'AI Content Ideas', description: 'Break through creative blocks with AI-generated content suggestions.', hint: 'artificial intelligence brain creativity' },
+              { icon: BarChart, title: 'Predictive Analytics', description: 'Gain insights into potential content performance (feature coming soon!).', hint: 'chart graph data analytics' },
+              { icon: Award, title: 'Opportunity Hub', description: 'Find paid gigs and exciting projects posted by brands and businesses.', hint: 'job board opportunity handshake' },
+              { icon: Users, title: 'Collaboration Platform', description: 'Connect with fellow creators for joint ventures and cross-promotions.', hint: 'teamwork collaboration people connect' },
             ].map((feature, index) => (
               <Card key={index} className="flex flex-col overflow-hidden hover:shadow-xl hover:border-primary/50 transition-all duration-300 ease-in-out transform hover:-translate-y-1">
                 <CardHeader>
@@ -159,12 +160,13 @@ export default function Home() {
                 </CardHeader>
                 <CardContent className="flex-grow flex items-end"> {/* Use flex-grow and items-end */}
                   <Image
-                    src={feature.img}
+                    src={providedImageUrl} // Use provided image URL
                     alt={feature.title}
                     data-ai-hint={feature.hint}
                     width={400}
                     height={250}
                     className="rounded-md object-cover w-full h-auto mt-4" // Ensure image scales well
+                    unoptimized // Add unoptimized for external image
                   />
                 </CardContent>
               </Card>

@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, Filter, Users as UsersIcon, Target, Clock, X, MessageSquare, CalendarDays, Mail, User, ArrowRight, Star, Handshake, Zap, Users } from "lucide-react"; // Added more icons
+import { Search, Filter, Users as UsersIcon, Target, Clock, X, MessageSquare, CalendarDays, Mail, User, ArrowRight, Star, Handshake, Zap, Users, LogIn } from "lucide-react"; // Added more icons, added LogIn
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Import Dialog components
 import { Label } from "@/components/ui/label"; // Import Label
 import {
@@ -129,6 +129,14 @@ const formatDate = (dateString) => {
    }
  };
 
+// Dummy Collab Data
+const dummyCollabs = [
+    { id: 101, title: 'Dummy Comedy Skit Collab', creatorName: 'Comedy Central Lite', niche: 'Comedy', platform: 'YouTube', postedDate: '1 day ago', goal: 'Cross-promote channels', lookingFor: 'Comedy channel with 5k+ subs', details: 'Looking for a partner for a short, funny skit. Must be able to film remotely.', channelLink: '#', creatorProfileLink: '#' },
+    { id: 102, title: 'Dummy Wellness Instagram Live', creatorName: 'Mindful Moments', niche: 'Wellness', platform: 'Instagram', postedDate: '2 days ago', goal: 'Share tips, build community', lookingFor: 'Yoga instructor or meditation guide', details: 'Joint IG Live session on managing stress. Approx 30 mins.', channelLink: '#', creatorProfileLink: '#' },
+    { id: 103, title: 'Dummy Tech Podcast Guest Spot', creatorName: 'Tech Talk Today', niche: 'Tech', platform: 'Podcast', postedDate: '3 days ago', goal: 'Discuss new AI trends', lookingFor: 'AI expert or developer', details: 'Seeking knowledgeable guest for a 45-min podcast episode on recent AI advancements.', channelLink: '#', creatorProfileLink: '#' }
+];
+
+
 export default function CollaborationsPage() {
   const [collaborations, setCollaborations] = useState([]);
   const [filteredCollaborations, setFilteredCollaborations] = useState([]);
@@ -154,7 +162,7 @@ export default function CollaborationsPage() {
     setIsClient(true);
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
-    fetchCollaborations();
+    fetchCollaborations(!!token); // Pass login status to fetch function
   }, []);
 
   // Apply search and filters whenever collaborations, searchTerm, or filters change
@@ -165,33 +173,48 @@ export default function CollaborationsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collaborations]); // Re-apply if base data changes
 
-  const fetchCollaborations = async () => {
+  const fetchCollaborations = async (loggedIn) => {
     setIsLoading(true);
     setError(null);
     try {
-      // Always fetch collabs regardless of login status
-      const response = await axios.get(
-        "http://localhost:3001/api/users/collabration/getCollabOfAllUsers"
-      );
-      if (Array.isArray(response.data)) {
-         // Ensure each collab has a unique 'id'. Use _id from MongoDB
-         const collaborationsWithId = response.data.map(collab => ({
-            ...collab,
-            id: collab._id || collab.id // Use _id primarily, fallback to id
-         }));
-        setCollaborations(collaborationsWithId);
-        setFilteredCollaborations(collaborationsWithId); // Initialize filtered list
-      } else {
-        console.error("API response is not an array:", response.data);
-        setError("Received invalid data format from the server.");
-        setCollaborations([]);
-        setFilteredCollaborations([]);
-      }
+       if (loggedIn) {
+          // Fetch real data if logged in
+          const response = await axios.get(
+            "http://localhost:3001/api/users/collabration/getCollabOfAllUsers"
+          );
+          if (Array.isArray(response.data)) {
+             const collaborationsWithId = response.data.map(collab => ({
+                ...collab,
+                id: collab._id || collab.id // Use _id primarily, fallback to id
+             }));
+            setCollaborations(collaborationsWithId);
+            setFilteredCollaborations(collaborationsWithId); // Initialize filtered list
+          } else {
+            console.error("API response is not an array:", response.data);
+            setError("Received invalid data format from the server.");
+            setCollaborations([]);
+            setFilteredCollaborations([]);
+          }
+       } else {
+            // Show dummy data if not logged in
+            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
+            setCollaborations(dummyCollabs);
+            setFilteredCollaborations(dummyCollabs);
+       }
     } catch (error) {
       console.error("Error fetching collaborations:", error);
-      setError("Failed to fetch collaborations. Please check the API endpoint and your connection.");
-      setCollaborations([]);
-      setFilteredCollaborations([]);
+       if (loggedIn) {
+          setError("Failed to fetch collaborations. Please check the API endpoint and your connection.");
+       } else {
+          setError("Failed to load collaboration data. Displaying examples."); // Error for dummy data scenario
+          setCollaborations(dummyCollabs); // Fallback to dummy on error
+          setFilteredCollaborations(dummyCollabs);
+       }
+       // Ensure lists are empty if not falling back to dummy data on error
+       if (loggedIn) {
+          setCollaborations([]);
+          setFilteredCollaborations([]);
+       }
     } finally {
       setIsLoading(false);
     }
@@ -312,6 +335,7 @@ export default function CollaborationsPage() {
          </h1>
          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
            Find fellow content creators for joint projects, cross-promotions, and creative partnerships.
+            {!isLoggedIn && <span className="text-sm block text-primary mt-1">(Login to view and apply to all collaborations)</span>}
          </p>
        </section>
 
@@ -323,10 +347,10 @@ export default function CollaborationsPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
-            { icon: UsersIcon, title: 'Find Partners', description: 'Discover creators in your niche or explore new ones.', img: 'https://picsum.photos/400/250?random=9', hint: 'people network connection' },
-            { icon: Zap, title: 'Spark Creativity', description: 'Brainstorm ideas and create unique content together.', img: 'https://picsum.photos/400/250?random=10', hint: 'lightbulb idea creativity spark' },
-            { icon: Target, title: 'Reach New Audiences', description: 'Cross-promote to grow your combined following.', img: 'https://picsum.photos/400/250?random=11', hint: 'target audience growth graph' },
-            { icon: Handshake, title: 'Build Relationships', description: 'Network with peers and build lasting partnerships.', img: 'https://picsum.photos/400/250?random=12', hint: 'handshake partnership deal relationship' },
+            { icon: UsersIcon, title: 'Find Partners', description: 'Discover creators in your niche or explore new ones.', hint: 'people network connection' },
+            { icon: Zap, title: 'Spark Creativity', description: 'Brainstorm ideas and create unique content together.', hint: 'lightbulb idea creativity spark' },
+            { icon: Target, title: 'Reach New Audiences', description: 'Cross-promote to grow your combined following.', hint: 'target audience growth graph' },
+            { icon: Handshake, title: 'Build Relationships', description: 'Network with peers and build lasting partnerships.', hint: 'handshake partnership deal relationship' },
           ].map((feature, index) => (
             <Card key={index} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
@@ -336,7 +360,7 @@ export default function CollaborationsPage() {
               </CardHeader>
               <CardContent className="flex-grow flex items-end">
                 <Image
-                  src={feature.img}
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYnF6p676M9K1mS9VvH7W5R7qfE5C8P7D8Vw&s" // Use provided image URL
                   alt={feature.title}
                   data-ai-hint={feature.hint}
                   width={400}
@@ -407,7 +431,8 @@ export default function CollaborationsPage() {
                  <Alert variant="destructive">
                    <AlertTitle>Error</AlertTitle>
                    <AlertDescription>{error}</AlertDescription>
-                   <Button variant="outline" size="sm" onClick={fetchCollaborations} className="mt-2">Retry</Button>
+                    {!isLoggedIn && <Button variant="outline" size="sm" onClick={() => fetchCollaborations(false)} className="mt-2">Retry with Example Data</Button>}
+                    {isLoggedIn && <Button variant="outline" size="sm" onClick={() => fetchCollaborations(true)} className="mt-2">Retry Fetching</Button>}
                  </Alert>
                )}
 
@@ -421,7 +446,7 @@ export default function CollaborationsPage() {
                           <CardTitle className="text-lg line-clamp-2">{collab.title}</CardTitle>
                            <div className="flex flex-wrap gap-1 pt-1">
                               <Badge variant="secondary">{collab.contentCategory || 'N/A'}</Badge>
-                              <Badge variant="outline">{collab.collaborationType || 'N/A'}</Badge>
+                              <Badge variant="outline">{collab.collaborationType || collab.platform || 'N/A'}</Badge> {/* Display platform if type missing */}
                            </div>
                            {/* Optionally add Creator Name if available */}
                             {collab.creatorName && (
@@ -431,8 +456,10 @@ export default function CollaborationsPage() {
                             )}
                         </CardHeader>
                         <CardContent className="flex-grow space-y-2">
-                           <p className="text-sm text-muted-foreground line-clamp-3">{collab.description || 'No description.'}</p>
-                           <p className="text-sm flex items-center pt-1"><Clock className="h-4 w-4 mr-1 text-primary"/>Timeline: {collab.timeline || 'N/A'}</p>
+                           <p className="text-sm text-muted-foreground line-clamp-3">{collab.description || collab.details || 'No description.'}</p>
+                           <p className="text-sm flex items-center pt-1"><Clock className="h-4 w-4 mr-1 text-primary"/>Timeline: {collab.timeline || collab.postedDate || 'N/A'}</p>
+                           {/* Show goal if available */}
+                           {collab.goal && <p className="text-sm flex items-center pt-1"><Target className="h-4 w-4 mr-1 text-primary"/>Goal: {collab.goal}</p>}
                         </CardContent>
                         <CardFooter>
                           <Button
@@ -440,7 +467,7 @@ export default function CollaborationsPage() {
                             onClick={() => handleCardClick(collab)}
                             variant="outline"
                           >
-                            View & Apply
+                             {isLoggedIn ? 'View & Apply' : 'View Details (Login to Apply)'}
                           </Button>
                         </CardFooter>
                       </Card>
@@ -496,9 +523,11 @@ export default function CollaborationsPage() {
                 Post Your Collab Idea <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/auth">Login / Sign Up</Link>
-            </Button>
+            {!isLoggedIn && (
+                <Button asChild variant="outline" size="lg">
+                  <Link href="/auth">Login / Sign Up</Link>
+                </Button>
+             )}
           </div>
        </section>
 
@@ -514,9 +543,9 @@ export default function CollaborationsPage() {
               {/* Display collaboration details concisely */}
                <div className="text-sm text-muted-foreground space-y-1 pt-2 border-t mt-2">
                    <p className="flex items-center gap-1.5"><UsersIcon className="h-3 w-3"/> Creator: {selectedCollaboration?.creatorName || 'Unknown'}</p>
-                   <p className="flex items-center gap-1.5"><Target className="h-3 w-3"/> Category: {selectedCollaboration?.contentCategory}</p>
-                   <p className="flex items-center gap-1.5"><Clock className="h-3 w-3"/> Timeline: {selectedCollaboration?.timeline}</p>
-                   <p className="mt-2 text-foreground/80">{selectedCollaboration?.description}</p>
+                   <p className="flex items-center gap-1.5"><Target className="h-3 w-3"/> Category: {selectedCollaboration?.contentCategory || selectedCollaboration?.niche}</p>
+                   <p className="flex items-center gap-1.5"><Clock className="h-3 w-3"/> Timeline: {selectedCollaboration?.timeline || selectedCollaboration?.postedDate}</p>
+                   <p className="mt-2 text-foreground/80">{selectedCollaboration?.description || selectedCollaboration?.details}</p>
                     {/* Add link to creator's channel/profile if available */}
                     {selectedCollaboration?.channelLink && (
                         <p><Link href={selectedCollaboration.channelLink} className="text-primary hover:underline text-xs" target="_blank" rel="noopener noreferrer">View Creator's Channel</Link></p>
@@ -580,14 +609,14 @@ export default function CollaborationsPage() {
         <AlertDialog open={showLoginAlert} onOpenChange={setShowLoginAlert}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Login Required</AlertDialogTitle>
+              <AlertDialogTitle className="flex items-center gap-2"><LogIn className="h-5 w-5"/> Login Required</AlertDialogTitle>
               <AlertDialogDescription>
-                You need to be logged in to apply for collaborations.
+                You need to be logged in to view details and apply for collaborations.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => router.push('/auth')}>Login</AlertDialogAction>
+              <AlertDialogAction onClick={() => router.push('/auth')}>Login / Sign Up</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
