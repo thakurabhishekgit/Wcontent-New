@@ -47,7 +47,7 @@ export default function MyOpportunitiesPage() {
       setError(null);
       try {
         const response = await fetch(
-          `http://localhost:3001/api/users/opportunities/getMyOpportunities/${userId}`,
+          `https://wcontent-app-latest.onrender.com/api/users/opportunities/getMyOpportunities/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -84,7 +84,7 @@ export default function MyOpportunitiesPage() {
     try {
        // Use the correct ID field (dbId which is mapped from id or _id)
       const response = await fetch(
-        `http://localhost:3001/api/users/application/opportunity/${oppDbId}/applicants`,
+        `https://wcontent-app-latest.onrender.com/api/users/application/opportunity/${oppDbId}/applicants`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

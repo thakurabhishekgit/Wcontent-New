@@ -43,7 +43,7 @@ const MyProfile = () => {
     setError("");
     try {
        // Ensure the backend URL is correct and accessible
-       const backendUrl = `http://localhost:3001/api/users/getUser/${userId}`;
+       const backendUrl = `https://wcontent-app-latest.onrender.com/api/users/getUser/${userId}`;
        console.log(`Fetching user data from: ${backendUrl}`);
 
       const response = await fetch(backendUrl, {
@@ -70,7 +70,7 @@ const MyProfile = () => {
       console.error("Network or other error fetching user data:", error);
        let fetchErrorMessage = "Error fetching user data. Please check your connection and ensure the backend is running.";
        if (error instanceof TypeError && error.message === 'Failed to fetch') {
-           fetchErrorMessage = `Error fetching user data. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and CORS is configured correctly.`;
+           fetchErrorMessage = `Error fetching user data. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
        }
       setError(fetchErrorMessage);
     } finally {

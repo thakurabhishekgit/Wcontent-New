@@ -176,7 +176,7 @@ export default function OpportunitiesPage() {
         if (loggedIn) {
             // Fetch real data if logged in
            const response = await axios.get(
-             "http://localhost:3001/api/users/opportunities/opportunitiesGetAll"
+             "https://wcontent-app-latest.onrender.com/api/users/opportunities/opportunitiesGetAll"
            );
            if (Array.isArray(response.data)) {
              const opportunitiesWithId = response.data.map((opp, index) => ({
@@ -282,7 +282,7 @@ export default function OpportunitiesPage() {
        const token = localStorage.getItem('token'); // Get token for authenticated request
 
       const response = await axios.post(
-        `http://localhost:3001/api/users/application/opportunity/${oppIdToUse}/apply`,
+        `https://wcontent-app-latest.onrender.com/api/users/application/opportunity/${oppIdToUse}/apply`,
         application,
         { // Add Authorization header
           headers: {
@@ -336,10 +336,10 @@ export default function OpportunitiesPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
-            { icon: Award, title: 'Curated Gigs', description: 'Access opportunities specifically for content creators.', hint: 'trophy award job' },
-            { icon: Filter, title: 'Smart Filters', description: 'Easily find relevant gigs by type, location, and budget.', hint: 'filter search find' },
-            { icon: Target, title: 'Direct Applications', description: 'Apply directly to opportunities through the platform.', hint: 'apply form submit' },
-            { icon: Briefcase, title: 'Diverse Roles', description: 'From paid gigs to full-time roles, find what fits you.', hint: 'job work project' },
+            { icon: Award, title: 'Curated Gigs', description: 'Access opportunities specifically for content creators.', hint: 'trophy award job', imageSeed: 1 },
+            { icon: Filter, title: 'Smart Filters', description: 'Easily find relevant gigs by type, location, and budget.', hint: 'filter search find', imageSeed: 2 },
+            { icon: Target, title: 'Direct Applications', description: 'Apply directly to opportunities through the platform.', hint: 'apply form submit', imageSeed: 3 },
+            { icon: Briefcase, title: 'Diverse Roles', description: 'From paid gigs to full-time roles, find what fits you.', hint: 'job work project', imageSeed: 4 },
           ].map((feature, index) => (
             <Card key={index} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
@@ -349,7 +349,7 @@ export default function OpportunitiesPage() {
               </CardHeader>
               <CardContent className="flex-grow flex items-end">
                 <Image
-                   src={`https://picsum.photos/400/250?random=${index+5}&grayscale&blur=1`} // Use blurred grayscale picsum photos
+                   src={`https://picsum.photos/400/250?grayscale&blur=1&random=${feature.imageSeed}`} // Use blurred grayscale picsum photos
                   alt={feature.title}
                   data-ai-hint={feature.hint}
                   width={400}

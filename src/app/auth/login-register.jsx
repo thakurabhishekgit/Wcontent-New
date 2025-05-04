@@ -46,7 +46,7 @@ const Login = ({ handleLogin }) => {
     setIsLoggingIn(true); // Start loading
 
     try {
-      const backendUrl = "http://localhost:3001/api/users/login";
+      const backendUrl = "https://wcontent-app-latest.onrender.com/api/users/login";
       const response = await fetch(backendUrl, {
         method: "POST",
         headers: {
@@ -93,7 +93,7 @@ const Login = ({ handleLogin }) => {
        console.error("Login network error:", error);
        let networkErrorMessage = "Error logging in. Please check your connection and try again.";
        if (isClient && error instanceof TypeError && error.message.includes('fetch')) { // More robust check
-          networkErrorMessage = `Error logging in. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and that CORS is configured correctly on the server to allow requests from your frontend origin (${window.location.origin}).`;
+          networkErrorMessage = `Error logging in. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and that CORS is configured correctly on the server to allow requests from your frontend origin (${window.location.origin}).`;
        }
        setError(networkErrorMessage);
     } finally {
@@ -109,7 +109,7 @@ const Login = ({ handleLogin }) => {
     setIsSendingOtp(true); // Start loading
 
     try {
-      const backendUrl = `http://localhost:3001/api/users/request-otp?email=${encodeURIComponent(email)}`;
+      const backendUrl = `https://wcontent-app-latest.onrender.com/api/users/request-otp?email=${encodeURIComponent(email)}`;
       const response = await fetch(backendUrl, {
           method: "POST",
           headers: {
@@ -137,7 +137,7 @@ const Login = ({ handleLogin }) => {
        console.error("OTP Send network error:", error);
        let networkErrorMessage = "Error sending OTP. Please check your connection.";
        if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
-          networkErrorMessage = `Error sending OTP. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
+          networkErrorMessage = `Error sending OTP. Could not connect to the server at https://wcontent-app-latest.onrender.com. Check backend status and CORS configuration.`;
        }
        setError(networkErrorMessage);
     } finally {
@@ -152,7 +152,7 @@ const Login = ({ handleLogin }) => {
      setIsVerifyingOtp(true); // Start loading
 
     try {
-      const backendUrl = `http://localhost:3001/api/users/verify-otp?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`;
+      const backendUrl = `https://wcontent-app-latest.onrender.com/api/users/verify-otp?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`;
       const response = await fetch(backendUrl, {
           method: "POST",
           headers: {
@@ -180,7 +180,7 @@ const Login = ({ handleLogin }) => {
       console.error("OTP Verify network error:", error);
       let networkErrorMessage = "Error verifying OTP. Please check your connection.";
        if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
-         networkErrorMessage = `Error verifying OTP. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
+         networkErrorMessage = `Error verifying OTP. Could not connect to the server at https://wcontent-app-latest.onrender.com. Check backend status and CORS configuration.`;
        }
       setError(networkErrorMessage);
     } finally {
@@ -218,7 +218,7 @@ const Login = ({ handleLogin }) => {
      };
 
     try {
-      const backendUrl = "http://localhost:3001/api/users/register";
+      const backendUrl = "https://wcontent-app-latest.onrender.com/api/users/register";
       const response = await fetch(backendUrl, {
         method: "POST",
         headers: {
@@ -255,7 +255,7 @@ const Login = ({ handleLogin }) => {
       console.error("Registration network error:", error);
       let networkErrorMessage = "Error registering. Please check your connection.";
        if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
-         networkErrorMessage = `Error registering. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
+         networkErrorMessage = `Error registering. Could not connect to the server at https://wcontent-app-latest.onrender.com. Check backend status and CORS configuration.`;
        }
        setError(networkErrorMessage);
     } finally {

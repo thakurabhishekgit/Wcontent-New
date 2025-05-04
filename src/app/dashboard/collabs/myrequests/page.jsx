@@ -47,7 +47,7 @@ export default function MyCollabsPage() {
     setError(null);
     try {
       const response = await fetch(
-        `http://localhost:3001/api/users/collabration/getCollabOfUser/${userId}`,
+        `https://wcontent-app-latest.onrender.com/api/users/collabration/getCollabOfUser/${userId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -83,7 +83,7 @@ export default function MyCollabsPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/users/collabration/getCollabRequests/${collabId}`,
+        `https://wcontent-app-latest.onrender.com/api/users/collabration/getCollabRequests/${collabId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

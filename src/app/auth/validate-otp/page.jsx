@@ -9,13 +9,34 @@ export default function ValidateOtpPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Dummy validation logic - for now, just navigate or show a message
-    console.log("Validating OTP:", otp);
-    // In a real app, you'd send the OTP to your backend for verification
-    // For this dummy implementation, we navigate to registration on submit
     
+    // You would send this OTP to your backend for verification.
+    const payload = {
+      otp: otp
+    }
+    
+
+    fetch("https://wcontent-app-latest.onrender.com/api/validateotp", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const body = await response.json();
+          throw new Error(`HTTP error! status: ${response.status} message: ${body.message}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Success:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   };
-  
-  
 
 
   return (
@@ -40,7 +61,7 @@ export default function ValidateOtpPage() {
            <p className="mb-4">Submitting the OTP will validate it.</p>
            <a
             href='/auth/register'
-            type="submit"
+            onClick={handleSubmit}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           >
             Validate
