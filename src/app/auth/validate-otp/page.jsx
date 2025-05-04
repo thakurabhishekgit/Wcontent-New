@@ -1,6 +1,6 @@
 'use client'; // Moved to the top and removed 'jsx'
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react"; // Import React and useEffect
 import { Button } from "@/components/ui/button"; // Import Button
 import { Input } from "@/components/ui/input"; // Import Input
 import { Label } from "@/components/ui/label"; // Import Label
