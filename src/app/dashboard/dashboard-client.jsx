@@ -165,6 +165,7 @@ export default function DashboardClient({ children }) {
                     {/* Desktop User Info */}
                     <div className="hidden md:flex items-center gap-2">
                         <Avatar className="h-8 w-8">
+                        {/* Use pravatar for placeholder */}
                         <AvatarImage src={`https://i.pravatar.cc/40?u=${username}`} alt={username} />
                         <AvatarFallback>{username.substring(0, 1).toUpperCase()}</AvatarFallback>
                         </Avatar>
