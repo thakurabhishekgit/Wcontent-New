@@ -132,10 +132,10 @@ graph LR
     *   These flows can be called from the Spring Boot backend (e.g., via HTTP requests if Genkit is run as a separate service, or direct Java-to-JavaScript interop if embedded, though HTTP is more common for decoupling).
 *   **Key Flows:**
     *   `generateContentIdeas`: Takes a prompt, tone, and format to generate content ideas, headlines, and outlines.
-    *   **(Future/Placeholder) YouTube Comment Analysis Flow:** Takes a video URL (or pre-fetched comments), summarizes sentiment, and suggests improvements. This would involve:
+    *   **YouTube Comment Analysis Flow:** Takes a video URL (or pre-fetched comments using YouTube Graph v4 API), summarizes sentiment, and suggests improvements. This would involve:
         1.  Backend fetching comments using YouTube Graph v4 API.
         2.  Passing comments to a Genkit flow for summarization and sentiment analysis using Gemini.
-    *   **(Future/Placeholder) Future Reach Prediction Flow:** Takes content details (type, description) and channel stats (subscribers, avg. views) to predict potential reach and engagement metrics using a custom-trained model or a sophisticated prompting strategy with Gemini.
+    *   **Future Reach Prediction Flow:** Takes content details (type, description, estimated cost) and channel stats (subscribers, avg. views) to predict potential reach (views, likes, comments) and engagement metrics using a custom-trained model or a sophisticated prompting strategy with Gemini. Also provides actionable tips for improvement.
 *   **Responsibilities:**
     *   Abstracting the complexities of interacting with LLMs.
     *   Defining structured inputs (Zod schemas) and outputs for AI tasks.
@@ -150,9 +150,9 @@ graph LR
     *   `email` (String, Unique)
     *   `password` (String, Hashed)
     *   `userType` (String: "ChannelOwner", "RoleSeeker")
-    *   `channelName` (String, Optional)
-    *   `channelId` (String, Optional)
-    *   `channelURL` (String, Optional)
+    *   `channelName` (String, Optional for RoleSeeker)
+    *   `channelId` (String, Optional for RoleSeeker)
+    *   `channelURL` (String, Optional for RoleSeeker)
     *   `verified` (Boolean)
     *   `createdAt`, `updatedAt` (Timestamps)
 *   **Opportunities Collection:**
@@ -214,7 +214,7 @@ graph LR
     *   `/api/users/applications/*`: Apply for opportunity, get applications for an opportunity, get applications by user
     *   `/api/users/collabrequests/*`: Send collab request, get requests for a collaboration, get requests by user
     *   `/api/ai/generate/*`: Endpoints to trigger Genkit flows (e.g., content ideas)
-    *   `/api/ai/predict/*`: Endpoints for prediction features
+    *   `/api/ai/predict/*`: Endpoints for prediction features (e.g., YouTube comment analysis, future reach)
 
 ## 9. Scalability and Performance Considerations
 
@@ -268,7 +268,56 @@ graph LR
     *   If embedded in Spring Boot, it deploys with the backend.
     *   If a separate service, it can be containerized and deployed similarly to the backend, or using serverless functions if appropriate for the workload.
 
-## 12. Future Considerations
+## 12. Detailed User Interaction Data Examples
+
+### 12.1. Posting an Opportunity (Channel Owners)
+
+When a `ChannelOwner` (or any user posting an opportunity) fills out the form, they provide the following data:
+
+*   **Opportunity Title:** (String) - *Example: "Sponsored Video: New Gaming Headset Review"*
+*   **Description:** (String, Rich Text expected on frontend) - Detailed explanation of the opportunity. *Example: "Create a 5-7 minute engaging YouTube video reviewing the HyperX Cloud X headset. Must cover unboxing, key features, audio quality, and comfort. We will provide the headset. Final video due within 2 weeks of receiving the product."*
+*   **Requirements:** (String, Plain Text) - Necessary skills, experience, audience size. *Example: "Must have 20k+ subscribers on YouTube, experience reviewing tech products, high-quality recording equipment, and strong video editing skills. Please include links to 3 prior product review videos in your application."*
+*   **Location:** (String) - Where the opportunity is based. *Example: "Remote", "New York, NY", "Bali, Indonesia (Travel Provided)"*
+*   **Opportunity Type:** (String, from predefined list) - Category of the opportunity. *Example options: "Paid Gig", "Sponsored Content", "Full-Time Role", "Part-Time Role", "Travel Opportunity", "Product Review", "Contract Role", "Other"*
+*   **Contact Email:** (String, Email Format) - Email for applications and inquiries. *Example: "sponsorships@gadgetco.com"*
+*   **Budget / Salary Range:** (String) - Compensation details. *Example: "$500 flat fee", "$0.05 per view + product", "$30/hour", "Negotiable based on experience"*
+*   **Filled Status:** (Boolean) - Checkbox indicating if the opportunity is no longer available.
+
+This data is sent to the backend API (e.g., `POST /api/users/opportunities/opportunity/{userId}`) and stored in the `Opportunities` collection in MongoDB.
+
+### 12.2. Applying for an Opportunity/Collaboration (Role Seeker / Any User)
+
+When a user applies for an opportunity or requests to join a collaboration, they submit:
+
+*   **Name:** (String) - The applicant's full name.
+*   **Email:** (String, Email Format) - Applicant's contact email.
+*   **Portfolio/Resume Link:** (String, URL) - Link to showcase their work (e.g., YouTube channel, portfolio website, LinkedIn profile). *Example: "https://www.youtube.com/mychannel", "https://myportfolio.com/reviews", "https://linkedin.com/in/myprofile"*
+*   **Application Date:** (Date) - Automatically captured by the system.
+*   **Message (for Collabs):** (String, Text) - A message introducing themselves and explaining their interest in the collaboration. *Example: "Hi [Creator Name], I love your [Content Category] content! I think our audiences would really enjoy a joint [Collaboration Type] video. I have [Number] subscribers and my videos average [Number] views. Let me know if you're interested in discussing ideas!"*
+
+This data is sent to the respective backend API (e.g., `POST /api/users/application/opportunity/{oppId}/apply` or `POST /api/users/collabration/applyForCollab/{collabId}`) and stored in the `Applications` or `CollabRequests` collection.
+
+### 12.3. Using the Future Reach Predictor (All Users)
+
+For the future reach prediction feature on the `/predict` page, users input:
+
+*   **Content Type/Genre:** (String) - The type or genre of the planned content. *Example: "Tech Review", "Comedy Skit", "Travel Vlog", "Educational Tutorial"*
+*   **Brief Content Description:** (String, Text) - A summary of the content idea, including topic, format, and target audience. *Example: "A 10-minute video reviewing the latest iPhone, focusing on camera improvements and battery life, targeted at tech enthusiasts."*
+*   **Current Subscriber Count:** (Number, Optional) - The user's current number of subscribers on their primary platform (e.g., YouTube). *Example: 15000*
+*   **Average Views Per Video:** (Number, Optional) - The user's typical average views for recent videos. *Example: 5000*
+*   **Estimated Production Cost ($):** (Number, Optional) - Approximate cost to produce the content. *Example: 100*
+
+This input is sent to an AI/Genkit flow (e.g., `Future Reach Prediction Flow`) which then processes it (potentially using a trained model or advanced prompting with Gemini) to estimate:
+
+*   **Predicted Views:** (Number)
+*   **Predicted Likes:** (Number)
+*   **Predicted Comments:** (Number)
+*   **Prediction Description/Summary:** (String) - A textual summary of the prediction and factors.
+*   **Improvement Tips:** (String, generated on request) - Actionable advice to potentially enhance the content's reach.
+
+The frontend then visualizes this data, potentially including charts and graphs.
+
+## 13. Future Considerations
 
 *   **Real-time Notifications:** (e.g., using WebSockets or Server-Sent Events for new opportunities, application updates).
 *   **Messaging System:** Direct messaging between creators or between creators and opportunity posters.
