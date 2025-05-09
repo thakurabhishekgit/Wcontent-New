@@ -1,0 +1,281 @@
+
+# Wcontent System Design
+
+## 1. Introduction
+
+Wcontent is a comprehensive platform designed to empower content creators by providing AI-driven tools for idea generation and performance prediction, alongside a marketplace for opportunities and collaborations. This document outlines the system architecture, key components, and design considerations for the Wcontent project.
+
+## 2. Goals
+
+*   **User-Friendly Interface:** Provide an intuitive and aesthetically pleasing experience for content creators.
+*   **AI-Powered Assistance:** Offer intelligent tools to aid in content creation (ideas, headlines, outlines) and performance analysis.
+*   **Opportunity Marketplace:** Connect creators with brands and businesses for paid gigs and projects.
+*   **Collaboration Hub:** Facilitate connections between creators for joint ventures.
+*   **Scalability:** Design the system to handle a growing number of users and data.
+*   **Reliability:** Ensure the platform is stable and consistently available.
+*   **Security:** Protect user data and ensure secure authentication and authorization.
+
+## 3. Overall Architecture
+
+The Wcontent platform follows a modern, multi-tiered architecture:
+
+```mermaid
+graph LR
+    subgraph User Interaction
+        A[User's Browser/Device]
+    end
+
+    subgraph Frontend (Next.js on Vercel)
+        B[Next.js Frontend]
+        B -- HTTPS API Calls --> C
+    end
+
+    subgraph Backend (Spring Boot on Render/Cloud Platform)
+        C[Spring Boot API Gateway/Controllers]
+        C -- Business Logic --> D[Service Layer]
+        D -- Data Access --> E[Repository Layer (Spring Data MongoDB)]
+        E -- CRUD Operations --> F[MongoDB Database]
+        C -- AI Tasks --> G[Genkit Layer]
+    end
+
+    subgraph AI Layer (Genkit integrated with Backend or Separate Service)
+        G -- Calls LLMs --> H[Google Gemini API / Other LLMs]
+        G -- YouTube Data (for Predict) --> I[YouTube Graph v4 API]
+    end
+
+    A --> B;
+```
+
+**Components:**
+
+*   **User's Browser/Device:** The client-side interface accessed by users.
+*   **Frontend (Next.js):**
+    *   Hosted on Vercel.
+    *   Responsible for rendering the user interface, handling user interactions, managing client-side state, and making API calls to the backend.
+    *   Utilizes Next.js App Router, Server Components, and Client Components.
+*   **Backend (Spring Boot):**
+    *   Hosted on a cloud platform like Render, Heroku, or AWS.
+    *   Exposes a RESTful API for the frontend to consume.
+    *   Handles business logic, user authentication, data persistence, and integration with the AI layer.
+*   **AI Layer (Genkit):**
+    *   Likely integrated within the Spring Boot backend or deployed as a separate microservice.
+    *   Manages interactions with Large Language Models (LLMs) like Google Gemini for content generation and prediction tasks.
+    *   Interacts with external APIs like the YouTube Graph v4 API for data retrieval (e.g., comments for sentiment analysis).
+*   **MongoDB Database:**
+    *   A NoSQL document database used to store user profiles, opportunity listings, collaboration posts, applications, and other platform data.
+*   **External Services:**
+    *   **Google Gemini API:** For AI-powered text generation and analysis.
+    *   **YouTube Graph v4 API:** For fetching YouTube video comments and potentially other video metadata.
+
+## 4. Frontend Design
+
+*   **Framework:** Next.js (App Router)
+*   **Language:** JavaScript (JSX)
+*   **UI Components:** Shadcn UI (built on Radix UI and Tailwind CSS)
+*   **State Management:** React Hooks (`useState`, `useEffect`, `useContext`)
+*   **Routing:** Next.js App Router
+*   **API Communication:** Axios for making HTTP requests to the backend.
+*   **Form Handling & Validation:** React Hook Form with Zod for schema validation.
+*   **Key Responsibilities:**
+    *   Rendering all user-facing pages (Home, Generate, Predict, Opportunities, Collabs, Dashboard, Auth).
+    *   Handling user input and form submissions.
+    *   Client-side validation.
+    *   Managing authentication state (storing/clearing tokens).
+    *   Displaying data fetched from the backend.
+    *   Providing a responsive and accessible user experience.
+
+## 5. Backend Design (Spring Boot & MongoDB)
+
+*   **Framework:** Spring Boot
+*   **Language:** Java
+*   **Database:** MongoDB
+*   **API Style:** RESTful APIs
+*   **Layers:**
+    *   **Controller Layer (`@RestController`):**
+        *   Handles incoming HTTP requests (GET, POST, PUT, DELETE).
+        *   Maps requests to specific service methods.
+        *   Performs initial request validation (e.g., path variables, request parameters).
+        *   Handles request/response serialization (JSON).
+        *   Manages API versioning.
+    *   **Service Layer (`@Service`):**
+        *   Contains the core business logic of the application.
+        *   Orchestrates interactions between controllers and repositories.
+        *   Implements data validation, transformation, and complex operations.
+        *   Handles transactions where necessary.
+        *   Interacts with the Genkit layer for AI-related tasks.
+    *   **Repository Layer (`@Repository`, Spring Data MongoDB):**
+        *   Provides an abstraction over MongoDB.
+        *   Uses Spring Data MongoDB interfaces (e.g., `MongoRepository`) for CRUD operations.
+        *   Defines custom queries if needed.
+    *   **Model Layer (POJOs with `@Document`):**
+        *   Defines the data structures (entities) that map to MongoDB collections (e.g., User, Opportunity, Collaboration, Application, CollabRequest).
+*   **Authentication & Authorization:**
+    *   Likely uses Spring Security with JWT (JSON Web Tokens).
+    *   Login endpoint validates credentials and issues a JWT.
+    *   Subsequent requests from the frontend include the JWT in the Authorization header.
+    *   Spring Security filters intercept requests to validate the JWT and authorize access to protected resources.
+*   **Error Handling:**
+    *   Global exception handling (`@ControllerAdvice`) to provide consistent error responses.
+*   **Key Responsibilities:**
+    *   Secure user authentication and authorization.
+    *   CRUD operations for all platform entities (users, opportunities, collabs, etc.).
+    *   Business logic for matching, recommendations (future), and managing applications.
+    *   Serving data to the frontend.
+    *   Interacting with the AI layer for intelligent features.
+
+## 6. AI/Genkit Layer
+
+*   **Framework:** Genkit
+*   **Primary LLM:** Google Gemini (e.g., `gemini-2.0-flash`)
+*   **Integration:**
+    *   Genkit flows (`.js` files with `'use server';`) are defined for specific AI tasks.
+    *   These flows can be called from the Spring Boot backend (e.g., via HTTP requests if Genkit is run as a separate service, or direct Java-to-JavaScript interop if embedded, though HTTP is more common for decoupling).
+*   **Key Flows:**
+    *   `generateContentIdeas`: Takes a prompt, tone, and format to generate content ideas, headlines, and outlines.
+    *   **(Future/Placeholder) YouTube Comment Analysis Flow:** Takes a video URL (or pre-fetched comments), summarizes sentiment, and suggests improvements. This would involve:
+        1.  Backend fetching comments using YouTube Graph v4 API.
+        2.  Passing comments to a Genkit flow for summarization and sentiment analysis using Gemini.
+    *   **(Future/Placeholder) Future Reach Prediction Flow:** Takes content details (type, description) and channel stats (subscribers, avg. views) to predict potential reach and engagement metrics using a custom-trained model or a sophisticated prompting strategy with Gemini.
+*   **Responsibilities:**
+    *   Abstracting the complexities of interacting with LLMs.
+    *   Defining structured inputs (Zod schemas) and outputs for AI tasks.
+    *   Managing prompts and model configurations.
+    *   Potentially handling fine-tuning or RAG (Retrieval Augmented Generation) in more advanced scenarios.
+
+## 7. Database Design (MongoDB)
+
+*   **Users Collection:**
+    *   `_id` (ObjectId, PK)
+    *   `username` (String, Unique)
+    *   `email` (String, Unique)
+    *   `password` (String, Hashed)
+    *   `userType` (String: "ChannelOwner", "RoleSeeker")
+    *   `channelName` (String, Optional)
+    *   `channelId` (String, Optional)
+    *   `channelURL` (String, Optional)
+    *   `verified` (Boolean)
+    *   `createdAt`, `updatedAt` (Timestamps)
+*   **Opportunities Collection:**
+    *   `_id` (ObjectId, PK)
+    *   `creatorId` (ObjectId, FK to Users)
+    *   `title` (String)
+    *   `description` (String)
+    *   `requirements` (String)
+    *   `location` (String)
+    *   `type` (String: "Paid Gig", "Sponsored Content", etc.)
+    *   `salaryRange` (String)
+    *   `email` (String, contact email for opportunity)
+    *   `isFilled` (Boolean)
+    *   `postedDate` (Date, Default to now)
+    *   `createdAt`, `updatedAt` (Timestamps)
+*   **Collaborations Collection:**
+    *   `_id` (ObjectId, PK)
+    *   `creatorId` (ObjectId, FK to Users)
+    *   `title` (String)
+    *   `description` (String)
+    *   `contentCategory` (String)
+    *   `collaborationType` (String)
+    *   `timeline` (String)
+    *   `email` (String, contact email for collaboration)
+    *   `open` (Boolean, is the collaboration still open for requests)
+    *   `postedDate` (Date, Default to now)
+    *   `createdAt`, `updatedAt` (Timestamps)
+*   **Applications Collection (for Opportunities):**
+    *   `_id` (ObjectId, PK)
+    *   `opportunityId` (ObjectId, FK to Opportunities)
+    *   `userId` (ObjectId, FK to Users - applicant)
+    *   `name` (String, applicant name)
+    *   `email` (String, applicant email)
+    *   `resumeUrl` (String, link to portfolio/resume)
+    *   `applicationDate` (Date)
+    *   `status` (String: "Pending", "Viewed", "Accepted", "Rejected" - Future)
+    *   `createdAt`, `updatedAt` (Timestamps)
+*   **CollabRequests Collection (for Collaborations):**
+    *   `_id` (ObjectId, PK)
+    *   `collaborationId` (ObjectId, FK to Collaborations)
+    *   `userId` (ObjectId, FK to Users - requester)
+    *   `requesterName` (String)
+    *   `requesterEmail` (String)
+    *   `message` (String)
+    *   `appliedDate` (Date)
+    *   `status` (String: "Pending", "Accepted", "Rejected" - Future)
+    *   `createdAt`, `updatedAt` (Timestamps)
+
+## 8. API Design
+
+*   **Style:** RESTful
+*   **Format:** JSON
+*   **Authentication:** JWT Bearer Tokens
+*   **Key Endpoint Categories:**
+    *   `/api/users/auth/*`: Login, Register, OTP
+    *   `/api/users/profile/*`: Get user, Update profile
+    *   `/api/users/opportunities/*`: CRUD for opportunities, get all, get by user
+    *   `/api/users/collaborations/*`: CRUD for collaborations, get all, get by user
+    *   `/api/users/applications/*`: Apply for opportunity, get applications for an opportunity, get applications by user
+    *   `/api/users/collabrequests/*`: Send collab request, get requests for a collaboration, get requests by user
+    *   `/api/ai/generate/*`: Endpoints to trigger Genkit flows (e.g., content ideas)
+    *   `/api/ai/predict/*`: Endpoints for prediction features
+
+## 9. Scalability and Performance Considerations
+
+*   **Frontend:**
+    *   Vercel provides automatic scaling and CDN for static assets.
+    *   Next.js ISR (Incremental Static Regeneration) or SSR for dynamic content can optimize load times.
+    *   Code splitting by Next.js reduces initial bundle size.
+    *   Image optimization with `next/image`.
+*   **Backend:**
+    *   Stateless Spring Boot application to allow horizontal scaling (running multiple instances behind a load balancer).
+    *   Efficient database queries and indexing in MongoDB.
+    *   Caching for frequently accessed, non-critical data (e.g., using Redis or Ehcache).
+    *   Asynchronous processing for long-running tasks (e.g., sending emails, complex AI jobs).
+*   **Database (MongoDB):**
+    *   Proper indexing on frequently queried fields.
+    *   Consider replica sets for high availability and read scaling.
+    *   Sharding for very large datasets (future consideration).
+*   **AI Layer:**
+    *   Genkit flows should be optimized for latency.
+    *   Rate limiting for AI API calls to manage costs and prevent abuse.
+
+## 10. Security Considerations
+
+*   **Authentication:** Secure password hashing (e.g., bcrypt) on the backend. Use HTTPS for all communication.
+*   **Authorization:** Role-based access control (RBAC) using Spring Security to protect endpoints based on user roles (e.g., only the creator of an opportunity can edit it).
+*   **Input Validation:** Validate all user inputs on both frontend (Zod) and backend (Spring Validation) to prevent injection attacks (XSS, SQLi - though NoSQL, principles apply).
+*   **Data Protection:** Securely store sensitive data. Be mindful of PII.
+*   **API Security:**
+    *   Use JWTs for stateless authentication.
+    *   Implement rate limiting to prevent abuse.
+    *   Protect against CSRF if using session-based features (though JWTs are generally less susceptible).
+*   **Dependency Management:** Regularly update dependencies to patch security vulnerabilities.
+*   **CORS:** Properly configure Cross-Origin Resource Sharing on the backend to only allow requests from the trusted frontend domain.
+
+## 11. Deployment
+
+*   **Frontend (Next.js):** Vercel is the recommended platform due to its seamless integration with Next.js.
+    *   Connect Git repository (GitHub, GitLab, Bitbucket).
+    *   Vercel auto-detects Next.js and configures build settings.
+    *   Set environment variables (e.g., `NEXT_PUBLIC_API_BASE_URL`).
+*   **Backend (Spring Boot):**
+    *   Containerize the Spring Boot application using Docker.
+    *   Deploy to a platform like:
+        *   **Render:** Good for ease of use and integrated services (like managed databases).
+        *   **Heroku:** Another PaaS option.
+        *   **AWS Elastic Beanstalk, Google Cloud Run, Azure App Service:** More comprehensive cloud options.
+    *   Set environment variables (database connection strings, API keys for external services, JWT secret).
+*   **Database (MongoDB):**
+    *   Use a managed MongoDB service like MongoDB Atlas, or a managed database offering from the backend hosting provider (e.g., Render's managed PostgreSQL if switching, or a MongoDB add-on).
+*   **Genkit AI Layer:**
+    *   If embedded in Spring Boot, it deploys with the backend.
+    *   If a separate service, it can be containerized and deployed similarly to the backend, or using serverless functions if appropriate for the workload.
+
+## 12. Future Considerations
+
+*   **Real-time Notifications:** (e.g., using WebSockets or Server-Sent Events for new opportunities, application updates).
+*   **Messaging System:** Direct messaging between creators or between creators and opportunity posters.
+*   **Advanced Search & Filtering:** More sophisticated filtering options.
+*   **Recommendation Engine:** Suggesting relevant opportunities or collaborations to users based on their profile and activity.
+*   **Content Performance Analytics Dashboard:** Deeper integration with YouTube analytics or other platforms.
+*   **Monetization Features:** Premium subscriptions for advanced AI features or higher visibility for listings.
+*   **Mobile Application:** Native mobile apps for iOS and Android.
+
+This system design provides a solid foundation for the Wcontent platform, balancing functionality, scalability, and maintainability.
