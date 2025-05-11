@@ -125,9 +125,9 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
 };
 
 const dummyOpportunities = [
-    { _id: 'dummy1', id: 'dummy1', title: 'Dummy Tech Review Gig', company: 'TechGadgets Demo', type: 'Paid Gig', location: 'Remote', postedDate: '1 day ago', salaryRange: '$400 - $800', description: 'Create a short review video for our demo product. Link portfolio. Must have excellent camera presence and editing skills. Deliverables: 1 x 5-7 min video, 3 x social media clips.', requirements: 'Min. 10k YouTube subscribers, proven experience with tech reviews, high-quality video production setup.' },
-    { _id: 'dummy2', id: 'dummy2', title: 'Dummy Travel Blog Post', company: 'Explore Examples', type: 'Travel Opportunity', location: 'Example City (Remote Option)', postedDate: '2 days ago', salaryRange: 'Expenses Covered', description: 'Write a blog post about travel planning tips for a specific destination (to be discussed). SEO skills preferred. Looking for engaging writing style and beautiful photography.', requirements: 'Active travel blog with engaged readership, basic SEO knowledge, ability to produce high-quality photos.' },
-    { _id: 'dummy3', id: 'dummy3', title: 'Dummy Social Media Manager Role', company: 'Brand Builders Inc.', type: 'Part-Time Role', location: 'Remote', postedDate: '3 days ago', salaryRange: '$20/hour', description: 'Manage social media accounts (Instagram, TikTok) for a sample brand. Responsibilities include content creation, scheduling, community engagement, and reporting.', requirements: 'Proven experience in social media management, strong understanding of platform algorithms, excellent communication skills.' }
+    { _id: 'dummy1', id: 'dummy1', title: 'Dummy Tech Review Gig', company: 'TechGadgets Demo', type: 'Paid Gig', location: 'Remote', postedDate: '2023-10-01T10:00:00Z', salaryRange: '$400 - $800', description: 'Create a short review video for our demo product. Link portfolio. Must have excellent camera presence and editing skills. Deliverables: 1 x 5-7 min video, 3 x social media clips.', requirements: 'Min. 10k YouTube subscribers, proven experience with tech reviews, high-quality video production setup.' },
+    { _id: 'dummy2', id: 'dummy2', title: 'Dummy Travel Blog Post', company: 'Explore Examples', type: 'Travel Opportunity', location: 'Example City (Remote Option)', postedDate: '2023-09-28T14:30:00Z', salaryRange: 'Expenses Covered', description: 'Write a blog post about travel planning tips for a specific destination (to be discussed). SEO skills preferred. Looking for engaging writing style and beautiful photography.', requirements: 'Active travel blog with engaged readership, basic SEO knowledge, ability to produce high-quality photos.' },
+    { _id: 'dummy3', id: 'dummy3', title: 'Dummy Social Media Manager Role', company: 'Brand Builders Inc.', type: 'Part-Time Role', location: 'Remote', postedDate: '2023-09-25T09:15:00Z', salaryRange: '$20/hour', description: 'Manage social media accounts (Instagram, TikTok) for a sample brand. Responsibilities include content creation, scheduling, community engagement, and reporting.', requirements: 'Proven experience in social media management, strong understanding of platform algorithms, excellent communication skills.' }
 ];
 
 
@@ -149,7 +149,7 @@ export default function OpportunitiesPage() {
   const [isClient, setIsClient] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginAlert, setShowLoginAlert] = useState(false);
-  const [showApplicationForm, setShowApplicationForm] = useState(false); // New state
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -163,7 +163,7 @@ export default function OpportunitiesPage() {
      if(opportunities.length > 0) {
         applyFilters(filters);
      }
-   }, [opportunities, filters]); // Added filters to dependency array
+   }, [opportunities, filters]);
 
    const fetchOpportunities = async (loggedIn) => {
      setIsLoading(true);
@@ -176,7 +176,7 @@ export default function OpportunitiesPage() {
            if (Array.isArray(response.data)) {
              const opportunitiesWithId = response.data.map((opp, index) => ({
                ...opp,
-               id: opp._id || opp.id || `live-${index}`
+               id: opp._id || opp.id || `live-${index}` // Ensure a unique ID
              }));
              setOpportunities(opportunitiesWithId);
              setFilteredOpportunities(opportunitiesWithId);
@@ -187,20 +187,30 @@ export default function OpportunitiesPage() {
              setFilteredOpportunities([]);
            }
         } else {
+            // Simulate API delay for dummy data
             await new Promise(resolve => setTimeout(resolve, 500));
-            setOpportunities(dummyOpportunities);
-            setFilteredOpportunities(dummyOpportunities);
+            const dummyDataWithId = dummyOpportunities.map((opp, index) => ({
+              ...opp,
+              id: opp._id || `dummy-${index}` // Ensure a unique ID
+            }));
+            setOpportunities(dummyDataWithId);
+            setFilteredOpportunities(dummyDataWithId);
         }
      } catch (error) {
        console.error("Error fetching opportunities:", error);
        if (loggedIn) {
             setError("Failed to fetch opportunities. Please check the API endpoint and your connection.");
        } else {
-           setError("Failed to load opportunity data. Displaying examples.");
-           setOpportunities(dummyOpportunities);
-           setFilteredOpportunities(dummyOpportunities);
+           // Provide a more user-friendly message for dummy data scenario
+           setError("Failed to load live opportunity data. Displaying examples. Please login for full access.");
+            const dummyDataWithId = dummyOpportunities.map((opp, index) => ({
+              ...opp,
+              id: opp._id || `dummy-${index}`
+            }));
+           setOpportunities(dummyDataWithId);
+           setFilteredOpportunities(dummyDataWithId);
        }
-       if (loggedIn) { // Ensure empty state if logged in and error
+       if (loggedIn) { // Ensure empty state if logged in and API error occurs
             setOpportunities([]);
             setFilteredOpportunities([]);
        }
@@ -233,7 +243,7 @@ export default function OpportunitiesPage() {
        if (currentFilters.location) {
          tempOpportunities = tempOpportunities.filter(opp => opp.location?.toLowerCase().includes(currentFilters.location.toLowerCase()));
        }
-       if (currentFilters.budget) {
+       if (currentFilters.budget) { // Check salaryRange for budget
          tempOpportunities = tempOpportunities.filter(opp => opp.salaryRange?.toLowerCase().includes(currentFilters.budget.toLowerCase()));
        }
        setFilteredOpportunities(tempOpportunities);
@@ -247,7 +257,6 @@ export default function OpportunitiesPage() {
       setSelectedOpportunity(opportunity);
       setShowApplicationForm(false); // Reset to show details first
       setSubmissionStatus(null);
-       // Reset application form fields when a new opportunity is selected
       setApplication({
         name: "",
         email: "",
@@ -269,7 +278,7 @@ export default function OpportunitiesPage() {
     setSubmissionStatus('Submitting...');
 
     try {
-      if (!selectedOpportunity.id && selectedOpportunity.id !== 0) {
+      if (!selectedOpportunity.id && selectedOpportunity.id !== 0) { // Check if id is not 0 as well
         throw new Error("Selected opportunity is missing an ID.");
       }
 
@@ -286,10 +295,7 @@ export default function OpportunitiesPage() {
         }
       );
       setSubmissionStatus("Application submitted successfully!");
-      // Do not close modal immediately, let user see the success message
-      // Optionally reset form fields if staying on the form
-      // setApplication({ name: "", email: "", resumeUrl: "", applicationDate: new Date().toISOString().split("T")[0] });
-       setTimeout(() => { // Close modal after a delay
+       setTimeout(() => {
           setSelectedOpportunity(null);
           setShowApplicationForm(false);
        }, 2000);
@@ -446,18 +452,28 @@ export default function OpportunitiesPage() {
          <p className="text-muted-foreground max-w-xl mx-auto mb-12">Hear from creators who found opportunities here.</p>
          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
            {[
-             { quote: "Landed a great sponsored content deal through Wcontent!", name: "TechReviewer Pro", role: "Gadget Reviewer" },
-             { quote: "The travel opportunity I found here was a dream come true.", name: "Wanderlust Vlogs", role: "Travel Vlogger" },
-             { quote: "Consistent paid gigs keep my freelance career thriving. Thanks, Wcontent!", name: "Creative Spark", role: "Social Media Manager" }
+             { quote: "Landed a great sponsored content deal through Wcontent!", name: "TechReviewer Pro", role: "Gadget Reviewer", imageSeed: "success1" },
+             { quote: "The travel opportunity I found here was a dream come true.", name: "Wanderlust Vlogs", role: "Travel Vlogger", imageSeed: "success2" },
+             { quote: "Consistent paid gigs keep my freelance career thriving. Thanks, Wcontent!", name: "Creative Spark", role: "Social Media Manager", imageSeed: "success3" }
            ].map((testimonial, index) => (
              <Card key={index} className="bg-card/80 border border-border/60 text-left">
-               <CardContent className="pt-6">
-                 <div className="flex mb-2">
+                <CardHeader className="items-center">
+                   <Image
+                      src={`https://picsum.photos/100/100?random=${testimonial.imageSeed}&grayscale`}
+                      alt={testimonial.name}
+                      data-ai-hint="person portrait professional"
+                      width={80}
+                      height={80}
+                      className="rounded-full mb-3 border-2 border-primary"
+                   />
+                </CardHeader>
+               <CardContent className="pt-0"> {/* Adjusted padding */}
+                 <div className="flex mb-2 justify-center md:justify-start">
                    {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-primary fill-primary" />)}
                  </div>
                  <p className="italic mb-4 text-foreground/90">"{testimonial.quote}"</p>
-                 <p className="font-semibold">{testimonial.name}</p>
-                 <p className="text-xs text-foreground/60">{testimonial.role}</p>
+                 <p className="font-semibold text-center md:text-left">{testimonial.name}</p>
+                 <p className="text-xs text-foreground/60 text-center md:text-left">{testimonial.role}</p>
                </CardContent>
              </Card>
            ))}
@@ -489,7 +505,7 @@ export default function OpportunitiesPage() {
             setSubmissionStatus(null);
             setApplication({ name: "", email: "", resumeUrl: "", applicationDate: new Date().toISOString().split("T")[0] });
         }}>
-         <DialogContent className="sm:max-w-[650px] max-h-[80vh] flex flex-col">
+         <DialogContent className="sm:max-w-[650px] max-h-[85vh] flex flex-col"> {/* Increased max-h */}
            <DialogHeader>
              <DialogTitle>{selectedOpportunity?.title}</DialogTitle>
                 {!showApplicationForm ? (
@@ -502,12 +518,12 @@ export default function OpportunitiesPage() {
                     </DialogDescription>
                 ) : (
                     <DialogDescription>
-                        Fill out the form to apply for this opportunity.
+                        Fill out the form to apply for "{selectedOpportunity?.title}".
                     </DialogDescription>
                 )}
            </DialogHeader>
             
-           <ScrollArea className="flex-grow py-4 pr-6 -mx-6 px-6"> {/* Adjusted for Dialog padding */}
+           <ScrollArea className="flex-grow py-4 pr-6 -mx-6 px-6">
              {!showApplicationForm ? (
                 <div className="space-y-4">
                     <div>
@@ -549,7 +565,7 @@ export default function OpportunitiesPage() {
                     </div>
                     <div>
                         <Label htmlFor="applicationDate">Application Date</Label>
-                        <Input id="applicationDate" name="applicationDate" type="date" value={application.applicationDate} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
+                        <Input id="applicationDate" name="applicationDate" type="date" value={application.applicationDate} onChange={handleInputChange} required disabled={true} /> {/* Made date visible and disabled */}
                     </div>
                 </form>
              )}
@@ -592,3 +608,4 @@ export default function OpportunitiesPage() {
     </div>
   );
 }
+

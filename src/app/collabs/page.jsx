@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from 'next/navigation';
-import { Textarea } from "@/components/ui/textarea"; // Import Textarea
+import { Textarea } from "@/components/ui/textarea";
 
 // How It Works Component
 const HowitWorks = () => (
@@ -141,9 +141,9 @@ const formatDate = (dateString) => {
  };
 
 const dummyCollabs = [
-    { _id: 'dummy101', id: 'dummy101', title: 'Dummy Comedy Skit Collab', creatorName: 'Comedy Central Lite', niche: 'Comedy', platform: 'YouTube', postedDate: '1 day ago', goal: 'Cross-promote channels', lookingFor: 'Comedy channel with 5k+ subs', description: 'Looking for a partner for a short, funny skit. Must be able to film remotely.', details: 'Detailed plan: Brainstorm script ideas together, film separate parts, then one person edits. Aim for a 2-3 minute video. Open to new ideas!', channelLink: '#', creatorProfileLink: '#', contentCategory: 'Comedy', collaborationType: 'Video Collab', timeline: 'Within 2 weeks' },
-    { _id: 'dummy102', id: 'dummy102', title: 'Dummy Wellness Instagram Live', creatorName: 'Mindful Moments', niche: 'Wellness', platform: 'Instagram', postedDate: '2 days ago', goal: 'Share tips, build community', lookingFor: 'Yoga instructor or meditation guide', description: 'Joint IG Live session on managing stress. Approx 30 mins.', details: 'We can cover topics like mindfulness exercises, quick stress-relief techniques, and Q&A with the audience. Flexible on date/time.', channelLink: '#', creatorProfileLink: '#', contentCategory: 'Wellness', collaborationType: 'Instagram Collab', timeline: 'Next month' },
-    { _id: 'dummy103', id: 'dummy103', title: 'Dummy Tech Podcast Guest Spot', creatorName: 'Tech Talk Today', niche: 'Tech', platform: 'Podcast', postedDate: '3 days ago', goal: 'Discuss new AI trends', lookingFor: 'AI expert or developer', description: 'Seeking knowledgeable guest for a 45-min podcast episode on recent AI advancements.', details: 'Our podcast reaches tech enthusiasts and professionals. Episode will be recorded remotely. Please provide topics you can speak on.', channelLink: '#', creatorProfileLink: '#', contentCategory: 'Tech', collaborationType: 'Podcast Guest Swap', timeline: 'Flexible' }
+    { _id: 'dummy101', id: 'dummy101', title: 'Dummy Comedy Skit Collab', creatorName: 'Comedy Central Lite', niche: 'Comedy', platform: 'YouTube', postedDate: '2023-10-01T10:00:00Z', goal: 'Cross-promote channels', lookingFor: 'Comedy channel with 5k+ subs', description: 'Looking for a partner for a short, funny skit. Must be able to film remotely.', details: 'Detailed plan: Brainstorm script ideas together, film separate parts, then one person edits. Aim for a 2-3 minute video. Open to new ideas!', channelLink: '#', creatorProfileLink: '#', contentCategory: 'Comedy', collaborationType: 'Video Collab', timeline: 'Within 2 weeks' },
+    { _id: 'dummy102', id: 'dummy102', title: 'Dummy Wellness Instagram Live', creatorName: 'Mindful Moments', niche: 'Wellness', platform: 'Instagram', postedDate: '2023-09-28T14:30:00Z', goal: 'Share tips, build community', lookingFor: 'Yoga instructor or meditation guide', description: 'Joint IG Live session on managing stress. Approx 30 mins.', details: 'We can cover topics like mindfulness exercises, quick stress-relief techniques, and Q&A with the audience. Flexible on date/time.', channelLink: '#', creatorProfileLink: '#', contentCategory: 'Wellness', collaborationType: 'Instagram Collab', timeline: 'Next month' },
+    { _id: 'dummy103', id: 'dummy103', title: 'Dummy Tech Podcast Guest Spot', creatorName: 'Tech Talk Today', niche: 'Tech', platform: 'Podcast', postedDate: '2023-09-25T09:15:00Z', goal: 'Discuss new AI trends', lookingFor: 'AI expert or developer', description: 'Seeking knowledgeable guest for a 45-min podcast episode on recent AI advancements.', details: 'Our podcast reaches tech enthusiasts and professionals. Episode will be recorded remotely. Please provide topics you can speak on.', channelLink: '#', creatorProfileLink: '#', contentCategory: 'Tech', collaborationType: 'Podcast Guest Swap', timeline: 'Flexible' }
 ];
 
 
@@ -151,7 +151,7 @@ export default function CollaborationsPage() {
   const [collaborations, setCollaborations] = useState([]);
   const [filteredCollaborations, setFilteredCollaborations] = useState([]);
   const [selectedCollaboration, setSelectedCollaboration] = useState(null);
-  const [application, setApplication] = useState({ // Renamed from collabApplication for consistency
+  const [application, setApplication] = useState({
     requesterName: "",
     requesterEmail: "",
     message: "",
@@ -165,7 +165,7 @@ export default function CollaborationsPage() {
   const [isClient, setIsClient] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginAlert, setShowLoginAlert] = useState(false);
-  const [showApplicationForm, setShowApplicationForm] = useState(false); // New state
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
   const router = useRouter();
 
 
@@ -180,7 +180,7 @@ export default function CollaborationsPage() {
     if (collaborations.length > 0) {
       applyFilters(filters);
     }
-  }, [collaborations, filters]); // Added filters to dependency array
+  }, [collaborations, filters]);
 
   const fetchCollaborations = async (loggedIn) => {
     setIsLoading(true);
@@ -193,7 +193,7 @@ export default function CollaborationsPage() {
           if (Array.isArray(response.data)) {
              const collaborationsWithId = response.data.map(collab => ({
                 ...collab,
-                id: collab._id || collab.id
+                id: collab._id || collab.id // Ensure a unique ID
              }));
             setCollaborations(collaborationsWithId);
             setFilteredCollaborations(collaborationsWithId);
@@ -205,19 +205,27 @@ export default function CollaborationsPage() {
           }
        } else {
             await new Promise(resolve => setTimeout(resolve, 500));
-            setCollaborations(dummyCollabs);
-            setFilteredCollaborations(dummyCollabs);
+             const dummyDataWithId = dummyCollabs.map((collab, index) => ({
+               ...collab,
+               id: collab._id || `dummy-${index}` // Ensure a unique ID
+             }));
+            setCollaborations(dummyDataWithId);
+            setFilteredCollaborations(dummyDataWithId);
        }
     } catch (error) {
       console.error("Error fetching collaborations:", error);
        if (loggedIn) {
           setError("Failed to fetch collaborations. Please check the API endpoint and your connection.");
        } else {
-          setError("Failed to load collaboration data. Displaying examples.");
-          setCollaborations(dummyCollabs);
-          setFilteredCollaborations(dummyCollabs);
+          setError("Failed to load collaboration data. Displaying examples. Login for full access.");
+            const dummyDataWithId = dummyCollabs.map((collab, index) => ({
+              ...collab,
+              id: collab._id || `dummy-${index}`
+            }));
+          setCollaborations(dummyDataWithId);
+          setFilteredCollaborations(dummyDataWithId);
        }
-       if (loggedIn) { // Ensure empty state if logged in and error
+       if (loggedIn) {
           setCollaborations([]);
           setFilteredCollaborations([]);
        }
@@ -262,9 +270,8 @@ export default function CollaborationsPage() {
       setShowLoginAlert(true);
     } else {
       setSelectedCollaboration(collaboration);
-      setShowApplicationForm(false); // Reset to show details first
+      setShowApplicationForm(false);
       setSubmissionStatus(null);
-      // Reset application form fields
       setApplication({
         requesterName: "",
         requesterEmail: "",
@@ -291,11 +298,11 @@ export default function CollaborationsPage() {
       }
       const collabIdToUse = selectedCollaboration.id;
       const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('id'); // Assuming userId is stored in localStorage
+      const userId = localStorage.getItem('id');
 
        const payload = {
-         ...application, // Spread existing application fields
-         requesterId: userId || null // Add requesterId to the payload
+         ...application,
+         requesterId: userId || null
        };
 
       const response = await axios.post(
@@ -308,7 +315,6 @@ export default function CollaborationsPage() {
         }
       );
       setSubmissionStatus("Collaboration request sent successfully!");
-      // Do not close modal immediately
        setTimeout(() => {
           setSelectedCollaboration(null);
           setShowApplicationForm(false);
@@ -467,18 +473,28 @@ export default function CollaborationsPage() {
          <p className="text-muted-foreground max-w-xl mx-auto mb-12">See what creators achieved by teaming up.</p>
          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
            {[
-             { quote: "Our joint video reached 2x our usual audience!", name: "Comedy Duo", role: "YouTube Creators" },
-             { quote: "Found the perfect podcast guest swap partner here.", name: "Podcast Network", role: "Podcast Producers" },
-             { quote: "Collaborating on a blog post was seamless and boosted both our SEO.", name: "Niche Bloggers", role: "Travel Writers" }
+             { quote: "Our joint video reached 2x our usual audience!", name: "Comedy Duo", role: "YouTube Creators", imageSeed: "collabSuccess1" },
+             { quote: "Found the perfect podcast guest swap partner here.", name: "Podcast Network", role: "Podcast Producers", imageSeed: "collabSuccess2" },
+             { quote: "Collaborating on a blog post was seamless and boosted both our SEO.", name: "Niche Bloggers", role: "Travel Writers", imageSeed: "collabSuccess3" }
            ].map((testimonial, index) => (
              <Card key={index} className="bg-card/80 border border-border/60 text-left">
-               <CardContent className="pt-6">
-                 <div className="flex mb-2">
+                <CardHeader className="items-center">
+                   <Image
+                      src={`https://picsum.photos/100/100?random=${testimonial.imageSeed}&grayscale`}
+                      alt={testimonial.name}
+                      data-ai-hint="person portrait professional"
+                      width={80}
+                      height={80}
+                      className="rounded-full mb-3 border-2 border-primary"
+                   />
+                </CardHeader>
+               <CardContent className="pt-0">
+                 <div className="flex mb-2 justify-center md:justify-start">
                    {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 text-primary fill-primary" />)}
                  </div>
                  <p className="italic mb-4 text-foreground/90">"{testimonial.quote}"</p>
-                 <p className="font-semibold">{testimonial.name}</p>
-                 <p className="text-xs text-foreground/60">{testimonial.role}</p>
+                 <p className="font-semibold text-center md:text-left">{testimonial.name}</p>
+                 <p className="text-xs text-foreground/60 text-center md:text-left">{testimonial.role}</p>
                </CardContent>
              </Card>
            ))}
@@ -510,7 +526,7 @@ export default function CollaborationsPage() {
            setSubmissionStatus(null);
            setApplication({ requesterName: "", requesterEmail: "", message: "", appliedDate: new Date().toISOString().split("T")[0] });
         }}>
-         <DialogContent className="sm:max-w-[650px] max-h-[80vh] flex flex-col">
+         <DialogContent className="sm:max-w-[650px] max-h-[85vh] flex flex-col"> {/* Increased max-h */}
            <DialogHeader>
              <DialogTitle>{selectedCollaboration?.title}</DialogTitle>
              {!showApplicationForm ? (
@@ -522,7 +538,7 @@ export default function CollaborationsPage() {
                 </DialogDescription>
              ) : (
                 <DialogDescription>
-                    Send a request to collaborate with {selectedCollaboration?.creatorName || 'this creator'}.
+                    Send a request to collaborate on "{selectedCollaboration?.title}".
                 </DialogDescription>
              )}
            </DialogHeader>
@@ -582,8 +598,10 @@ export default function CollaborationsPage() {
                                 disabled={submissionStatus === 'Submitting...'}
                                 />
                         </div>
-                         {/* Hidden field for appliedDate, auto-filled */}
-                         <input type="hidden" name="appliedDate" value={application.appliedDate} />
+                         <div>
+                            <Label htmlFor="appliedDateCollab">Application Date</Label>
+                            <Input id="appliedDateCollab" name="appliedDate" type="date" value={application.appliedDate} onChange={handleInputChange} required disabled={true} />
+                         </div>
                     </form>
                 )}
            </ScrollArea>
