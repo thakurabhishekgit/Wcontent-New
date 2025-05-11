@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from "react";
@@ -8,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, Youtube, Lightbulb, Loader2, LogIn, Search, TrendingUp, DollarSign, Users, Video, Target, BarChart, HelpCircle, LineChart, UserCheck } from "lucide-react";
+import { Terminal, Youtube, Lightbulb, Loader2, LogIn, Search, TrendingUp, DollarSign, Users, Video, Target, BarChart as BarChartIcon, HelpCircle, LineChart, UserCheck } from "lucide-react"; // Keep BarChartIcon for now, might be used by new feature
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from 'next/navigation';
 import { Label } from "@/components/ui/label";
-import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts'; // Import Recharts components
+import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 
@@ -47,7 +48,7 @@ const FeatureCard = ({ icon: Icon, title, description, img, hint }) => (
 
 // IMPORTANT: Storing API keys in frontend code is insecure.
 // This should be handled via a backend proxy in a production environment.
-const YOUTUBE_API_KEY = "AIzaSyDEqYeUl6kQpslAsKKa-6D6uqxOKjp_lT4";
+const YOUTUBE_API_KEY = "AIzaSyDEqYeUl6kQpslAsKKa-6D6uqxOKjp_lT4"; // Replace with your actual API key
 
 
 function Ml() {
@@ -62,24 +63,6 @@ function Ml() {
   const [predictionCount, setPredictionCount] = useState(0);
   const [showLoginAlert, setShowLoginAlert] = useState(false);
   const router = useRouter();
-
-  const [futureReachData, setFutureReachData] = useState({
-    contentType: "",
-    description: "",
-    estimatedCost: "",
-    currentSubs: "",
-    avgViews: "",
-  });
-  const [reachLoading, setReachLoading] = useState(false);
-  const [reachPredictionResult, setReachPredictionResult] = useState({
-     views: null,
-     likes: null,
-     comments: null,
-     description: "",
-   });
-  const [reachError, setReachError] = useState("");
-  const [reachTips, setReachTips] = useState("");
-  const [tipsLoading, setTipsLoading] = useState(false);
 
   // State for New Audience Growth & Retention Predictor
   const [audienceGrowthInputs, setAudienceGrowthInputs] = useState({
@@ -181,65 +164,6 @@ function Ml() {
       setError("Dropped item is not a valid YouTube URL");
     }
   };
-
-  const handleReachInputChange = (e) => {
-    const { name, value } = e.target;
-    setFutureReachData(prev => ({ ...prev, [name]: value }));
-    setReachError("");
-    setReachTips("");
-  };
-
-  const handleReachPrediction = async () => {
-    if (checkPredictionLimit()) return;
-    if (!futureReachData.contentType || !futureReachData.description) {
-      setReachError("Please fill in Content Type and Description.");
-      return;
-    }
-    setReachLoading(true);
-    setReachError("");
-    setReachPredictionResult({ views: null, likes: null, comments: null, description: "" });
-    setReachTips("");
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2500));
-      const predictedViews = Math.floor(Math.random() * (50000 - 5000 + 1)) + 5000;
-      const predictedLikes = Math.floor(predictedViews * (Math.random() * 0.05 + 0.01));
-      const predictedComments = Math.floor(predictedLikes * (Math.random() * 0.1 + 0.02));
-      const predictionDescription = `Based on the provided details and current (simulated) stats, the estimated reach for "${futureReachData.contentType}" content could be around ${predictedViews.toLocaleString()} views, ${predictedLikes.toLocaleString()} likes, and ${predictedComments.toLocaleString()} comments within the first month. Factors like promotion strategy, audience engagement rate, and content quality will significantly influence the actual results.`;
-       setReachPredictionResult({
-          views: predictedViews,
-          likes: predictedLikes,
-          comments: predictedComments,
-          description: predictionDescription,
-       });
-       if(!isLoggedIn) incrementPredictionCount();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to predict reach.";
-      setReachError(message);
-    } finally {
-      setReachLoading(false);
-    }
-  };
-
-   const handleGetTips = async () => {
-     if (checkPredictionLimit() && !reachPredictionResult.views) return;
-     if (!reachPredictionResult.views) {
-       setReachError("Generate a prediction first before asking for tips.");
-       return;
-     }
-     setTipsLoading(true);
-     setReachError("");
-     setReachTips("");
-     try {
-       await new Promise(resolve => setTimeout(resolve, 2000));
-       const placeholderTips = `To potentially improve reach for "${futureReachData.contentType}":\n- Optimize Title & Thumbnail: Use keywords related to '${futureReachData.description.substring(0, 20)}...' and create a compelling thumbnail.\n- Promote Actively: Share on social media platforms relevant to your target audience immediately after posting.\n- Engage Early: Respond to initial comments quickly to boost engagement signals.\n- Collaboration: Consider collaborating with another creator in a similar niche if applicable.\n- Analyze Audience Retention: Check YouTube Analytics for drop-off points in similar past videos.`;
-       setReachTips(placeholderTips);
-     } catch (err) {
-       const message = err instanceof Error ? err.message : "Failed to fetch improvement tips.";
-       setReachError(message);
-     } finally {
-       setTipsLoading(false);
-     }
-   };
 
   // Handlers for Audience Growth & Retention Predictor
   const handleAudienceGrowthInputChange = (e) => {
@@ -367,19 +291,6 @@ function Ml() {
     }
   };
 
-
-   const chartData = reachPredictionResult.views !== null ? [
-      { name: 'Views', value: reachPredictionResult.views, fill: 'hsl(var(--chart-1))' },
-      { name: 'Likes', value: reachPredictionResult.likes, fill: 'hsl(var(--chart-2))' },
-      { name: 'Comments', value: reachPredictionResult.comments, fill: 'hsl(var(--chart-3))' },
-   ] : [];
-
-   const chartConfig = {
-     views: { label: 'Views', color: 'hsl(var(--chart-1))' },
-     likes: { label: 'Likes', color: 'hsl(var(--chart-2))' },
-     comments: { label: 'Comments', color: 'hsl(var(--chart-3))' },
-   };
-
    const growthChartData = growthRetentionPrediction ? [
       { name: 'Current Subs', value: parseInt(growthRetentionPrediction.currentStats.subscribers.replace(/,/g, ''), 10) },
       { name: 'Next Month Est.', value: parseInt(growthRetentionPrediction.predictedGrowth.nextMonth.replace(/,/g, ''), 10) },
@@ -415,21 +326,21 @@ function Ml() {
             title="Comment Sentiment Analysis"
             description="Quickly understand what your audience thinks by analyzing comment sections."
             img="https://picsum.photos/400/250?random=20&grayscale&blur=1"
-            hint="comments feedback sentiment graph"
+            data-ai-hint="comments feedback sentiment graph"
           />
           <FeatureCard
             icon={Lightbulb}
             title="Actionable Improvement Ideas"
             description="Get AI-powered suggestions on how to make your next video even better based on feedback."
             img="https://picsum.photos/400/250?random=21&grayscale&blur=1"
-            hint="lightbulb idea strategy improvement"
+            data-ai-hint="lightbulb idea strategy improvement"
           />
            <FeatureCard
              icon={TrendingUp}
              title="Audience Growth Forecaster"
              description="Estimate subscriber growth and retention based on your channel stats and content plans."
              img="https://picsum.photos/400/250?random=22&grayscale&blur=1"
-             hint="graph chart prediction forecast user growth"
+             data-ai-hint="graph chart prediction forecast user growth"
            />
         </div>
        </section>
@@ -520,82 +431,6 @@ function Ml() {
           </Card>
        </section>
 
-        {/* --- Future Reach Predictor Section --- */}
-       <section id="reach-predictor" className="space-y-8 scroll-mt-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-center">Content Reach Estimator (Beta)</h2>
-          <Card className="max-w-4xl mx-auto">
-            <CardHeader className="text-center">
-              <BarChart className="h-12 w-12 mx-auto text-primary mb-2" />
-              <CardTitle className="text-2xl font-bold">Estimate Your Video's Potential</CardTitle>
-              <CardDescription className="text-md text-muted-foreground">
-                Provide details about your planned content and current channel stats to get an AI-driven reach prediction.
-                {!isLoggedIn && predictionCount < 1 && <span className="text-sm block text-primary">(First prediction is free!)</span>}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="max-w-3xl mx-auto space-y-6">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                      <Label htmlFor="contentTypeReach" className="flex items-center gap-1"><Video className="h-4 w-4"/> Content Type / Genre</Label>
-                      <Input id="contentTypeReach" name="contentType" value={futureReachData.contentType} onChange={handleReachInputChange} placeholder="e.g., Tech Review, Comedy Skit" disabled={reachLoading || (!isLoggedIn && predictionCount >=1)} required />
-                  </div>
-                  <div className="space-y-2">
-                     <Label htmlFor="estimatedCostReach" className="flex items-center gap-1"><DollarSign className="h-4 w-4"/> Estimated Production Cost ($)</Label>
-                      <Input id="estimatedCostReach" name="estimatedCost" type="number" value={futureReachData.estimatedCost} onChange={handleReachInputChange} placeholder="e.g., 100 (Optional)" disabled={reachLoading || (!isLoggedIn && predictionCount >=1)} />
-                  </div>
-               </div>
-               <div className="space-y-2">
-                 <Label htmlFor="descriptionReach" className="flex items-center gap-1"><Lightbulb className="h-4 w-4"/> Brief Content Description</Label>
-                  <Textarea id="descriptionReach" name="description" value={futureReachData.description} onChange={handleReachInputChange} placeholder="Describe the video topic, format, and target audience..." rows={3} disabled={reachLoading || (!isLoggedIn && predictionCount >=1)} required />
-               </div>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   <div className="space-y-2">
-                     <Label htmlFor="currentSubsReach" className="flex items-center gap-1"><Users className="h-4 w-4"/> Current Subscribers</Label>
-                      <Input id="currentSubsReach" name="currentSubs" type="number" value={futureReachData.currentSubs} onChange={handleReachInputChange} placeholder="e.g., 10000 (Optional)" disabled={reachLoading || (!isLoggedIn && predictionCount >=1)} />
-                  </div>
-                  <div className="space-y-2">
-                     <Label htmlFor="avgViewsReach" className="flex items-center gap-1"><TrendingUp className="h-4 w-4"/> Average Views per Video</Label>
-                      <Input id="avgViewsReach" name="avgViews" type="number" value={futureReachData.avgViews} onChange={handleReachInputChange} placeholder="e.g., 5000 (Optional)" disabled={reachLoading || (!isLoggedIn && predictionCount >=1)} />
-                  </div>
-               </div>
-               {reachError && ( <Alert variant="destructive"> <Terminal className="h-4 w-4" /> <AlertTitle>Prediction Error</AlertTitle> <AlertDescription>{reachError}</AlertDescription> </Alert> )}
-               <Button onClick={handleReachPrediction} className="w-full" disabled={reachLoading || (!isLoggedIn && predictionCount >=1)}>
-                  {reachLoading ? ( <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Predicting Reach... </> ) : 'Predict Future Reach'}
-                  {!isLoggedIn && predictionCount >= 1 && <span className="ml-2 text-xs">(Login Required)</span>}
-                </Button>
-                {reachLoading && ( <div className="space-y-4 pt-4 border-t mt-6"> <h3 className="text-lg font-semibold">Predicted Reach:</h3> <Skeleton className="h-5 w-1/3" /> <Skeleton className="h-4 w-full" /> <Skeleton className="h-4 w-5/6" /> <div className="h-48 mt-4"><Skeleton className="h-full w-full" /></div> <Skeleton className="h-10 w-1/2 mt-4" /> </div> )}
-                {reachPredictionResult.views !== null && !reachLoading && (
-                   <Card className="bg-muted/30 mt-6">
-                      <CardHeader> <CardTitle className="text-xl flex items-center gap-2"><Target className="h-5 w-5 text-primary"/> Predicted Reach &amp; Engagement</CardTitle> </CardHeader>
-                      <CardContent className="space-y-6">
-                          <div className="grid grid-cols-3 gap-4 text-center">
-                              <div> <p className="text-xs text-muted-foreground uppercase">Views</p> <p className="text-2xl font-bold text-primary">{reachPredictionResult.views.toLocaleString()}</p> </div>
-                              <div> <p className="text-xs text-muted-foreground uppercase">Likes</p> <p className="text-2xl font-bold">{reachPredictionResult.likes.toLocaleString()}</p> </div>
-                              <div> <p className="text-xs text-muted-foreground uppercase">Comments</p> <p className="text-2xl font-bold">{reachPredictionResult.comments.toLocaleString()}</p> </div>
-                          </div>
-                         <div className="h-[200px] mt-4">
-                           <ChartContainer config={chartConfig} className="w-full h-full">
-                             <RechartsBarChart accessibilityLayer data={chartData} layout="vertical" margin={{ left: 10, right: 10 }}>
-                               <CartesianGrid horizontal={false} /> <XAxis type="number" hide />
-                               <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tickMargin={10} width={60} />
-                               <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                               <Bar dataKey="value" radius={5} />
-                             </RechartsBarChart>
-                           </ChartContainer>
-                         </div>
-                         <p className="text-sm text-foreground/90 whitespace-pre-wrap mt-4">{reachPredictionResult.description}</p>
-                         <p className="text-xs text-muted-foreground mt-2">*Disclaimer: This is an AI-generated estimate and actual results may vary.*</p>
-                         <Button onClick={handleGetTips} variant="outline" className="w-full mt-4" disabled={tipsLoading || (!isLoggedIn && predictionCount >=1)}>
-                             {tipsLoading ? ( <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating Tips... </> ) : ( <> <Lightbulb className="mr-2 h-4 w-4" /> Get Improvement Tips </> )}
-                              {!isLoggedIn && predictionCount >= 1 && <span className="ml-2 text-xs">(Login Required)</span>}
-                          </Button>
-                          {tipsLoading && ( <div className="space-y-2 pt-2 mt-4"> <Skeleton className="h-5 w-1/3" /> <Skeleton className="h-4 w-full" /> <Skeleton className="h-4 w-full" /> <Skeleton className="h-4 w-4/5" /> </div> )}
-                          {reachTips && !tipsLoading && ( <div className="pt-4 mt-4 border-t"> <h3 className="text-lg font-semibold mb-2 flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary"/> Improvement Tips</h3> <p className="text-sm text-foreground/90 whitespace-pre-wrap">{reachTips}</p> </div> )}
-                      </CardContent>
-                   </Card>
-                )}
-            </CardContent>
-          </Card>
-       </section>
 
        {/* --- New Audience Growth & Retention Predictor Section --- */}
         <section id="audience-growth-predictor" className="space-y-8 scroll-mt-20">
@@ -617,7 +452,7 @@ function Ml() {
                   name="channelHandle"
                   value={audienceGrowthInputs.channelHandle}
                   onChange={handleAudienceGrowthInputChange}
-                  placeholder="e.g., @YourChannelHandle or LoLzZzGaming"
+                  placeholder="e.g., @YourChannelHandle or drop your youtube channel id @id"
                   disabled={growthRetentionLoading || (!isLoggedIn && predictionCount >=1)}
                   required
                 />
@@ -720,7 +555,7 @@ function Ml() {
                             {growthRetentionPrediction.improvementTips.map((tip, index) => <li key={index}>{tip}</li>)}
                         </ul>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">*Disclaimer: This is an AI-generated simulation and actual results may vary based on numerous factors.*</p>
+                    <p className="text-xs text-muted-foreground mt-2">*Disclaimer: This is an AI-generated simulation and actual results may vary.*</p>
                   </CardContent>
                 </Card>
               )}
