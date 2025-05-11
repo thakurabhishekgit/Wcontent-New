@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Link from 'next/link';
-import Image from 'next/image'; // Import Image
+import Image from 'next/image';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,9 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, Filter, Users as UsersIcon, Target, Clock, X, MessageSquare, CalendarDays, Mail, User, ArrowRight, Star, Handshake, Zap, Users, LogIn } from "lucide-react"; // Added more icons, added LogIn
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Import Dialog components
-import { Label } from "@/components/ui/label"; // Import Label
+import { Search, Filter, Users as UsersIcon, Target, Clock, X, MessageSquare, CalendarDays, Mail, User, ArrowRight, Star, Handshake, Zap, Users, LogIn, Link as LinkIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area"; // Import ScrollArea
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,8 +24,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"; // Import AlertDialog components
-import { useRouter } from 'next/navigation'; // Import useRouter
+} from "@/components/ui/alert-dialog";
+import { useRouter } from 'next/navigation';
 
 // Sidebar Filters Component
 const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
@@ -38,10 +39,9 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
 
   const clearFilters = () => {
      setFilters({ contentCategory: '', collaborationType: '', timeline: '' });
-     applyFilters({ contentCategory: '', collaborationType: '', timeline: '' }); // Apply cleared filters
+     applyFilters({ contentCategory: '', collaborationType: '', timeline: '' });
    };
 
-  // Dummy categories and types for filters - Replace with dynamic data if available
   const contentCategories = ["Comedy", "Gaming", "Tech", "Beauty", "Fashion", "Lifestyle", "Education", "Music", "Travel", "Food", "Fitness", "Wellness", "Other"];
   const collaborationTypes = ["Video Collab", "Podcast Guest Swap", "Instagram Collab", "Blog Post Collab", "Event/Workshop", "Challenge/Giveaway", "Other"];
 
@@ -54,7 +54,6 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
         <CardDescription>Find the perfect collab</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Content Category Filter */}
         <div className="space-y-1">
           <Label htmlFor="category-filter">Category / Niche</Label>
           <Select
@@ -73,7 +72,6 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
           </Select>
         </div>
 
-        {/* Collaboration Type Filter */}
         <div className="space-y-1">
            <Label htmlFor="type-filter">Collab Type</Label>
            <Select
@@ -92,7 +90,6 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
            </Select>
         </div>
 
-         {/* Timeline Filter (Input for keyword) */}
          <div className="space-y-1">
             <Label htmlFor="timeline-filter">Timeline (Keyword)</Label>
             <Input
@@ -117,7 +114,6 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
   );
 };
 
-// Function to format date
 const formatDate = (dateString) => {
    if (!dateString) return 'N/A';
    try {
@@ -129,11 +125,10 @@ const formatDate = (dateString) => {
    }
  };
 
-// Dummy Collab Data
 const dummyCollabs = [
-    { id: 101, title: 'Dummy Comedy Skit Collab', creatorName: 'Comedy Central Lite', niche: 'Comedy', platform: 'YouTube', postedDate: '1 day ago', goal: 'Cross-promote channels', lookingFor: 'Comedy channel with 5k+ subs', details: 'Looking for a partner for a short, funny skit. Must be able to film remotely.', channelLink: '#', creatorProfileLink: '#' },
-    { id: 102, title: 'Dummy Wellness Instagram Live', creatorName: 'Mindful Moments', niche: 'Wellness', platform: 'Instagram', postedDate: '2 days ago', goal: 'Share tips, build community', lookingFor: 'Yoga instructor or meditation guide', details: 'Joint IG Live session on managing stress. Approx 30 mins.', channelLink: '#', creatorProfileLink: '#' },
-    { id: 103, title: 'Dummy Tech Podcast Guest Spot', creatorName: 'Tech Talk Today', niche: 'Tech', platform: 'Podcast', postedDate: '3 days ago', goal: 'Discuss new AI trends', lookingFor: 'AI expert or developer', details: 'Seeking knowledgeable guest for a 45-min podcast episode on recent AI advancements.', channelLink: '#', creatorProfileLink: '#' }
+    { _id: 'dummy101', id: 'dummy101', title: 'Dummy Comedy Skit Collab', creatorName: 'Comedy Central Lite', niche: 'Comedy', platform: 'YouTube', postedDate: '1 day ago', goal: 'Cross-promote channels', lookingFor: 'Comedy channel with 5k+ subs', description: 'Looking for a partner for a short, funny skit. Must be able to film remotely.', details: 'Detailed plan: Brainstorm script ideas together, film separate parts, then one person edits. Aim for a 2-3 minute video. Open to new ideas!', channelLink: '#', creatorProfileLink: '#', contentCategory: 'Comedy', collaborationType: 'Video Collab', timeline: 'Within 2 weeks' },
+    { _id: 'dummy102', id: 'dummy102', title: 'Dummy Wellness Instagram Live', creatorName: 'Mindful Moments', niche: 'Wellness', platform: 'Instagram', postedDate: '2 days ago', goal: 'Share tips, build community', lookingFor: 'Yoga instructor or meditation guide', description: 'Joint IG Live session on managing stress. Approx 30 mins.', details: 'We can cover topics like mindfulness exercises, quick stress-relief techniques, and Q&A with the audience. Flexible on date/time.', channelLink: '#', creatorProfileLink: '#', contentCategory: 'Wellness', collaborationType: 'Instagram Collab', timeline: 'Next month' },
+    { _id: 'dummy103', id: 'dummy103', title: 'Dummy Tech Podcast Guest Spot', creatorName: 'Tech Talk Today', niche: 'Tech', platform: 'Podcast', postedDate: '3 days ago', goal: 'Discuss new AI trends', lookingFor: 'AI expert or developer', description: 'Seeking knowledgeable guest for a 45-min podcast episode on recent AI advancements.', details: 'Our podcast reaches tech enthusiasts and professionals. Episode will be recorded remotely. Please provide topics you can speak on.', channelLink: '#', creatorProfileLink: '#', contentCategory: 'Tech', collaborationType: 'Podcast Guest Swap', timeline: 'Flexible' }
 ];
 
 
@@ -142,10 +137,10 @@ export default function CollaborationsPage() {
   const [filteredCollaborations, setFilteredCollaborations] = useState([]);
   const [selectedCollaboration, setSelectedCollaboration] = useState(null);
   const [application, setApplication] = useState({
-    requesterName: "", // Match backend schema
-    requesterEmail: "", // Match backend schema
-    message: "", // Match backend schema
-    appliedDate: new Date().toISOString().split("T")[0], // Assuming backend handles date
+    requesterName: "",
+    requesterEmail: "",
+    message: "",
+    appliedDate: new Date().toISOString().split("T")[0],
   });
   const [submissionStatus, setSubmissionStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -162,33 +157,30 @@ export default function CollaborationsPage() {
     setIsClient(true);
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
-    fetchCollaborations(!!token); // Pass login status to fetch function
+    fetchCollaborations(!!token);
   }, []);
 
-  // Apply search and filters whenever collaborations, searchTerm, or filters change
   useEffect(() => {
-    if (collaborations.length > 0) { // Avoid running on initial empty array
+    if (collaborations.length > 0) {
       applyFilters(filters);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collaborations]); // Re-apply if base data changes
+  }, [collaborations]);
 
   const fetchCollaborations = async (loggedIn) => {
     setIsLoading(true);
     setError(null);
     try {
        if (loggedIn) {
-          // Fetch real data if logged in
           const response = await axios.get(
             "https://wcontent-app-latest.onrender.com/api/users/collabration/getCollabOfAllUsers"
           );
           if (Array.isArray(response.data)) {
              const collaborationsWithId = response.data.map(collab => ({
                 ...collab,
-                id: collab._id || collab.id // Use _id primarily, fallback to id
+                id: collab._id || collab.id
              }));
             setCollaborations(collaborationsWithId);
-            setFilteredCollaborations(collaborationsWithId); // Initialize filtered list
+            setFilteredCollaborations(collaborationsWithId);
           } else {
             console.error("API response is not an array:", response.data);
             setError("Received invalid data format from the server.");
@@ -196,8 +188,7 @@ export default function CollaborationsPage() {
             setFilteredCollaborations([]);
           }
        } else {
-            // Show dummy data if not logged in
-            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
+            await new Promise(resolve => setTimeout(resolve, 500));
             setCollaborations(dummyCollabs);
             setFilteredCollaborations(dummyCollabs);
        }
@@ -206,11 +197,10 @@ export default function CollaborationsPage() {
        if (loggedIn) {
           setError("Failed to fetch collaborations. Please check the API endpoint and your connection.");
        } else {
-          setError("Failed to load collaboration data. Displaying examples."); // Error for dummy data scenario
-          setCollaborations(dummyCollabs); // Fallback to dummy on error
+          setError("Failed to load collaboration data. Displaying examples.");
+          setCollaborations(dummyCollabs);
           setFilteredCollaborations(dummyCollabs);
        }
-       // Ensure lists are empty if not falling back to dummy data on error
        if (loggedIn) {
           setCollaborations([]);
           setFilteredCollaborations([]);
@@ -222,24 +212,21 @@ export default function CollaborationsPage() {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-     applyFilters(filters, e.target.value); // Apply filters immediately with new search term
+     applyFilters(filters, e.target.value);
   };
 
-  // Function to apply filters and search term
   const applyFilters = (currentFilters, currentSearchTerm = searchTerm) => {
       let tempCollaborations = [...collaborations];
 
-      // Apply search term first
       if (currentSearchTerm) {
          const lowerSearchTerm = currentSearchTerm.toLowerCase();
          tempCollaborations = tempCollaborations.filter(collab =>
            collab.title?.toLowerCase().includes(lowerSearchTerm) ||
            collab.description?.toLowerCase().includes(lowerSearchTerm) ||
-           collab.creatorName?.toLowerCase().includes(lowerSearchTerm) // Assuming creatorName exists
+           collab.creatorName?.toLowerCase().includes(lowerSearchTerm)
          );
       }
 
-      // Apply filters
       if (currentFilters.contentCategory) {
          tempCollaborations = tempCollaborations.filter(collab => collab.contentCategory?.toLowerCase() === currentFilters.contentCategory.toLowerCase());
       }
@@ -250,17 +237,16 @@ export default function CollaborationsPage() {
          tempCollaborations = tempCollaborations.filter(collab => collab.timeline?.toLowerCase().includes(currentFilters.timeline.toLowerCase()));
       }
 
-
       setFilteredCollaborations(tempCollaborations);
    };
 
 
   const handleCardClick = (collaboration) => {
     if (!isLoggedIn) {
-      setShowLoginAlert(true); // Show login required alert
+      setShowLoginAlert(true);
     } else {
       setSelectedCollaboration(collaboration);
-      setSubmissionStatus(null); // Reset submission status
+      setSubmissionStatus(null);
     }
   };
 
@@ -271,48 +257,45 @@ export default function CollaborationsPage() {
 
   const handleApply = async (e) => {
     e.preventDefault();
-    if (!selectedCollaboration || !isLoggedIn) return; // Ensure logged in
+    if (!selectedCollaboration || !isLoggedIn) return;
 
     setSubmissionStatus('Submitting...');
 
     try {
-      // Ensure selectedCollaboration.id exists (using the mapped 'id' which is _id)
-      if (!selectedCollaboration.id && selectedCollaboration.id !== 0) { // Check for 0 just in case
+      if (!selectedCollaboration.id && selectedCollaboration.id !== 0) {
           throw new Error("Selected collaboration is missing an ID.");
       }
       const collabIdToUse = selectedCollaboration.id;
-      const token = localStorage.getItem('token'); // Get token for auth
-      const userId = localStorage.getItem('id'); // Get user ID
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('id');
 
-      // Prepare payload matching backend expectations
        const payload = {
          requesterName: application.requesterName,
          requesterEmail: application.requesterEmail,
          message: application.message,
-         appliedDate: application.appliedDate, // Send date if required by backend
-         requesterId: userId || null // Include requester ID
+         appliedDate: application.appliedDate,
+         requesterId: userId || null
        };
 
       const response = await axios.post(
         `https://wcontent-app-latest.onrender.com/api/users/collabration/applyForCollab/${collabIdToUse}`,
-        payload, // Send the prepared payload
-        { // Add Authorization header
+        payload,
+        {
             headers: {
               Authorization: `Bearer ${token}`
             }
         }
       );
       setSubmissionStatus("Application submitted successfully!");
-      setApplication({ // Reset form
+      setApplication({
         requesterName: "",
         requesterEmail: "",
         message: "",
         appliedDate: new Date().toISOString().split("T")[0],
       });
-       // Close the dialog after successful application
        setTimeout(() => {
           setSelectedCollaboration(null);
-       }, 1500); // Close after 1.5 seconds
+       }, 1500);
     } catch (error) {
       console.error("Error applying for collaboration:", error);
       const errorMessage = error.response?.data?.message || "Failed to submit application. Please try again.";
@@ -321,14 +304,12 @@ export default function CollaborationsPage() {
   };
 
    if (!isClient) {
-     // Render skeleton or null during SSR/hydration
-     return null; // Or a loading skeleton component
+     return null;
    }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-16"> {/* Increased spacing */}
+    <div className="container mx-auto px-4 py-8 space-y-16">
 
-       {/* Header Section */}
        <section className="text-center pt-8 pb-8 md:pt-12 md:pb-12">
          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 bg-gradient-to-r from-primary via-teal-400 to-teal-600 bg-clip-text text-transparent">
            Connect & Collaborate
@@ -339,7 +320,6 @@ export default function CollaborationsPage() {
          </p>
        </section>
 
-       {/* Features Section */}
        <section className="space-y-12">
         <div className="text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-3">Why Collaborate on WContent?</h2>
@@ -347,10 +327,10 @@ export default function CollaborationsPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
-            { icon: UsersIcon, title: 'Find Partners', description: 'Discover creators in your niche or explore new ones.', hint: 'collaboration network people' },
-            { icon: Zap, title: 'Spark Creativity', description: 'Brainstorm ideas and create unique content together.', hint: 'lightbulb innovation ideas' },
-            { icon: Target, title: 'Reach New Audiences', description: 'Cross-promote to grow your combined following.', hint: 'audience growth charts' },
-            { icon: Handshake, title: 'Build Relationships', description: 'Network with peers and build lasting partnerships.', hint: 'partnership agreement deal' },
+            { icon: UsersIcon, title: 'Find Partners', description: 'Discover creators in your niche or explore new ones.', hint: 'collaboration network people', imageSeed: 10 },
+            { icon: Zap, title: 'Spark Creativity', description: 'Brainstorm ideas and create unique content together.', hint: 'lightbulb innovation ideas', imageSeed: 11 },
+            { icon: Target, title: 'Reach New Audiences', description: 'Cross-promote to grow your combined following.', hint: 'audience growth charts', imageSeed: 12 },
+            { icon: Handshake, title: 'Build Relationships', description: 'Network with peers and build lasting partnerships.', hint: 'partnership agreement deal', imageSeed: 13 },
           ].map((feature, index) => (
             <Card key={index} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
@@ -360,7 +340,7 @@ export default function CollaborationsPage() {
               </CardHeader>
               <CardContent className="flex-grow flex items-end">
                 <Image
-                  src={`https://picsum.photos/400/250?random=${index}&grayscale&blur=1`} // Use blurred grayscale picsum photos
+                  src={`https://picsum.photos/400/250?random=${feature.imageSeed}&grayscale&blur=1`}
                   alt={feature.title}
                   data-ai-hint={feature.hint}
                   width={400}
@@ -373,7 +353,6 @@ export default function CollaborationsPage() {
         </div>
       </section>
 
-       {/* How It Works / Info Section (Simplified for Collabs) */}
        <section className="p-6 mb-12 bg-card rounded-lg border border-border/50 shadow-sm">
          <h2 className="text-xl font-semibold mb-3 text-primary">How Collaborations Work</h2>
          <ul className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
@@ -384,22 +363,14 @@ export default function CollaborationsPage() {
          </ul>
        </section>
 
-
-       {/* Main Collaborations Listing Section */}
        <section className="space-y-8">
           <h2 className="text-3xl md:text-4xl font-bold text-center">Explore Collaborations</h2>
-          {/* Search and Main Content Area */}
           <div className="flex flex-col md:flex-row gap-8">
-
-            {/* Filters Sidebar */}
             <div className="w-full md:w-1/4 lg:w-1/5">
                 <FilterSidebar filters={filters} setFilters={setFilters} applyFilters={applyFilters} />
             </div>
 
-            {/* Main Content Grid */}
             <div className="w-full md:w-3/4 lg:w-4/5 space-y-6">
-
-                {/* Search Bar */}
                 <div className="relative">
                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                    <Input
@@ -411,7 +382,6 @@ export default function CollaborationsPage() {
                    />
                 </div>
 
-               {/* Loading and Error States */}
                {isLoading && (
                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                       {[...Array(6)].map((_, i) => (
@@ -436,8 +406,6 @@ export default function CollaborationsPage() {
                  </Alert>
                )}
 
-
-                {/* Collaborations Grid */}
                 {!isLoading && !error && filteredCollaborations.length > 0 && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredCollaborations.map((collab) => (
@@ -446,9 +414,8 @@ export default function CollaborationsPage() {
                           <CardTitle className="text-lg line-clamp-2">{collab.title}</CardTitle>
                            <div className="flex flex-wrap gap-1 pt-1">
                               <Badge variant="secondary">{collab.contentCategory || 'N/A'}</Badge>
-                              <Badge variant="outline">{collab.collaborationType || collab.platform || 'N/A'}</Badge> {/* Display platform if type missing */}
+                              <Badge variant="outline">{collab.collaborationType || collab.platform || 'N/A'}</Badge>
                            </div>
-                           {/* Optionally add Creator Name if available */}
                             {collab.creatorName && (
                               <CardDescription className="text-xs pt-2 flex items-center">
                                  By: {collab.creatorName}
@@ -458,7 +425,6 @@ export default function CollaborationsPage() {
                         <CardContent className="flex-grow space-y-2">
                            <p className="text-sm text-muted-foreground line-clamp-3">{collab.description || collab.details || 'No description.'}</p>
                            <p className="text-sm flex items-center pt-1"><Clock className="h-4 w-4 mr-1 text-primary"/>Timeline: {collab.timeline || collab.postedDate || 'N/A'}</p>
-                           {/* Show goal if available */}
                            {collab.goal && <p className="text-sm flex items-center pt-1"><Target className="h-4 w-4 mr-1 text-primary"/>Goal: {collab.goal}</p>}
                         </CardContent>
                         <CardFooter>
@@ -487,7 +453,6 @@ export default function CollaborationsPage() {
             </div>
        </section>
 
-        {/* Testimonials Section */}
        <section className="text-center">
          <h2 className="text-3xl md:text-4xl font-bold mb-3">Collaboration Successes</h2>
          <p className="text-muted-foreground max-w-xl mx-auto mb-12">See what creators achieved by teaming up.</p>
@@ -511,7 +476,6 @@ export default function CollaborationsPage() {
          </div>
        </section>
 
-       {/* Call to Action Section */}
        <section className="text-center bg-gradient-to-r from-teal-900/30 via-background to-teal-900/30 py-16 rounded-lg border border-teal-800/50">
          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Collaborate?</h2>
          <p className="text-lg text-foreground/80 mb-8 max-w-2xl mx-auto">
@@ -531,33 +495,43 @@ export default function CollaborationsPage() {
           </div>
        </section>
 
-
-      {/* Application Dialog (Modal) */}
        <Dialog open={!!selectedCollaboration} onOpenChange={() => setSelectedCollaboration(null)}>
-         <DialogContent className="sm:max-w-[650px]">
+         <DialogContent className="sm:max-w-[650px] max-h-[80vh] flex flex-col">
            <DialogHeader>
-             <DialogTitle>{selectedCollaboration?.title}</DialogTitle>
+             <DialogTitle className="text-2xl">{selectedCollaboration?.title}</DialogTitle>
              <DialogDescription>
-               Send a message to express your interest in this collaboration.
+               Details about this collaboration opportunity.
              </DialogDescription>
-              {/* Display collaboration details concisely */}
-               <div className="text-sm text-muted-foreground space-y-1 pt-2 border-t mt-2">
-                   <p className="flex items-center gap-1.5"><UsersIcon className="h-3 w-3"/> Creator: {selectedCollaboration?.creatorName || 'Unknown'}</p>
-                   <p className="flex items-center gap-1.5"><Target className="h-3 w-3"/> Category: {selectedCollaboration?.contentCategory || selectedCollaboration?.niche}</p>
-                   <p className="flex items-center gap-1.5"><Clock className="h-3 w-3"/> Timeline: {selectedCollaboration?.timeline || selectedCollaboration?.postedDate}</p>
-                   <p className="mt-2 text-foreground/80">{selectedCollaboration?.description || selectedCollaboration?.details}</p>
-                    {/* Add link to creator's channel/profile if available */}
-                    {selectedCollaboration?.channelLink && (
-                        <p><Link href={selectedCollaboration.channelLink} className="text-primary hover:underline text-xs" target="_blank" rel="noopener noreferrer">View Creator's Channel</Link></p>
-                     )}
-                      {selectedCollaboration?.creatorProfileLink && (
-                         <p><Link href={selectedCollaboration.creatorProfileLink} className="text-primary hover:underline text-xs" target="_blank" rel="noopener noreferrer">View Creator's Profile</Link></p>
-                      )}
-               </div>
            </DialogHeader>
 
-           {/* Application Form */}
-           <div className="py-4">
+            <ScrollArea className="flex-grow py-4 pr-6"> {/* Make content scrollable */}
+                <div className="space-y-3 text-sm">
+                    <p><strong className="text-foreground/80">Creator:</strong> {selectedCollaboration?.creatorName || 'N/A'}</p>
+                    <p><strong className="text-foreground/80">Category/Niche:</strong> {selectedCollaboration?.contentCategory || selectedCollaboration?.niche || 'N/A'}</p>
+                    <p><strong className="text-foreground/80">Platform:</strong> {selectedCollaboration?.platform || 'N/A'}</p>
+                    <p><strong className="text-foreground/80">Timeline/Posted:</strong> {selectedCollaboration?.timeline || formatDate(selectedCollaboration?.postedDate) || 'N/A'}</p>
+                    <p><strong className="text-foreground/80">Goal:</strong> {selectedCollaboration?.goal || 'N/A'}</p>
+                    <p><strong className="text-foreground/80">Looking For:</strong> {selectedCollaboration?.lookingFor || 'N/A'}</p>
+                    
+                    <div>
+                        <strong className="text-foreground/80 block mb-1">Description/Details:</strong>
+                        <p className="text-muted-foreground whitespace-pre-wrap">{selectedCollaboration?.description || selectedCollaboration?.details || 'No detailed description provided.'}</p>
+                    </div>
+
+                    {selectedCollaboration?.channelLink && (
+                        <p><Link href={selectedCollaboration.channelLink} className="text-primary hover:underline text-xs flex items-center gap-1" target="_blank" rel="noopener noreferrer">
+                            <LinkIcon className="h-3 w-3"/> View Creator's Channel
+                        </Link></p>
+                     )}
+                      {selectedCollaboration?.creatorProfileLink && (
+                         <p><Link href={selectedCollaboration.creatorProfileLink} className="text-primary hover:underline text-xs flex items-center gap-1" target="_blank" rel="noopener noreferrer">
+                            <User className="h-3 w-3"/> View Creator's Profile
+                         </Link></p>
+                      )}
+               </div>
+           </ScrollArea>
+          
+           <div className="pt-4 border-t"> {/* Form section below scrollable content */}
               {submissionStatus && (
                 <Alert variant={submissionStatus.includes("success") ? "default" : "destructive"} className="mb-4">
                   <AlertTitle>{submissionStatus.includes("success") ? "Success" : "Error"}</AlertTitle>
@@ -587,11 +561,6 @@ export default function CollaborationsPage() {
                       disabled={submissionStatus === 'Submitting...'}
                     />
                 </div>
-                {/* Removed Date Input - assuming backend handles this */}
-                {/* <div>
-                  <Label htmlFor="appliedDate" className="text-right">Application Date</Label>
-                  <Input id="appliedDate" name="appliedDate" type="date" value={application.appliedDate} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
-                </div> */}
                  <DialogFooter>
                    <DialogClose asChild>
                       <Button type="button" variant="outline" disabled={submissionStatus === 'Submitting...'}>Cancel</Button>
@@ -605,7 +574,6 @@ export default function CollaborationsPage() {
          </DialogContent>
        </Dialog>
 
-        {/* Login Required Alert Dialog */}
         <AlertDialog open={showLoginAlert} onOpenChange={setShowLoginAlert}>
           <AlertDialogContent>
             <AlertDialogHeader>

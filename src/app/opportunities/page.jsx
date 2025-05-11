@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Link from 'next/link';
-import Image from 'next/image'; // Import Image
+import Image from 'next/image';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,9 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, MapPin, Briefcase, DollarSign, Filter, X, ArrowRight, Star, Award, Target, Users as UsersIcon, LogIn } from "lucide-react"; // Added more icons, added LogIn
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Import Dialog components
-import { Label } from "@/components/ui/label"; // Import Label
+import { Search, MapPin, Briefcase, DollarSign, Filter, X, ArrowRight, Star, Award, Target, Users as UsersIcon, LogIn, CalendarDays, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area"; // Import ScrollArea
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,8 +24,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"; // Import AlertDialog components
-import { useRouter } from 'next/navigation'; // Import useRouter
+} from "@/components/ui/alert-dialog";
+import { useRouter } from 'next/navigation';
 
 // How It Works Component
 const HowitWorks = () => (
@@ -51,11 +52,11 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
 
   const clearFilters = () => {
      setFilters({ type: '', location: '', budget: '' });
-     applyFilters({ type: '', location: '', budget: '' }); // Apply cleared filters immediately
+     applyFilters({ type: '', location: '', budget: '' });
    };
 
   return (
-    <Card className="sticky top-20 self-start"> {/* Added sticky positioning */}
+    <Card className="sticky top-20 self-start">
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <Filter className="h-5 w-5" /> Filters
@@ -63,7 +64,6 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
         <CardDescription>Refine your search</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Opportunity Type Filter */}
         <div className="space-y-1">
           <Label htmlFor="type-filter">Type</Label>
           <Select
@@ -89,7 +89,6 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
           </Select>
         </div>
 
-        {/* Location Filter */}
          <div className="space-y-1">
             <Label htmlFor="location-filter">Location</Label>
             <Input
@@ -101,7 +100,6 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
             />
          </div>
 
-         {/* Budget Filter (Example - could be range slider etc.) */}
          <div className="space-y-1">
             <Label htmlFor="budget-filter">Budget / Salary (Keyword)</Label>
             <Input
@@ -126,11 +124,10 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
   );
 };
 
-// Dummy Opportunity Data
 const dummyOpportunities = [
-    { id: 201, title: 'Dummy Tech Review Gig', company: 'TechGadgets Demo', type: 'Paid Gig', location: 'Remote', postedDate: '1 day ago', salaryRange: '$400 - $800', description: 'Create a short review video for our demo product. Link portfolio.' },
-    { id: 202, title: 'Dummy Travel Blog Post', company: 'Explore Examples', type: 'Travel Opportunity', location: 'Example City (Remote Option)', postedDate: '2 days ago', salaryRange: 'Expenses Covered', description: 'Write a blog post about travel planning tips. SEO skills preferred.' },
-    { id: 203, title: 'Dummy Social Media Manager Role', company: 'Brand Builders Inc.', type: 'Part-Time Role', location: 'Remote', postedDate: '3 days ago', salaryRange: '$20/hour', description: 'Manage social media accounts for a sample brand. Experience required.' }
+    { _id: 'dummy1', id: 'dummy1', title: 'Dummy Tech Review Gig', company: 'TechGadgets Demo', type: 'Paid Gig', location: 'Remote', postedDate: '1 day ago', salaryRange: '$400 - $800', description: 'Create a short review video for our demo product. Link portfolio. Must have excellent camera presence and editing skills. Deliverables: 1 x 5-7 min video, 3 x social media clips.', requirements: 'Min. 10k YouTube subscribers, proven experience with tech reviews, high-quality video production setup.' },
+    { _id: 'dummy2', id: 'dummy2', title: 'Dummy Travel Blog Post', company: 'Explore Examples', type: 'Travel Opportunity', location: 'Example City (Remote Option)', postedDate: '2 days ago', salaryRange: 'Expenses Covered', description: 'Write a blog post about travel planning tips for a specific destination (to be discussed). SEO skills preferred. Looking for engaging writing style and beautiful photography.', requirements: 'Active travel blog with engaged readership, basic SEO knowledge, ability to produce high-quality photos.' },
+    { _id: 'dummy3', id: 'dummy3', title: 'Dummy Social Media Manager Role', company: 'Brand Builders Inc.', type: 'Part-Time Role', location: 'Remote', postedDate: '3 days ago', salaryRange: '$20/hour', description: 'Manage social media accounts (Instagram, TikTok) for a sample brand. Responsibilities include content creation, scheduling, community engagement, and reporting.', requirements: 'Proven experience in social media management, strong understanding of platform algorithms, excellent communication skills.' }
 ];
 
 
@@ -141,7 +138,7 @@ export default function OpportunitiesPage() {
   const [application, setApplication] = useState({
     name: "",
     email: "",
-    resumeUrl: "", // Changed from resume to resumeUrl for clarity
+    resumeUrl: "",
     applicationDate: new Date().toISOString().split("T")[0],
   });
   const [submissionStatus, setSubmissionStatus] = useState(null);
@@ -158,33 +155,30 @@ export default function OpportunitiesPage() {
     setIsClient(true);
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
-    fetchOpportunities(!!token); // Pass login status to fetch function
+    fetchOpportunities(!!token);
   }, []);
 
-  // Apply search and filters whenever opportunities, searchTerm, or filteredOpportunities change
    useEffect(() => {
-     if(opportunities.length > 0) { // Avoid running on initial empty array
+     if(opportunities.length > 0) {
         applyFilters(filters);
      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [opportunities]); // Only depends on opportunities list itself
+   }, [opportunities]);
 
    const fetchOpportunities = async (loggedIn) => {
      setIsLoading(true);
      setError(null);
      try {
         if (loggedIn) {
-            // Fetch real data if logged in
            const response = await axios.get(
              "https://wcontent-app-latest.onrender.com/api/users/opportunities/opportunitiesGetAll"
            );
            if (Array.isArray(response.data)) {
              const opportunitiesWithId = response.data.map((opp, index) => ({
                ...opp,
-               id: opp.id || opp._id || index // Use _id, fallback to id, then index
+               id: opp._id || opp.id || `live-${index}`
              }));
              setOpportunities(opportunitiesWithId);
-             setFilteredOpportunities(opportunitiesWithId); // Initialize filtered list
+             setFilteredOpportunities(opportunitiesWithId);
            } else {
              console.error("API response is not an array:", response.data);
              setError("Received invalid data format from the server.");
@@ -192,8 +186,7 @@ export default function OpportunitiesPage() {
              setFilteredOpportunities([]);
            }
         } else {
-            // Show dummy data if not logged in
-            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
+            await new Promise(resolve => setTimeout(resolve, 500));
             setOpportunities(dummyOpportunities);
             setFilteredOpportunities(dummyOpportunities);
         }
@@ -202,11 +195,10 @@ export default function OpportunitiesPage() {
        if (loggedIn) {
             setError("Failed to fetch opportunities. Please check the API endpoint and your connection.");
        } else {
-           setError("Failed to load opportunity data. Displaying examples."); // Error for dummy data scenario
-           setOpportunities(dummyOpportunities); // Fallback to dummy on error
+           setError("Failed to load opportunity data. Displaying examples.");
+           setOpportunities(dummyOpportunities);
            setFilteredOpportunities(dummyOpportunities);
        }
-       // Ensure lists are empty if not falling back to dummy data on error
        if (loggedIn) {
             setOpportunities([]);
             setFilteredOpportunities([]);
@@ -219,14 +211,12 @@ export default function OpportunitiesPage() {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-     applyFilters(filters, e.target.value); // Apply filters immediately with new search term
+     applyFilters(filters, e.target.value);
   };
 
-  // Function to apply filters and search term
   const applyFilters = (currentFilters, currentSearchTerm = searchTerm) => {
       let tempOpportunities = [...opportunities];
 
-      // Apply search term first
        if (currentSearchTerm) {
          const lowerSearchTerm = currentSearchTerm.toLowerCase();
          tempOpportunities = tempOpportunities.filter(opp =>
@@ -236,28 +226,25 @@ export default function OpportunitiesPage() {
          );
        }
 
-      // Apply filters
        if (currentFilters.type) {
          tempOpportunities = tempOpportunities.filter(opp => opp.type?.toLowerCase() === currentFilters.type.toLowerCase());
        }
        if (currentFilters.location) {
          tempOpportunities = tempOpportunities.filter(opp => opp.location?.toLowerCase().includes(currentFilters.location.toLowerCase()));
        }
-       if (currentFilters.budget) { // Simple keyword check for budget/salary
+       if (currentFilters.budget) {
          tempOpportunities = tempOpportunities.filter(opp => opp.salaryRange?.toLowerCase().includes(currentFilters.budget.toLowerCase()));
        }
-
-
        setFilteredOpportunities(tempOpportunities);
    };
 
 
   const handleCardClick = (opportunity) => {
     if (!isLoggedIn) {
-      setShowLoginAlert(true); // Show login required alert
+      setShowLoginAlert(true);
     } else {
       setSelectedOpportunity(opportunity);
-      setSubmissionStatus(null); // Reset submission status
+      setSubmissionStatus(null);
     }
   };
 
@@ -268,7 +255,7 @@ export default function OpportunitiesPage() {
 
   const handleApply = async (e) => {
     e.preventDefault();
-    if (!selectedOpportunity || !isLoggedIn) return; // Ensure logged in
+    if (!selectedOpportunity || !isLoggedIn) return;
 
     setSubmissionStatus('Submitting...');
 
@@ -277,14 +264,13 @@ export default function OpportunitiesPage() {
         throw new Error("Selected opportunity is missing an ID.");
       }
 
-      // Use the correct field from backend ('id' or '_id' mapped to 'id')
        const oppIdToUse = selectedOpportunity.id;
-       const token = localStorage.getItem('token'); // Get token for authenticated request
+       const token = localStorage.getItem('token');
 
       const response = await axios.post(
         `https://wcontent-app-latest.onrender.com/api/users/application/opportunity/${oppIdToUse}/apply`,
         application,
-        { // Add Authorization header
+        {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -297,10 +283,9 @@ export default function OpportunitiesPage() {
         resumeUrl: "",
         applicationDate: new Date().toISOString().split("T")[0],
       });
-       // Close the dialog after successful application
        setTimeout(() => {
           setSelectedOpportunity(null);
-       }, 1500); // Close after 1.5 seconds
+       }, 1500);
     } catch (error) {
       console.error("Error applying for opportunity:", error);
       const errorMessage = error.response?.data?.message || "Failed to submit application. Please try again.";
@@ -309,15 +294,13 @@ export default function OpportunitiesPage() {
   };
 
   if (!isClient) {
-    // Render skeleton or null during SSR/hydration
-    return null; // Or a loading skeleton component
+    return null;
   }
 
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-16"> {/* Increased spacing */}
+    <div className="container mx-auto px-4 py-8 space-y-16">
 
-      {/* Header Section */}
       <section className="text-center pt-8 pb-8 md:pt-12 md:pb-12">
          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 bg-gradient-to-r from-primary via-teal-400 to-teal-600 bg-clip-text text-transparent">
            Discover Content Creator Opportunities
@@ -328,7 +311,6 @@ export default function OpportunitiesPage() {
          </p>
       </section>
 
-      {/* Features Section */}
       <section className="space-y-12">
         <div className="text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-3">Why Use WContent Opportunities?</h2>
@@ -349,7 +331,7 @@ export default function OpportunitiesPage() {
               </CardHeader>
               <CardContent className="flex-grow flex items-end">
                 <Image
-                   src={`https://picsum.photos/400/250?grayscale&blur=1&random=${feature.imageSeed}`} // Use blurred grayscale picsum photos
+                   src={`https://picsum.photos/400/250?grayscale&blur=1&random=${feature.imageSeed}`}
                   alt={feature.title}
                   data-ai-hint={feature.hint}
                   width={400}
@@ -362,24 +344,16 @@ export default function OpportunitiesPage() {
         </div>
       </section>
 
-      {/* How It Works Section */}
       <HowitWorks />
 
-      {/* Main Opportunities Listing Section */}
       <section className="space-y-8">
         <h2 className="text-3xl md:text-4xl font-bold text-center">Explore Opportunities</h2>
-        {/* Search and Main Content Area */}
         <div className="flex flex-col md:flex-row gap-8">
-
-          {/* Filters Sidebar */}
           <div className="w-full md:w-1/4 lg:w-1/5">
               <FilterSidebar filters={filters} setFilters={setFilters} applyFilters={applyFilters} />
           </div>
 
-          {/* Main Content Grid */}
           <div className="w-full md:w-3/4 lg:w-4/5 space-y-6">
-
-              {/* Search Bar */}
               <div className="relative">
                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                  <Input
@@ -391,7 +365,6 @@ export default function OpportunitiesPage() {
                  />
               </div>
 
-             {/* Loading and Error States */}
              {isLoading && (
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[...Array(6)].map((_, i) => (
@@ -417,8 +390,6 @@ export default function OpportunitiesPage() {
                </Alert>
              )}
 
-
-              {/* Opportunities Grid */}
               {!isLoading && !error && filteredOpportunities.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredOpportunities.map((opportunity) => (
@@ -463,7 +434,6 @@ export default function OpportunitiesPage() {
           </div>
       </section>
 
-       {/* Testimonials Section */}
        <section className="text-center">
          <h2 className="text-3xl md:text-4xl font-bold mb-3">Success Stories</h2>
          <p className="text-muted-foreground max-w-xl mx-auto mb-12">Hear from creators who found opportunities here.</p>
@@ -487,8 +457,6 @@ export default function OpportunitiesPage() {
          </div>
        </section>
 
-
-       {/* Call to Action Section */}
        <section className="text-center bg-gradient-to-r from-teal-900/30 via-background to-teal-900/30 py-16 rounded-lg border border-teal-800/50">
          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Find Your Next Gig?</h2>
          <p className="text-lg text-foreground/80 mb-8 max-w-2xl mx-auto">
@@ -508,27 +476,34 @@ export default function OpportunitiesPage() {
          </div>
        </section>
 
-
-      {/* Application Dialog (Modal) - Only shows if logged in */}
        <Dialog open={!!selectedOpportunity} onOpenChange={() => setSelectedOpportunity(null)}>
-         <DialogContent className="sm:max-w-[650px]">
+         <DialogContent className="sm:max-w-[650px] max-h-[80vh] flex flex-col"> {/* Allow vertical scroll */}
            <DialogHeader>
-             <DialogTitle>{selectedOpportunity?.title}</DialogTitle>
-             <DialogDescription>
-               Apply for this opportunity by filling out the form below.
+             <DialogTitle className="text-2xl">{selectedOpportunity?.title}</DialogTitle>
+             <DialogDescription className="flex flex-col gap-1 text-sm">
+                <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4"/> {selectedOpportunity?.company}</span>
+                <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4"/> {selectedOpportunity?.location}</span>
+                <span className="flex items-center gap-1.5"><DollarSign className="h-4 w-4"/> {selectedOpportunity?.salaryRange}</span>
+                <span className="flex items-center gap-1.5"><FileText className="h-4 w-4"/> Type: {selectedOpportunity?.type}</span>
              </DialogDescription>
-              {/* Display opportunity details concisely */}
-               <div className="text-sm text-muted-foreground space-y-1 pt-2 border-t mt-2">
-                   <p className="flex items-center gap-1.5"><Briefcase className="h-3 w-3"/> {selectedOpportunity?.company}</p>
-                   <p className="flex items-center gap-1.5"><MapPin className="h-3 w-3"/> {selectedOpportunity?.location}</p>
-                   <p className="flex items-center gap-1.5"><DollarSign className="h-3 w-3"/> {selectedOpportunity?.salaryRange}</p>
-                   <p className="mt-2 text-foreground/80">{selectedOpportunity?.description}</p>
-                   {selectedOpportunity?.requirements && <p className="mt-1"><strong>Requirements:</strong> {selectedOpportunity.requirements}</p>}
-               </div>
            </DialogHeader>
+            
+           <ScrollArea className="flex-grow py-4 pr-6"> {/* Make content scrollable */}
+             <div className="space-y-4">
+                <div>
+                    <h3 className="font-semibold text-md mb-1">Description:</h3>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedOpportunity?.description}</p>
+                </div>
+                {selectedOpportunity?.requirements && (
+                    <div>
+                        <h3 className="font-semibold text-md mb-1">Requirements:</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedOpportunity.requirements}</p>
+                    </div>
+                )}
+             </div>
+           </ScrollArea>
 
-           {/* Application Form */}
-           <div className="py-4">
+           <div className="pt-4 border-t"> {/* Form section below scrollable content */}
               {submissionStatus && (
                 <Alert variant={submissionStatus.includes("success") ? "default" : "destructive"} className="mb-4">
                   <AlertTitle>{submissionStatus.includes("success") ? "Success" : "Error"}</AlertTitle>
@@ -565,7 +540,6 @@ export default function OpportunitiesPage() {
          </DialogContent>
        </Dialog>
 
-       {/* Login Required Alert Dialog */}
         <AlertDialog open={showLoginAlert} onOpenChange={setShowLoginAlert}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -580,7 +554,6 @@ export default function OpportunitiesPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
     </div>
   );
 }
