@@ -11,10 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, Filter, Users as UsersIcon, Target, Clock, X, MessageSquare, CalendarDays, Mail, User, ArrowRight, Star, Handshake, Zap, Users, LogIn, Link as LinkIcon } from "lucide-react";
+import { Search, Filter, Users as UsersIcon, Target, Clock, X, MessageSquare, CalendarDays, Mail, User, ArrowRight, Star, Handshake, Zap, LogIn, Link as LinkIcon, Info } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area"; // Import ScrollArea
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +26,21 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from 'next/navigation';
+import { Textarea } from "@/components/ui/textarea"; // Import Textarea
+
+// How It Works Component
+const HowitWorks = () => (
+  <section className="p-6 mb-12 bg-card rounded-lg border border-border/50 shadow-sm">
+    <h2 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2"><Info className="h-5 w-5"/>How Collaborations Work</h2>
+    <ul className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+      <li>Browse collaboration posts or use filters to find potential partners.</li>
+      <li>Click 'View & Request' to learn more about a specific collab idea.</li>
+      <li>Log in or sign up to send a message to the creator expressing your interest and ideas.</li>
+      <li>Connect and start creating amazing content together!</li>
+    </ul>
+  </section>
+);
+
 
 // Sidebar Filters Component
 const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
@@ -136,7 +151,7 @@ export default function CollaborationsPage() {
   const [collaborations, setCollaborations] = useState([]);
   const [filteredCollaborations, setFilteredCollaborations] = useState([]);
   const [selectedCollaboration, setSelectedCollaboration] = useState(null);
-  const [application, setApplication] = useState({
+  const [application, setApplication] = useState({ // Renamed from collabApplication for consistency
     requesterName: "",
     requesterEmail: "",
     message: "",
@@ -150,6 +165,7 @@ export default function CollaborationsPage() {
   const [isClient, setIsClient] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginAlert, setShowLoginAlert] = useState(false);
+  const [showApplicationForm, setShowApplicationForm] = useState(false); // New state
   const router = useRouter();
 
 
@@ -164,7 +180,7 @@ export default function CollaborationsPage() {
     if (collaborations.length > 0) {
       applyFilters(filters);
     }
-  }, [collaborations]);
+  }, [collaborations, filters]); // Added filters to dependency array
 
   const fetchCollaborations = async (loggedIn) => {
     setIsLoading(true);
@@ -201,7 +217,7 @@ export default function CollaborationsPage() {
           setCollaborations(dummyCollabs);
           setFilteredCollaborations(dummyCollabs);
        }
-       if (loggedIn) {
+       if (loggedIn) { // Ensure empty state if logged in and error
           setCollaborations([]);
           setFilteredCollaborations([]);
        }
@@ -246,7 +262,15 @@ export default function CollaborationsPage() {
       setShowLoginAlert(true);
     } else {
       setSelectedCollaboration(collaboration);
+      setShowApplicationForm(false); // Reset to show details first
       setSubmissionStatus(null);
+      // Reset application form fields
+      setApplication({
+        requesterName: "",
+        requesterEmail: "",
+        message: "",
+        appliedDate: new Date().toISOString().split("T")[0],
+      });
     }
   };
 
@@ -267,14 +291,11 @@ export default function CollaborationsPage() {
       }
       const collabIdToUse = selectedCollaboration.id;
       const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('id');
+      const userId = localStorage.getItem('id'); // Assuming userId is stored in localStorage
 
        const payload = {
-         requesterName: application.requesterName,
-         requesterEmail: application.requesterEmail,
-         message: application.message,
-         appliedDate: application.appliedDate,
-         requesterId: userId || null
+         ...application, // Spread existing application fields
+         requesterId: userId || null // Add requesterId to the payload
        };
 
       const response = await axios.post(
@@ -286,19 +307,15 @@ export default function CollaborationsPage() {
             }
         }
       );
-      setSubmissionStatus("Application submitted successfully!");
-      setApplication({
-        requesterName: "",
-        requesterEmail: "",
-        message: "",
-        appliedDate: new Date().toISOString().split("T")[0],
-      });
+      setSubmissionStatus("Collaboration request sent successfully!");
+      // Do not close modal immediately
        setTimeout(() => {
           setSelectedCollaboration(null);
-       }, 1500);
+          setShowApplicationForm(false);
+       }, 2000);
     } catch (error) {
       console.error("Error applying for collaboration:", error);
-      const errorMessage = error.response?.data?.message || "Failed to submit application. Please try again.";
+      const errorMessage = error.response?.data?.message || "Failed to submit collaboration request. Please try again.";
       setSubmissionStatus(errorMessage);
     }
   };
@@ -322,7 +339,7 @@ export default function CollaborationsPage() {
 
        <section className="space-y-12">
         <div className="text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-3">Why Collaborate on WContent?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-3">Why Collaborate on Wcontent?</h2>
           <p className="text-muted-foreground max-w-xl mx-auto">Expand your reach, spark creativity, and build your network.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -353,15 +370,7 @@ export default function CollaborationsPage() {
         </div>
       </section>
 
-       <section className="p-6 mb-12 bg-card rounded-lg border border-border/50 shadow-sm">
-         <h2 className="text-xl font-semibold mb-3 text-primary">How Collaborations Work</h2>
-         <ul className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-           <li>Browse collaboration posts or use filters to find potential partners.</li>
-           <li>Click 'View & Apply' to learn more about a specific collab idea.</li>
-           <li>Log in or sign up to send a message to the creator expressing your interest and ideas.</li>
-           <li>Connect and start creating amazing content together!</li>
-         </ul>
-       </section>
+       <HowitWorks />
 
        <section className="space-y-8">
           <h2 className="text-3xl md:text-4xl font-bold text-center">Explore Collaborations</h2>
@@ -424,7 +433,7 @@ export default function CollaborationsPage() {
                         </CardHeader>
                         <CardContent className="flex-grow space-y-2">
                            <p className="text-sm text-muted-foreground line-clamp-3">{collab.description || collab.details || 'No description.'}</p>
-                           <p className="text-sm flex items-center pt-1"><Clock className="h-4 w-4 mr-1 text-primary"/>Timeline: {collab.timeline || collab.postedDate || 'N/A'}</p>
+                           <p className="text-sm flex items-center pt-1"><Clock className="h-4 w-4 mr-1 text-primary"/>Timeline: {collab.timeline || formatDate(collab.postedDate) || 'N/A'}</p>
                            {collab.goal && <p className="text-sm flex items-center pt-1"><Target className="h-4 w-4 mr-1 text-primary"/>Goal: {collab.goal}</p>}
                         </CardContent>
                         <CardFooter>
@@ -433,7 +442,7 @@ export default function CollaborationsPage() {
                             onClick={() => handleCardClick(collab)}
                             variant="outline"
                           >
-                             {isLoggedIn ? 'View & Apply' : 'View Details (Login to Apply)'}
+                             {isLoggedIn ? 'View & Request Collab' : 'View Details (Login to Request)'}
                           </Button>
                         </CardFooter>
                       </Card>
@@ -443,7 +452,7 @@ export default function CollaborationsPage() {
                 {!isLoading && !error && filteredCollaborations.length === 0 && (
                    <Card className="text-center py-10 border-dashed">
                       <CardContent className="flex flex-col items-center gap-2">
-                        <Users className="h-12 w-12 text-muted-foreground" />
+                        <UsersIcon className="h-12 w-12 text-muted-foreground" />
                         <p className="text-muted-foreground">No collaborations match your criteria.</p>
                         <p className="text-xs text-muted-foreground">Try adjusting your search or filters.</p>
                       </CardContent>
@@ -495,82 +504,107 @@ export default function CollaborationsPage() {
           </div>
        </section>
 
-       <Dialog open={!!selectedCollaboration} onOpenChange={() => setSelectedCollaboration(null)}>
+       <Dialog open={!!selectedCollaboration} onOpenChange={() => {
+           setSelectedCollaboration(null);
+           setShowApplicationForm(false);
+           setSubmissionStatus(null);
+           setApplication({ requesterName: "", requesterEmail: "", message: "", appliedDate: new Date().toISOString().split("T")[0] });
+        }}>
          <DialogContent className="sm:max-w-[650px] max-h-[80vh] flex flex-col">
            <DialogHeader>
-             <DialogTitle className="text-2xl">{selectedCollaboration?.title}</DialogTitle>
-             <DialogDescription>
-               Details about this collaboration opportunity.
-             </DialogDescription>
+             <DialogTitle>{selectedCollaboration?.title}</DialogTitle>
+             {!showApplicationForm ? (
+                <DialogDescription className="flex flex-col gap-1 text-sm pt-2">
+                    <span className="flex items-center gap-1.5"><User className="h-4 w-4"/> Creator: {selectedCollaboration?.creatorName || 'N/A'}</span>
+                    <span className="flex items-center gap-1.5"><Badge variant="secondary" className="text-xs">{selectedCollaboration?.contentCategory || selectedCollaboration?.niche || 'N/A'}</Badge></span>
+                    <span className="flex items-center gap-1.5"><Badge variant="outline" className="text-xs">{selectedCollaboration?.platform || 'N/A'}</Badge></span>
+                    <span className="flex items-center gap-1.5"><Clock className="h-4 w-4"/> Timeline/Posted: {selectedCollaboration?.timeline || formatDate(selectedCollaboration?.postedDate) || 'N/A'}</span>
+                </DialogDescription>
+             ) : (
+                <DialogDescription>
+                    Send a request to collaborate with {selectedCollaboration?.creatorName || 'this creator'}.
+                </DialogDescription>
+             )}
            </DialogHeader>
-
-            <ScrollArea className="flex-grow py-4 pr-6"> {/* Make content scrollable */}
-                <div className="space-y-3 text-sm">
-                    <p><strong className="text-foreground/80">Creator:</strong> {selectedCollaboration?.creatorName || 'N/A'}</p>
-                    <p><strong className="text-foreground/80">Category/Niche:</strong> {selectedCollaboration?.contentCategory || selectedCollaboration?.niche || 'N/A'}</p>
-                    <p><strong className="text-foreground/80">Platform:</strong> {selectedCollaboration?.platform || 'N/A'}</p>
-                    <p><strong className="text-foreground/80">Timeline/Posted:</strong> {selectedCollaboration?.timeline || formatDate(selectedCollaboration?.postedDate) || 'N/A'}</p>
-                    <p><strong className="text-foreground/80">Goal:</strong> {selectedCollaboration?.goal || 'N/A'}</p>
-                    <p><strong className="text-foreground/80">Looking For:</strong> {selectedCollaboration?.lookingFor || 'N/A'}</p>
-                    
-                    <div>
-                        <strong className="text-foreground/80 block mb-1">Description/Details:</strong>
-                        <p className="text-muted-foreground whitespace-pre-wrap">{selectedCollaboration?.description || selectedCollaboration?.details || 'No detailed description provided.'}</p>
-                    </div>
-
-                    {selectedCollaboration?.channelLink && (
-                        <p><Link href={selectedCollaboration.channelLink} className="text-primary hover:underline text-xs flex items-center gap-1" target="_blank" rel="noopener noreferrer">
-                            <LinkIcon className="h-3 w-3"/> View Creator's Channel
-                        </Link></p>
-                     )}
-                      {selectedCollaboration?.creatorProfileLink && (
-                         <p><Link href={selectedCollaboration.creatorProfileLink} className="text-primary hover:underline text-xs flex items-center gap-1" target="_blank" rel="noopener noreferrer">
-                            <User className="h-3 w-3"/> View Creator's Profile
-                         </Link></p>
-                      )}
-               </div>
+            
+            <ScrollArea className="flex-grow py-4 pr-6 -mx-6 px-6">
+                {!showApplicationForm ? (
+                    <div className="space-y-4">
+                        {selectedCollaboration?.goal && <div><h3 className="font-semibold text-md mb-1">Goal:</h3><p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedCollaboration.goal}</p></div>}
+                        {selectedCollaboration?.lookingFor && <div><h3 className="font-semibold text-md mb-1">Looking for:</h3><p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedCollaboration.lookingFor}</p></div>}
+                        <div>
+                            <h3 className="font-semibold text-md mb-1">Full Description/Details:</h3>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedCollaboration?.description || selectedCollaboration?.details || 'No detailed description provided.'}</p>
+                        </div>
+                        {selectedCollaboration?.channelLink && (
+                            <p><Link href={selectedCollaboration.channelLink} className="text-primary hover:underline text-xs flex items-center gap-1" target="_blank" rel="noopener noreferrer">
+                                <LinkIcon className="h-3 w-3"/> View Creator's Channel
+                            </Link></p>
+                         )}
+                          {selectedCollaboration?.creatorProfileLink && (
+                             <p><Link href={selectedCollaboration.creatorProfileLink} className="text-primary hover:underline text-xs flex items-center gap-1" target="_blank" rel="noopener noreferrer">
+                                <User className="h-3 w-3"/> View Creator's Profile
+                             </Link></p>
+                          )}
+                   </div>
+                ) : (
+                    <form id="collabRequestForm" onSubmit={handleApply} className="space-y-4">
+                        {submissionStatus && !submissionStatus.includes("successfully") && (
+                            <Alert variant="destructive" className="mb-4">
+                            <AlertTitle>Error</AlertTitle>
+                            <AlertDescription>{submissionStatus}</AlertDescription>
+                            </Alert>
+                        )}
+                        {submissionStatus && submissionStatus.includes("successfully") && (
+                            <Alert variant="default" className="mb-4 bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300">
+                                <AlertTitle className="text-current font-semibold">Success</AlertTitle>
+                                <AlertDescription className="text-current">{submissionStatus}</AlertDescription>
+                            </Alert>
+                        )}
+                        <div>
+                            <Label htmlFor="requesterName">Your Name</Label>
+                            <Input id="requesterName" name="requesterName" value={application.requesterName} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
+                        </div>
+                        <div>
+                            <Label htmlFor="requesterEmail">Your Email</Label>
+                            <Input id="requesterEmail" name="requesterEmail" type="email" value={application.requesterEmail} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
+                        </div>
+                        <div>
+                            <Label htmlFor="message">Message</Label>
+                            <Textarea
+                                id="message"
+                                name="message"
+                                rows={4}
+                                value={application.message}
+                                onChange={handleInputChange}
+                                required
+                                placeholder="Introduce yourself and explain why you'd be a good fit for this collaboration..."
+                                disabled={submissionStatus === 'Submitting...'}
+                                />
+                        </div>
+                         {/* Hidden field for appliedDate, auto-filled */}
+                         <input type="hidden" name="appliedDate" value={application.appliedDate} />
+                    </form>
+                )}
            </ScrollArea>
           
-           <div className="pt-4 border-t"> {/* Form section below scrollable content */}
-              {submissionStatus && (
-                <Alert variant={submissionStatus.includes("success") ? "default" : "destructive"} className="mb-4">
-                  <AlertTitle>{submissionStatus.includes("success") ? "Success" : "Error"}</AlertTitle>
-                  <AlertDescription>{submissionStatus}</AlertDescription>
-                </Alert>
-              )}
-              <form onSubmit={handleApply} className="space-y-4">
-                <div>
-                  <Label htmlFor="requesterName" className="text-right">Your Name</Label>
-                  <Input id="requesterName" name="requesterName" value={application.requesterName} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
-                </div>
-                <div>
-                  <Label htmlFor="requesterEmail" className="text-right">Your Email</Label>
-                  <Input id="requesterEmail" name="requesterEmail" type="email" value={application.requesterEmail} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
-                </div>
-                <div>
-                  <Label htmlFor="message" className="text-right">Message</Label>
-                  <textarea
-                      id="message"
-                      name="message"
-                      rows={4}
-                      value={application.message}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="Introduce yourself and explain why you'd be a good fit for this collaboration..."
-                      className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[80px] text-sm"
-                      disabled={submissionStatus === 'Submitting...'}
-                    />
-                </div>
-                 <DialogFooter>
-                   <DialogClose asChild>
-                      <Button type="button" variant="outline" disabled={submissionStatus === 'Submitting...'}>Cancel</Button>
-                   </DialogClose>
-                    <Button type="submit" disabled={submissionStatus === 'Submitting...'}>
-                      {submissionStatus === 'Submitting...' ? 'Submitting...' : 'Send Application'}
+           <DialogFooter className="pt-4 border-t mt-auto">
+             {!showApplicationForm ? (
+                <>
+                    <DialogClose asChild>
+                        <Button type="button" variant="outline">Cancel</Button>
+                    </DialogClose>
+                    <Button onClick={() => setShowApplicationForm(true)}>Request Collaboration</Button>
+                </>
+             ) : (
+                <>
+                    <Button type="button" variant="outline" onClick={() => { setShowApplicationForm(false); setSubmissionStatus(null); }}>Back to Details</Button>
+                    <Button type="submit" form="collabRequestForm" disabled={submissionStatus === 'Submitting...' || (submissionStatus && submissionStatus.includes("successfully"))}>
+                        {submissionStatus === 'Submitting...' ? 'Submitting...' : 'Send Request'}
                     </Button>
-                 </DialogFooter>
-              </form>
-            </div>
+                </>
+             )}
+           </DialogFooter>
          </DialogContent>
        </Dialog>
 

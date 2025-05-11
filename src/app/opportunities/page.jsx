@@ -11,10 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, MapPin, Briefcase, DollarSign, Filter, X, ArrowRight, Star, Award, Target, Users as UsersIcon, LogIn, CalendarDays, FileText } from "lucide-react";
+import { Search, MapPin, Briefcase, DollarSign, Filter, X, ArrowRight, Star, Award, Target, Users as UsersIcon, LogIn, CalendarDays, FileText, Info } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area"; // Import ScrollArea
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +30,7 @@ import { useRouter } from 'next/navigation';
 // How It Works Component
 const HowitWorks = () => (
   <div className="p-6 mb-12 bg-card rounded-lg border border-border/50 shadow-sm">
-    <h2 className="text-xl font-semibold mb-3 text-primary">How It Works</h2>
+    <h2 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2"><Info className="h-5 w-5"/>How It Works</h2>
     <ul className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
       <li>Browse available opportunities using the search bar and filters.</li>
       <li>Click 'View & Apply' on an opportunity that interests you to see full details.</li>
@@ -149,6 +149,7 @@ export default function OpportunitiesPage() {
   const [isClient, setIsClient] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginAlert, setShowLoginAlert] = useState(false);
+  const [showApplicationForm, setShowApplicationForm] = useState(false); // New state
   const router = useRouter();
 
   useEffect(() => {
@@ -162,7 +163,7 @@ export default function OpportunitiesPage() {
      if(opportunities.length > 0) {
         applyFilters(filters);
      }
-   }, [opportunities]);
+   }, [opportunities, filters]); // Added filters to dependency array
 
    const fetchOpportunities = async (loggedIn) => {
      setIsLoading(true);
@@ -199,7 +200,7 @@ export default function OpportunitiesPage() {
            setOpportunities(dummyOpportunities);
            setFilteredOpportunities(dummyOpportunities);
        }
-       if (loggedIn) {
+       if (loggedIn) { // Ensure empty state if logged in and error
             setOpportunities([]);
             setFilteredOpportunities([]);
        }
@@ -244,7 +245,15 @@ export default function OpportunitiesPage() {
       setShowLoginAlert(true);
     } else {
       setSelectedOpportunity(opportunity);
+      setShowApplicationForm(false); // Reset to show details first
       setSubmissionStatus(null);
+       // Reset application form fields when a new opportunity is selected
+      setApplication({
+        name: "",
+        email: "",
+        resumeUrl: "",
+        applicationDate: new Date().toISOString().split("T")[0],
+      });
     }
   };
 
@@ -277,15 +286,13 @@ export default function OpportunitiesPage() {
         }
       );
       setSubmissionStatus("Application submitted successfully!");
-      setApplication({
-        name: "",
-        email: "",
-        resumeUrl: "",
-        applicationDate: new Date().toISOString().split("T")[0],
-      });
-       setTimeout(() => {
+      // Do not close modal immediately, let user see the success message
+      // Optionally reset form fields if staying on the form
+      // setApplication({ name: "", email: "", resumeUrl: "", applicationDate: new Date().toISOString().split("T")[0] });
+       setTimeout(() => { // Close modal after a delay
           setSelectedOpportunity(null);
-       }, 1500);
+          setShowApplicationForm(false);
+       }, 2000);
     } catch (error) {
       console.error("Error applying for opportunity:", error);
       const errorMessage = error.response?.data?.message || "Failed to submit application. Please try again.";
@@ -313,7 +320,7 @@ export default function OpportunitiesPage() {
 
       <section className="space-y-12">
         <div className="text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-3">Why Use WContent Opportunities?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-3">Why Use Wcontent Opportunities?</h2>
           <p className="text-muted-foreground max-w-xl mx-auto">Connect directly with brands and businesses looking for your talent.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -439,9 +446,9 @@ export default function OpportunitiesPage() {
          <p className="text-muted-foreground max-w-xl mx-auto mb-12">Hear from creators who found opportunities here.</p>
          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
            {[
-             { quote: "Landed a great sponsored content deal through WContent!", name: "TechReviewer Pro", role: "Gadget Reviewer" },
+             { quote: "Landed a great sponsored content deal through Wcontent!", name: "TechReviewer Pro", role: "Gadget Reviewer" },
              { quote: "The travel opportunity I found here was a dream come true.", name: "Wanderlust Vlogs", role: "Travel Vlogger" },
-             { quote: "Consistent paid gigs keep my freelance career thriving. Thanks, WContent!", name: "Creative Spark", role: "Social Media Manager" }
+             { quote: "Consistent paid gigs keep my freelance career thriving. Thanks, Wcontent!", name: "Creative Spark", role: "Social Media Manager" }
            ].map((testimonial, index) => (
              <Card key={index} className="bg-card/80 border border-border/60 text-left">
                <CardContent className="pt-6">
@@ -476,67 +483,95 @@ export default function OpportunitiesPage() {
          </div>
        </section>
 
-       <Dialog open={!!selectedOpportunity} onOpenChange={() => setSelectedOpportunity(null)}>
-         <DialogContent className="sm:max-w-[650px] max-h-[80vh] flex flex-col"> {/* Allow vertical scroll */}
+        <Dialog open={!!selectedOpportunity} onOpenChange={() => {
+            setSelectedOpportunity(null);
+            setShowApplicationForm(false);
+            setSubmissionStatus(null);
+            setApplication({ name: "", email: "", resumeUrl: "", applicationDate: new Date().toISOString().split("T")[0] });
+        }}>
+         <DialogContent className="sm:max-w-[650px] max-h-[80vh] flex flex-col">
            <DialogHeader>
-             <DialogTitle className="text-2xl">{selectedOpportunity?.title}</DialogTitle>
-             <DialogDescription className="flex flex-col gap-1 text-sm">
-                <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4"/> {selectedOpportunity?.company}</span>
-                <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4"/> {selectedOpportunity?.location}</span>
-                <span className="flex items-center gap-1.5"><DollarSign className="h-4 w-4"/> {selectedOpportunity?.salaryRange}</span>
-                <span className="flex items-center gap-1.5"><FileText className="h-4 w-4"/> Type: {selectedOpportunity?.type}</span>
-             </DialogDescription>
+             <DialogTitle>{selectedOpportunity?.title}</DialogTitle>
+                {!showApplicationForm ? (
+                    <DialogDescription className="flex flex-col gap-1 text-sm pt-2">
+                        <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4"/> {selectedOpportunity?.company}</span>
+                        <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4"/> {selectedOpportunity?.location}</span>
+                        <span className="flex items-center gap-1.5"><DollarSign className="h-4 w-4"/> {selectedOpportunity?.salaryRange}</span>
+                        <span className="flex items-center gap-1.5"><FileText className="h-4 w-4"/> Type: {selectedOpportunity?.type}</span>
+                        {selectedOpportunity?.postedDate && <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4"/> Posted: {new Date(selectedOpportunity.postedDate).toLocaleDateString()}</span>}
+                    </DialogDescription>
+                ) : (
+                    <DialogDescription>
+                        Fill out the form to apply for this opportunity.
+                    </DialogDescription>
+                )}
            </DialogHeader>
             
-           <ScrollArea className="flex-grow py-4 pr-6"> {/* Make content scrollable */}
-             <div className="space-y-4">
-                <div>
-                    <h3 className="font-semibold text-md mb-1">Description:</h3>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedOpportunity?.description}</p>
-                </div>
-                {selectedOpportunity?.requirements && (
+           <ScrollArea className="flex-grow py-4 pr-6 -mx-6 px-6"> {/* Adjusted for Dialog padding */}
+             {!showApplicationForm ? (
+                <div className="space-y-4">
                     <div>
-                        <h3 className="font-semibold text-md mb-1">Requirements:</h3>
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedOpportunity.requirements}</p>
+                        <h3 className="font-semibold text-md mb-1">Full Description:</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedOpportunity?.description}</p>
                     </div>
-                )}
-             </div>
+                    {selectedOpportunity?.requirements && (
+                        <div>
+                            <h3 className="font-semibold text-md mb-1">Requirements:</h3>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedOpportunity.requirements}</p>
+                        </div>
+                    )}
+                </div>
+             ) : (
+                <form id="applicationFormOpportunities" onSubmit={handleApply} className="space-y-4">
+                    {submissionStatus && !submissionStatus.includes("successfully") && (
+                        <Alert variant="destructive" className="mb-4">
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{submissionStatus}</AlertDescription>
+                        </Alert>
+                    )}
+                    {submissionStatus && submissionStatus.includes("successfully") && (
+                         <Alert variant="default" className="mb-4 bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300">
+                            <AlertTitle className="text-current font-semibold">Success</AlertTitle>
+                            <AlertDescription className="text-current">{submissionStatus}</AlertDescription>
+                         </Alert>
+                    )}
+                    <div>
+                        <Label htmlFor="name">Name</Label>
+                        <Input id="name" name="name" value={application.name} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
+                    </div>
+                    <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" name="email" type="email" value={application.email} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
+                    </div>
+                    <div>
+                        <Label htmlFor="resumeUrl">Portfolio/Work URL</Label>
+                        <Input id="resumeUrl" name="resumeUrl" type="url" value={application.resumeUrl} onChange={handleInputChange} required placeholder="https://yourportfolio.com" disabled={submissionStatus === 'Submitting...'} />
+                    </div>
+                    <div>
+                        <Label htmlFor="applicationDate">Application Date</Label>
+                        <Input id="applicationDate" name="applicationDate" type="date" value={application.applicationDate} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
+                    </div>
+                </form>
+             )}
            </ScrollArea>
 
-           <div className="pt-4 border-t"> {/* Form section below scrollable content */}
-              {submissionStatus && (
-                <Alert variant={submissionStatus.includes("success") ? "default" : "destructive"} className="mb-4">
-                  <AlertTitle>{submissionStatus.includes("success") ? "Success" : "Error"}</AlertTitle>
-                  <AlertDescription>{submissionStatus}</AlertDescription>
-                </Alert>
-              )}
-              <form onSubmit={handleApply} className="space-y-4">
-                <div>
-                  <Label htmlFor="name" className="text-right">Name</Label>
-                  <Input id="name" name="name" value={application.name} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
-                </div>
-                <div>
-                  <Label htmlFor="email" className="text-right">Email</Label>
-                  <Input id="email" name="email" type="email" value={application.email} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
-                </div>
-                <div>
-                  <Label htmlFor="resumeUrl" className="text-right">Portfolio/Work URL</Label>
-                  <Input id="resumeUrl" name="resumeUrl" type="url" value={application.resumeUrl} onChange={handleInputChange} required placeholder="https://yourportfolio.com" disabled={submissionStatus === 'Submitting...'} />
-                </div>
-                <div>
-                  <Label htmlFor="applicationDate" className="text-right">Application Date</Label>
-                  <Input id="applicationDate" name="applicationDate" type="date" value={application.applicationDate} onChange={handleInputChange} required disabled={submissionStatus === 'Submitting...'} />
-                </div>
-                 <DialogFooter>
-                   <DialogClose asChild>
-                      <Button type="button" variant="outline" disabled={submissionStatus === 'Submitting...'}>Cancel</Button>
-                   </DialogClose>
-                    <Button type="submit" disabled={submissionStatus === 'Submitting...'}>
-                      {submissionStatus === 'Submitting...' ? 'Submitting...' : 'Submit Application'}
-                    </Button>
-                 </DialogFooter>
-              </form>
-            </div>
+            <DialogFooter className="pt-4 border-t mt-auto">
+                {!showApplicationForm ? (
+                    <>
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <Button onClick={() => setShowApplicationForm(true)}>Apply Now</Button>
+                    </>
+                ) : (
+                    <>
+                        <Button type="button" variant="outline" onClick={() => { setShowApplicationForm(false); setSubmissionStatus(null); }}>Back to Details</Button>
+                        <Button type="submit" form="applicationFormOpportunities" disabled={submissionStatus === 'Submitting...' || (submissionStatus && submissionStatus.includes("successfully"))}>
+                            {submissionStatus === 'Submitting...' ? 'Submitting...' : 'Submit Application'}
+                        </Button>
+                    </>
+                )}
+            </DialogFooter>
          </DialogContent>
        </Dialog>
 
