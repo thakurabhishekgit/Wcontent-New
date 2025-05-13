@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { ArrowRight, Zap, Lightbulb, Star, Brain, TrendingUp, DollarSign, Share2, CheckCircle, Search, Users as UsersIcon, Briefcase, FileText, Video, MessageSquare, Target as TargetIcon, BarChart2 } from 'lucide-react';
+import { ArrowRight, Zap, Lightbulb, Star, Brain, TrendingUp, DollarSign, Share2, CheckCircle, Search, Users as UsersIcon, Briefcase, FileText, Video, MessageSquare, Target as TargetIcon, BarChart2, LayoutGrid, Layers } from 'lucide-react';
 import WcontentLogo from '@/components/icons/wcontent-logo';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
@@ -75,29 +75,15 @@ export default function Home() {
   return (
     <div className="space-y-20 md:space-y-32 overflow-x-hidden"> {/* Added overflow-x-hidden */}
       {/* Hero Section */}
-      <section className="relative text-center py-20 md:py-32 min-h-[80vh] md:min-h-[90vh] flex flex-col justify-center items-center text-white overflow-hidden">
-        {/* Placeholder for 3D Animated SaaS Background */}
-        {/* Integrate libraries like Three.js, react-three-fiber, or Spline here for true 3D animation. */}
-        {/* The following Image serves as a static fallback. */}
-        <Image
-          src="https://picsum.photos/1600/900?random=saasHero&blur=1"
-          alt="Abstract background for Wcontent hero section"
-          data-ai-hint="futuristic abstract tech"
-          fill
-          priority
-          className="object-cover -z-10"
-        />
-        {/* Overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/70 to-black/80 -z-[5]"></div>
-
-        <div className="container mx-auto px-4 z-10 animate-fade-in">
+      <section className="text-center py-20 md:py-32 min-h-[80vh] md:min-h-[90vh] flex flex-col justify-center items-center bg-gradient-to-b from-background via-primary/10 to-background animate-fade-in overflow-hidden">
+        <div className="container mx-auto px-4 z-10">
           <div className="flex justify-center mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <WcontentLogo className="h-16 w-16 md:h-20 md:w-20 text-primary" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 animate-fade-in text-foreground" style={{ animationDelay: '0.4s' }}>
             Wcontent: The Ultimate Platform for Creators
           </h1>
-          <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto mb-10 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-10 animate-fade-in" style={{ animationDelay: '0.6s' }}>
             Generate ideas, predict performance, find opportunities, and collaborate with ease. Elevate your content game with AI-powered tools and a vibrant community.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in" style={{ animationDelay: '0.8s' }}>
@@ -106,14 +92,13 @@ export default function Home() {
                 Get Started Free <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="bg-white/10 border-white/50 backdrop-blur-sm hover:bg-white/20 text-white">
+            <Button asChild variant="outline" size="lg" className="text-foreground hover:bg-accent hover:text-accent-foreground border-border">
               <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
           </div>
         </div>
-        {/* Optional: Subtle down arrow or scroll hint */}
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce hidden md:block">
-            <ArrowRight className="h-6 w-6 text-white/70 rotate-90" />
+            <ArrowRight className="h-6 w-6 text-muted-foreground rotate-90" />
         </div>
       </section>
 
