@@ -22,7 +22,7 @@ export const metadata = {
   title: 'Wcontent',
   description: 'ultimate platform for creators',
   icons: {
-    icon: '/favicon.svg',
+    icon: '/favicon.svg', // Ensures metadata points to the SVG favicon
   },
 };
 
@@ -30,6 +30,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className="dark">
       <head>
+        {/* Manually link the SVG favicon for broader compatibility */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
       <body
@@ -43,7 +44,6 @@ export default function RootLayout({ children }) {
           <TooltipProvider delayDuration={0}>
             <Navbar />
             <main className="flex flex-col flex-1">
-               {/* Adjusted padding: pt-4 for top padding below navbar, pb-8 for bottom padding before footer */}
                <div className="flex-1 p-4 md:px-6 md:pt-6 md:pb-12">
                  {children}
                </div>
