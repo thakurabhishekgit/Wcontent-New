@@ -82,21 +82,24 @@ module.exports = {
   					height: '0'
   				}
   			},
-           'fade-in': { // Added fade-in keyframes
+           'fade-in': { 
               '0%': { opacity: '0', transform: 'translateY(10px)' },
               '100%': { opacity: '1', transform: 'translateY(0)' },
             },
+            'slide-in-from-bottom': { // Added slide-in from bottom
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            }
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out',
-           'fade-in': 'fade-in 0.8s ease-out forwards', // Added fade-in animation utility
+           'fade-in': 'fade-in 0.8s ease-out forwards', 
+           'slide-in-from-bottom': 'slide-in-from-bottom 0.5s ease-out forwards', // Added slide-in animation utility
   		},
-      // Removed textShadow configuration
   	}
   },
   plugins: [
      require("tailwindcss-animate"),
-     // Removed require('tailwindcss-textshadow')
    ],
 }
