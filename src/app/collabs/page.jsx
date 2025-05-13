@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, Filter, Users as UsersIcon, Target, Clock, X, MessageSquare, CalendarDays, Mail, User, ArrowRight, Star, Handshake, Zap, LogIn, Link as LinkIcon, Info } from "lucide-react";
+import { Search, Filter, Users as UsersIcon, Target, Clock, X, MessageSquare, CalendarDays, Mail, User, ArrowRight, Star, Handshake, Zap, LogIn, Link as LinkIcon, Info, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -28,18 +28,41 @@ import {
 import { useRouter } from 'next/navigation';
 import { Textarea } from "@/components/ui/textarea";
 
-// How It Works Component
+// How It Works Component (Styled)
 const HowitWorks = () => (
-  <section className="p-6 mb-12 bg-card rounded-lg border border-border/50 shadow-sm">
-    <h2 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2"><Info className="h-5 w-5"/>How Collaborations Work</h2>
-    <ul className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-      <li>Browse collaboration posts or use filters to find potential partners.</li>
-      <li>Click 'View & Request' to learn more about a specific collab idea.</li>
-      <li>Log in or sign up to send a message to the creator expressing your interest and ideas.</li>
-      <li>Connect and start creating amazing content together!</li>
-    </ul>
+  <section className="p-8 md:p-10 mb-12 bg-card rounded-xl border border-border/50 shadow-lg animate-fade-in">
+    <h2 className="text-2xl md:text-3xl font-bold mb-6 text-primary flex items-center gap-3"><Info className="h-7 w-7"/>How Collaborations Work</h2>
+    <ol className="list-decimal list-inside space-y-4 text-muted-foreground text-base">
+      <li className="leading-relaxed">Browse collaboration posts or use filters to find potential partners with similar interests or complementary audiences.</li>
+      <li className="leading-relaxed">Click 'View & Request' to learn more about a specific collab idea, including goals, creator details, and what they're looking for.</li>
+      <li className="leading-relaxed">Log in or sign up to send a personalized message to the creator expressing your interest and how you envision the collaboration.</li>
+      <li className="leading-relaxed">Connect, brainstorm, and start creating amazing content together, leveraging each other's strengths and communities!</li>
+    </ol>
   </section>
 );
+
+// Feature Card Component (Reused or adapted if needed)
+const FeatureCard = ({ icon: Icon, title, description, img, hint, delay }) => (
+   <Card className="flex flex-col overflow-hidden hover:shadow-xl transition-shadow duration-300 animate-fade-in border-border/50 bg-card/70" style={{ animationDelay: delay }}>
+     <CardHeader>
+       <Icon className="h-10 w-10 mb-3 text-primary" />
+       <CardTitle className="text-xl">{title}</CardTitle>
+       <CardDescription className="text-sm">{description}</CardDescription>
+     </CardHeader>
+     {img && (
+        <CardContent className="flex-grow flex items-end mt-auto">
+        <Image
+            src={img}
+            alt={title}
+            data-ai-hint={hint}
+            width={400}
+            height={200}
+            className="rounded-md object-cover w-full h-auto mt-4"
+        />
+        </CardContent>
+     )}
+   </Card>
+ );
 
 
 // Sidebar Filters Component
@@ -61,15 +84,15 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
   const collaborationTypes = ["Video Collab", "Podcast Guest Swap", "Instagram Collab", "Blog Post Collab", "Event/Workshop", "Challenge/Giveaway", "Other"];
 
   return (
-    <Card className="sticky top-20 self-start">
+    <Card className="sticky top-24 self-start shadow-lg border-border/50">
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Filter className="h-5 w-5" /> Filters
+        <CardTitle className="text-xl flex items-center gap-2">
+          <Filter className="h-5 w-5 text-primary" /> Filters
         </CardTitle>
-        <CardDescription>Find the perfect collab</CardDescription>
+        <CardDescription>Find the perfect collab partner.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-1">
+      <CardContent className="space-y-5">
+        <div className="space-y-1.5">
           <Label htmlFor="category-filter">Category / Niche</Label>
           <Select
              value={filters.contentCategory || 'all'}
@@ -77,9 +100,7 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
              id="category-filter"
              name="contentCategory"
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
+            <SelectTrigger className="py-2.5 text-base"><SelectValue placeholder="Select category" /></SelectTrigger>
             <SelectContent>
                <SelectItem value="all">All Categories</SelectItem>
                {contentCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
@@ -87,7 +108,7 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
           </Select>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-1.5">
            <Label htmlFor="type-filter">Collab Type</Label>
            <Select
               value={filters.collaborationType || 'all'}
@@ -95,9 +116,7 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
               id="type-filter"
               name="collaborationType"
            >
-             <SelectTrigger>
-               <SelectValue placeholder="Select type" />
-             </SelectTrigger>
+             <SelectTrigger className="py-2.5 text-base"><SelectValue placeholder="Select type" /></SelectTrigger>
              <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 {collaborationTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
@@ -105,7 +124,7 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
            </Select>
         </div>
 
-         <div className="space-y-1">
+         <div className="space-y-1.5">
             <Label htmlFor="timeline-filter">Timeline (Keyword)</Label>
             <Input
               id="timeline-filter"
@@ -113,21 +132,67 @@ const FilterSidebar = ({ filters, setFilters, applyFilters }) => {
               placeholder="e.g., Next Month, Flexible"
               value={filters.timeline || ''}
               onChange={handleInputChange}
+              className="py-2.5 text-base"
             />
          </div>
 
       </CardContent>
-       <CardFooter className="flex flex-col gap-2">
-           <Button onClick={() => applyFilters(filters)} className="w-full">Apply Filters</Button>
+       <CardFooter className="flex flex-col gap-2.5 pt-5">
+           <Button onClick={() => applyFilters(filters)} className="w-full text-base py-3" size="lg">Apply Filters</Button>
            {(filters.contentCategory || filters.collaborationType || filters.timeline) && (
-              <Button variant="outline" onClick={clearFilters} className="w-full flex items-center gap-1 text-xs">
-                 <X className="h-3 w-3"/> Clear Filters
+              <Button variant="ghost" onClick={clearFilters} className="w-full flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive">
+                 <X className="h-4 w-4"/> Clear Filters
               </Button>
            )}
        </CardFooter>
     </Card>
   );
 };
+
+// Pagination Controls Component
+const PaginationControls = ({ currentPage, totalPages, onPageChange }) => {
+  if (totalPages <= 1) return null;
+
+  const pageNumbers = [];
+  for (let i = 1; i <= totalPages; i++) {
+    pageNumbers.push(i);
+  }
+
+  return (
+    <div className="flex justify-center items-center space-x-2 mt-10 pt-6 border-t">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="text-base px-4 py-2"
+      >
+        Previous
+      </Button>
+      {pageNumbers.map((number) => (
+        <Button
+          key={number}
+          variant={currentPage === number ? "default" : "outline"}
+          size="icon"
+          className="h-10 w-10 text-base"
+          onClick={() => onPageChange(number)}
+        >
+          {number}
+        </Button>
+      ))}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="text-base px-4 py-2"
+      >
+        Next
+      </Button>
+    </div>
+  );
+};
+
 
 const formatDate = (dateString) => {
    if (!dateString) return 'N/A';
@@ -167,6 +232,8 @@ export default function CollaborationsPage() {
   const [showLoginAlert, setShowLoginAlert] = useState(false);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const router = useRouter();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9; // Or 8 for a 4x2 grid
 
 
   useEffect(() => {
@@ -178,9 +245,10 @@ export default function CollaborationsPage() {
 
   useEffect(() => {
     if (collaborations.length > 0) {
-      applyFilters(filters);
+      applyFilters(filters, searchTerm); // Apply search term as well
     }
-  }, [collaborations, filters]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [collaborations, filters, searchTerm]); // Add searchTerm to dependency array
 
   const fetchCollaborations = async (loggedIn) => {
     setIsLoading(true);
@@ -193,24 +261,20 @@ export default function CollaborationsPage() {
           if (Array.isArray(response.data)) {
              const collaborationsWithId = response.data.map(collab => ({
                 ...collab,
-                id: collab._id || collab.id // Ensure a unique ID
+                id: collab._id || collab.id 
              }));
             setCollaborations(collaborationsWithId);
-            setFilteredCollaborations(collaborationsWithId);
           } else {
-            console.error("API response is not an array:", response.data);
             setError("Received invalid data format from the server.");
             setCollaborations([]);
-            setFilteredCollaborations([]);
           }
        } else {
             await new Promise(resolve => setTimeout(resolve, 500));
              const dummyDataWithId = dummyCollabs.map((collab, index) => ({
                ...collab,
-               id: collab._id || `dummy-${index}` // Ensure a unique ID
+               id: collab._id || `dummy-${index}` 
              }));
             setCollaborations(dummyDataWithId);
-            setFilteredCollaborations(dummyDataWithId);
        }
     } catch (error) {
       console.error("Error fetching collaborations:", error);
@@ -223,11 +287,9 @@ export default function CollaborationsPage() {
               id: collab._id || `dummy-${index}`
             }));
           setCollaborations(dummyDataWithId);
-          setFilteredCollaborations(dummyDataWithId);
        }
        if (loggedIn) {
           setCollaborations([]);
-          setFilteredCollaborations([]);
        }
     } finally {
       setIsLoading(false);
@@ -235,8 +297,8 @@ export default function CollaborationsPage() {
   };
 
   const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-     applyFilters(filters, e.target.value);
+    const newSearchTerm = e.target.value;
+    setSearchTerm(newSearchTerm);
   };
 
   const applyFilters = (currentFilters, currentSearchTerm = searchTerm) => {
@@ -262,6 +324,7 @@ export default function CollaborationsPage() {
       }
 
       setFilteredCollaborations(tempCollaborations);
+      setCurrentPage(1); 
    };
 
 
@@ -302,7 +365,7 @@ export default function CollaborationsPage() {
 
        const payload = {
          ...application,
-         requesterId: userId || null
+         requesterId: userId || null // Ensure requesterId is included
        };
 
       const response = await axios.post(
@@ -326,59 +389,62 @@ export default function CollaborationsPage() {
     }
   };
 
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    const listingsSection = document.getElementById('collaborations-listings');
+    if (listingsSection) {
+      listingsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentCollaborations = filteredCollaborations.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredCollaborations.length / itemsPerPage);
+
+
    if (!isClient) {
-     return null;
+     return (
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="mt-4 text-muted-foreground">Loading Collaborations...</p>
+        </div>
+    );
    }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-16">
+    <div className="container mx-auto px-4 py-8 space-y-20 md:space-y-24">
 
-       <section className="text-center pt-8 pb-8 md:pt-12 md:pb-12">
-         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 bg-gradient-to-r from-primary via-teal-400 to-teal-600 bg-clip-text text-transparent">
-           Connect & Collaborate
-         </h1>
-         <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-           Find fellow content creators for joint projects, cross-promotions, and creative partnerships.
-            {!isLoggedIn && <span className="text-sm block text-primary mt-1">(Login to view and apply to all collaborations)</span>}
-         </p>
+       <section className="text-center py-12 md:py-16 bg-gradient-to-b from-background via-primary/5 to-background animate-fade-in">
+         <div className="container mx-auto px-4">
+            <UsersIcon className="h-16 w-16 text-primary mx-auto mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }} />
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            Connect & Collaborate
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            Find fellow content creators for joint projects, cross-promotions, and creative partnerships.
+                {!isLoggedIn && <span className="text-sm block text-primary mt-1 animate-fade-in" style={{ animationDelay: '0.8s' }}>(Login to view and request collaborations)</span>}
+            </p>
+         </div>
        </section>
 
-       <section className="space-y-12">
+       <section className="space-y-12 animate-fade-in" style={{ animationDelay: '0.8s' }}>
         <div className="text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-3">Why Collaborate on Wcontent?</h2>
           <p className="text-muted-foreground max-w-xl mx-auto">Expand your reach, spark creativity, and build your network.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {[
-            { icon: UsersIcon, title: 'Find Partners', description: 'Discover creators in your niche or explore new ones.', hint: 'collaboration network people', imageSeed: 10 },
-            { icon: Zap, title: 'Spark Creativity', description: 'Brainstorm ideas and create unique content together.', hint: 'lightbulb innovation ideas', imageSeed: 11 },
-            { icon: Target, title: 'Reach New Audiences', description: 'Cross-promote to grow your combined following.', hint: 'audience growth charts', imageSeed: 12 },
-            { icon: Handshake, title: 'Build Relationships', description: 'Network with peers and build lasting partnerships.', hint: 'partnership agreement deal', imageSeed: 13 },
-          ].map((feature, index) => (
-            <Card key={index} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300">
-              <CardHeader>
-                <feature.icon className="h-8 w-8 mb-2 text-primary" />
-                <CardTitle>{feature.title}</CardTitle>
-                <CardDescription>{feature.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow flex items-end">
-                <Image
-                  src={`https://picsum.photos/400/250?random=${feature.imageSeed}&grayscale&blur=1`}
-                  alt={feature.title}
-                  data-ai-hint={feature.hint}
-                  width={400}
-                  height={250}
-                  className="rounded-md object-cover w-full h-auto mt-4"
-                />
-              </CardContent>
-            </Card>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"> {/* Changed to 3 cols */}
+          <FeatureCard icon={UsersIcon} title='Find Partners' description='Discover creators in your niche or explore new ones.' img="https://picsum.photos/400/200?random=collabPartners&grayscale&blur=1" hint='collaboration network people' delay="1s" />
+          <FeatureCard icon={Zap} title='Spark Creativity' description='Brainstorm ideas and create unique content together.' img="https://picsum.photos/400/200?random=collabCreativity&grayscale&blur=1" hint='lightbulb innovation ideas' delay="1.2s" />
+          <FeatureCard icon={Target} title='Reach New Audiences' description='Cross-promote to grow your combined following.' img="https://picsum.photos/400/200?random=collabAudience&grayscale&blur=1" hint='audience growth charts' delay="1.4s" />
         </div>
       </section>
 
-       <HowitWorks />
+       <section className="animate-fade-in" style={{ animationDelay: '1s' }}>
+        <HowitWorks />
+      </section>
 
-       <section className="space-y-8">
+       <section id="collaborations-listings" className="space-y-8 scroll-mt-20 animate-fade-in" style={{ animationDelay: '1.2s' }}>
           <h2 className="text-3xl md:text-4xl font-bold text-center">Explore Collaborations</h2>
           <div className="flex flex-col md:flex-row gap-8">
             <div className="w-full md:w-1/4 lg:w-1/5">
@@ -387,11 +453,11 @@ export default function CollaborationsPage() {
 
             <div className="w-full md:w-3/4 lg:w-4/5 space-y-6">
                 <div className="relative">
-                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                    <Input
                      type="search"
                      placeholder="Search by title, creator, description..."
-                     className="pl-10"
+                     className="pl-10 py-3 text-base"
                      value={searchTerm}
                      onChange={handleSearchChange}
                    />
@@ -399,8 +465,8 @@ export default function CollaborationsPage() {
 
                {isLoading && (
                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {[...Array(6)].map((_, i) => (
-                         <Card key={i}>
+                      {[...Array(itemsPerPage)].map((_, i) => (
+                         <Card key={i} className="animate-pulse">
                            <CardHeader><Skeleton className="h-5 w-3/4" /></CardHeader>
                            <CardContent className="space-y-2">
                              <Skeleton className="h-4 w-1/2" />
@@ -421,10 +487,10 @@ export default function CollaborationsPage() {
                  </Alert>
                )}
 
-                {!isLoading && !error && filteredCollaborations.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredCollaborations.map((collab) => (
-                      <Card key={collab.id} className="flex flex-col hover:shadow-md transition-shadow">
+                {!isLoading && !error && currentCollaborations.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-in-from-bottom" style={{ animationDelay: '0.2s' }}>
+                    {currentCollaborations.map((collab, index) => (
+                      <Card key={collab.id || index} className="flex flex-col hover:shadow-lg transition-shadow duration-300 animate-fade-in" style={{ animationDelay: `${index * 0.05}s`}}>
                         <CardHeader>
                           <CardTitle className="text-lg line-clamp-2">{collab.title}</CardTitle>
                            <div className="flex flex-wrap gap-1 pt-1">
@@ -436,10 +502,12 @@ export default function CollaborationsPage() {
                                  By: {collab.creatorName}
                               </CardDescription>
                             )}
+                             <CardDescription className="text-xs pt-1 flex items-center">
+                                <Clock className="h-3 w-3 mr-1"/> Timeline: {collab.timeline || formatDate(collab.postedDate) || 'N/A'}
+                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex-grow space-y-2">
                            <p className="text-sm text-muted-foreground line-clamp-3">{collab.description || collab.details || 'No description.'}</p>
-                           <p className="text-sm flex items-center pt-1"><Clock className="h-4 w-4 mr-1 text-primary"/>Timeline: {collab.timeline || formatDate(collab.postedDate) || 'N/A'}</p>
                            {collab.goal && <p className="text-sm flex items-center pt-1"><Target className="h-4 w-4 mr-1 text-primary"/>Goal: {collab.goal}</p>}
                         </CardContent>
                         <CardFooter>
@@ -448,7 +516,7 @@ export default function CollaborationsPage() {
                             onClick={() => handleCardClick(collab)}
                             variant="outline"
                           >
-                             {isLoggedIn ? 'View & Request Collab' : 'View Details (Login to Request)'}
+                             {isLoggedIn ? 'View & Request Collab' : 'View Details'} <ArrowRight className="ml-2 h-4 w-4"/>
                           </Button>
                         </CardFooter>
                       </Card>
@@ -456,19 +524,20 @@ export default function CollaborationsPage() {
                   </div>
                 )}
                 {!isLoading && !error && filteredCollaborations.length === 0 && (
-                   <Card className="text-center py-10 border-dashed">
-                      <CardContent className="flex flex-col items-center gap-2">
+                   <Card className="text-center py-10 border-dashed bg-card/50">
+                      <CardContent className="flex flex-col items-center gap-3">
                         <UsersIcon className="h-12 w-12 text-muted-foreground" />
-                        <p className="text-muted-foreground">No collaborations match your criteria.</p>
-                        <p className="text-xs text-muted-foreground">Try adjusting your search or filters.</p>
+                        <p className="text-lg text-muted-foreground">No collaborations match your criteria.</p>
+                        <p className="text-sm text-muted-foreground">Try adjusting your search or filters.</p>
                       </CardContent>
                    </Card>
                 )}
+                 <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
               </div>
             </div>
        </section>
 
-       <section className="text-center">
+       <section className="text-center animate-fade-in" style={{ animationDelay: '1.4s' }}>
          <h2 className="text-3xl md:text-4xl font-bold mb-3">Collaboration Successes</h2>
          <p className="text-muted-foreground max-w-xl mx-auto mb-12">See what creators achieved by teaming up.</p>
          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -477,10 +546,10 @@ export default function CollaborationsPage() {
              { quote: "Found the perfect podcast guest swap partner here.", name: "Podcast Network", role: "Podcast Producers", imageSeed: "collabSuccess2" },
              { quote: "Collaborating on a blog post was seamless and boosted both our SEO.", name: "Niche Bloggers", role: "Travel Writers", imageSeed: "collabSuccess3" }
            ].map((testimonial, index) => (
-             <Card key={index} className="bg-card/80 border border-border/60 text-left">
+             <Card key={index} className="bg-card/80 border border-border/60 text-left hover:shadow-lg transition-shadow duration-300 animate-slide-in-from-bottom" style={{ animationDelay: `${index * 0.15}s`}}>
                 <CardHeader className="items-center">
                    <Image
-                      src={`https://picsum.photos/100/100?random=${testimonial.imageSeed}&grayscale`}
+                      src={`https://picsum.photos/100/100?random=${testimonial.imageSeed}&grayscale&blur=1`}
                       alt={testimonial.name}
                       data-ai-hint="person portrait professional"
                       width={80}
@@ -501,19 +570,19 @@ export default function CollaborationsPage() {
          </div>
        </section>
 
-       <section className="text-center bg-gradient-to-r from-teal-900/30 via-background to-teal-900/30 py-16 rounded-lg border border-teal-800/50">
+       <section className="text-center bg-gradient-to-r from-primary/10 via-background to-primary/20 py-16 rounded-xl border border-primary/30 animate-fade-in" style={{ animationDelay: '1.6s' }}>
          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Collaborate?</h2>
          <p className="text-lg text-foreground/80 mb-8 max-w-2xl mx-auto">
            Post your own collaboration idea or find your next creative partner today!
          </p>
-         <div className="flex justify-center gap-4">
-            <Button asChild size="lg">
+         <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button asChild size="lg" className="text-base py-3">
               <Link href="/dashboard/collabs/new">
                 Post Your Collab Idea <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             {!isLoggedIn && (
-                <Button asChild variant="outline" size="lg">
+                <Button asChild variant="outline" size="lg" className="text-base py-3">
                   <Link href="/auth">Login / Sign Up</Link>
                 </Button>
              )}
@@ -526,9 +595,9 @@ export default function CollaborationsPage() {
            setSubmissionStatus(null);
            setApplication({ requesterName: "", requesterEmail: "", message: "", appliedDate: new Date().toISOString().split("T")[0] });
         }}>
-         <DialogContent className="sm:max-w-[650px] max-h-[85vh] flex flex-col"> {/* Increased max-h */}
+         <DialogContent className="sm:max-w-[650px] max-h-[85vh] flex flex-col"> 
            <DialogHeader>
-             <DialogTitle>{selectedCollaboration?.title}</DialogTitle>
+             <DialogTitle className="text-2xl">{selectedCollaboration?.title}</DialogTitle>
              {!showApplicationForm ? (
                 <DialogDescription className="flex flex-col gap-1 text-sm pt-2">
                     <span className="flex items-center gap-1.5"><User className="h-4 w-4"/> Creator: {selectedCollaboration?.creatorName || 'N/A'}</span>
@@ -546,11 +615,11 @@ export default function CollaborationsPage() {
             <ScrollArea className="flex-grow py-4 pr-6 -mx-6 px-6">
                 {!showApplicationForm ? (
                     <div className="space-y-4">
-                        {selectedCollaboration?.goal && <div><h3 className="font-semibold text-md mb-1">Goal:</h3><p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedCollaboration.goal}</p></div>}
-                        {selectedCollaboration?.lookingFor && <div><h3 className="font-semibold text-md mb-1">Looking for:</h3><p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedCollaboration.lookingFor}</p></div>}
+                        {selectedCollaboration?.goal && <div><h3 className="font-semibold text-md mb-1">Goal:</h3><p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{selectedCollaboration.goal}</p></div>}
+                        {selectedCollaboration?.lookingFor && <div><h3 className="font-semibold text-md mb-1">Looking for:</h3><p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{selectedCollaboration.lookingFor}</p></div>}
                         <div>
                             <h3 className="font-semibold text-md mb-1">Full Description/Details:</h3>
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedCollaboration?.description || selectedCollaboration?.details || 'No detailed description provided.'}</p>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{selectedCollaboration?.description || selectedCollaboration?.details || 'No detailed description provided.'}</p>
                         </div>
                         {selectedCollaboration?.channelLink && (
                             <p><Link href={selectedCollaboration.channelLink} className="text-primary hover:underline text-xs flex items-center gap-1" target="_blank" rel="noopener noreferrer">
@@ -600,7 +669,7 @@ export default function CollaborationsPage() {
                         </div>
                          <div>
                             <Label htmlFor="appliedDateCollab">Application Date</Label>
-                            <Input id="appliedDateCollab" name="appliedDate" type="date" value={application.appliedDate} onChange={handleInputChange} required disabled={true} />
+                            <Input id="appliedDateCollab" name="appliedDate" type="date" value={application.appliedDate} readOnly disabled className="bg-muted/50"/>
                          </div>
                     </form>
                 )}
@@ -618,7 +687,7 @@ export default function CollaborationsPage() {
                 <>
                     <Button type="button" variant="outline" onClick={() => { setShowApplicationForm(false); setSubmissionStatus(null); }}>Back to Details</Button>
                     <Button type="submit" form="collabRequestForm" disabled={submissionStatus === 'Submitting...' || (submissionStatus && submissionStatus.includes("successfully"))}>
-                        {submissionStatus === 'Submitting...' ? 'Submitting...' : 'Send Request'}
+                        {submissionStatus === 'Submitting...' ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Submitting...</>) : 'Send Request'}
                     </Button>
                 </>
              )}
@@ -640,7 +709,6 @@ export default function CollaborationsPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
     </div>
   );
 }
