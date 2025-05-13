@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, LogOut, Loader2, User, Settings, LayoutDashboard, ChevronDown } from 'lucide-react';
+import { Menu, LogOut, Loader2, User, Settings, LayoutDashboard, ChevronDown, PlusCircle, Briefcase, Inbox, Users as UsersIcon } from 'lucide-react'; // Added PlusCircle, Briefcase, Inbox, UsersIcon
 import { useState, useEffect } from 'react';
 import WcontentLogo from '@/components/icons/wcontent-logo';
 import {
@@ -27,6 +27,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 
 
@@ -104,7 +105,7 @@ export default function Navbar() {
                 <Menu className="h-5 w-5" />
              </Button>
            </div>
-           <nav className="hidden flex-1 items-center space-x-4 md:flex justify-end">
+           <nav className="hidden flex-1 items-center justify-end md:flex">
               <Button variant="outline" disabled>Loading...</Button>
            </nav>
         </div>
@@ -152,21 +153,55 @@ export default function Navbar() {
                         <ChevronDown className="h-4 w-4 text-foreground/60"/>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-60"> {/* Increased width for more items */}
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                        <Link href="/dashboard" className="flex items-center">
-                            <LayoutDashboard className="mr-2 h-4 w-4" />
-                            <span>Dashboard</span>
-                        </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <Link href="/dashboard/update" className="flex items-center">
-                            <User className="mr-2 h-4 w-4" />
-                            <span>Profile Settings</span>
-                        </Link>
-                    </DropdownMenuItem>
+                    <DropdownMenuGroup>
+                        <DropdownMenuItem asChild>
+                            <Link href="/dashboard" className="flex items-center">
+                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                <span>Dashboard</span>
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href="/dashboard/update" className="flex items-center">
+                                <User className="mr-2 h-4 w-4" />
+                                <span>Profile Settings</span>
+                            </Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                        <DropdownMenuLabel>Opportunities</DropdownMenuLabel>
+                        <DropdownMenuItem asChild>
+                            <Link href="/dashboard/opportunities/new" className="flex items-center">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                <span>Post Opportunity</span>
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href="/dashboard/opportunities/myopportunities" className="flex items-center">
+                                <Briefcase className="mr-2 h-4 w-4" />
+                                <span>My Opportunities</span>
+                            </Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                     <DropdownMenuGroup>
+                        <DropdownMenuLabel>Collaborations</DropdownMenuLabel>
+                        <DropdownMenuItem asChild>
+                            <Link href="/dashboard/collabs/new" className="flex items-center">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                <span>Post Collaboration</span>
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href="/dashboard/collabs/myrequests" className="flex items-center">
+                                <UsersIcon className="mr-2 h-4 w-4" />
+                                <span>My Collaborations</span>
+                            </Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <AlertDialogTrigger asChild>
                         <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive flex items-center cursor-pointer" disabled={isLoggingOut}>
@@ -203,7 +238,7 @@ export default function Navbar() {
                      <WcontentLogo className="h-6 w-6" />
                      <SheetTitle className="font-semibold text-md">Wcontent</SheetTitle>
                   </Link>
-                 <SheetDescription className="sr-only">Mobile navigation menu</SheetDescription>
+                 <SheetDescription className="sr-only">Mobile navigation menu</SheetDescription> {/* Added for accessibility */}
                </SheetHeader>
 
               <div className="flex-grow flex flex-col justify-between">
@@ -238,10 +273,16 @@ export default function Navbar() {
                             >
                             <User className="h-5 w-5" /> {username || 'Profile'}
                         </Link>
+                        {/* Mobile specific dashboard links */}
+                        <Link href="/dashboard/opportunities/new" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-foreground/80"><PlusCircle className="mr-2 h-4 w-4" />Post Opportunity</Link>
+                        <Link href="/dashboard/opportunities/myopportunities" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-foreground/80"><Briefcase className="mr-2 h-4 w-4" />My Opportunities</Link>
+                        <Link href="/dashboard/collabs/new" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-foreground/80"><PlusCircle className="mr-2 h-4 w-4" />Post Collab</Link>
+                        <Link href="/dashboard/collabs/myrequests" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-foreground/80"><UsersIcon className="mr-2 h-4 w-4" />My Collabs</Link>
+                        
                         <AlertDialogTrigger asChild>
                             <Button
                             variant="ghost"
-                            className="w-full justify-start px-3 py-2 text-base font-medium transition-colors hover:bg-destructive/10 text-destructive"
+                            className="w-full justify-start px-3 py-2 text-base font-medium transition-colors hover:bg-destructive/10 text-destructive mt-2"
                             disabled={isLoggingOut}
                             >
                                 {isLoggingOut ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <LogOut className="mr-2 h-5 w-5" />}
