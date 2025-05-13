@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from "react";
@@ -8,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, Youtube, Lightbulb, Loader2, LogIn, Search, TrendingUp, DollarSign, Users, Video, Target, BarChart as BarChartIcon, HelpCircle, LineChart, UserCheck, Clock, Brain, CheckCircleIcon, ExternalLink, MapPin } from "lucide-react";
+import { Terminal, Youtube, Lightbulb, Loader2, LogIn, Search, TrendingUp, DollarSign, Users, Video, Target, BarChart as BarChartIcon, HelpCircle, LineChart, UserCheck, Clock, Brain, CheckCircleIcon, ExternalLink, MapPin, UploadCloud, Palette, CalendarDays, Users2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,8 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from 'next/navigation';
 import { Label } from "@/components/ui/label";
-// Removed Select as platform selection is removed for this specific feature part
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
@@ -66,10 +66,16 @@ export default function Ml() {
   const router = useRouter();
 
   const [audienceGrowthInputs, setAudienceGrowthInputs] = useState({
-    channelHandle: "", // Will be pre-filled if available
+    channelHandle: "", 
     contentType: "",
     ideaDescription: "",
-    // Removed: platform, uploadFrequency, adSpend, targetAudienceAge, targetAudienceLocation, manualSubscribers, manualVideoCount
+    platform: "YouTube", // Default to YouTube
+    uploadFrequency: "weekly",
+    adSpend: 0,
+    targetAudienceAge: "18-34",
+    targetAudienceLocation: "Global",
+    manualSubscribers: "", // For non-YouTube platforms
+    manualVideoCount: "",  // For non-YouTube platforms
   });
   const [channelStats, setChannelStats] = useState(null);
   const [growthRetentionPrediction, setGrowthRetentionPrediction] = useState(null);
@@ -180,9 +186,15 @@ export default function Ml() {
     setGrowthRetentionError("");
   };
   
+  const handlePlatformChange = (value) => {
+    setAudienceGrowthInputs(prev => ({ ...prev, platform: value, manualSubscribers: "", manualVideoCount: "" })); // Reset manual fields
+    setGrowthRetentionError("");
+    setGrowthRetentionPrediction(null);
+  };
+
   const fetchChannelIdByHandle = async (handle) => {
     if (!YOUTUBE_API_KEY) {
-        throw new Error("YouTube API Key is not configured. Please set NEXT_PUBLIC_YOUTUBE_API_KEY in your environment variables.");
+        throw new Error("YouTube API Key is not configured or is invalid. Please set NEXT_PUBLIC_YOUTUBE_API_KEY in your environment variables. You can get a key from the Google Cloud Console.");
     }
     const cleanHandle = handle.startsWith('@') ? handle.substring(1) : handle;
     const url = `https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${cleanHandle}&key=${YOUTUBE_API_KEY}`;
@@ -192,6 +204,7 @@ export default function Ml() {
       if (data.items && data.items.length > 0) {
         return data.items[0].id;
       } else {
+        // If handle lookup fails, check if the input itself might be a channel ID
         if (cleanHandle.startsWith('UC') && cleanHandle.length > 20) return cleanHandle;
         throw new Error("Channel handle not found or invalid. Try using the Channel ID (starts with UC...).");
       }
@@ -203,7 +216,7 @@ export default function Ml() {
 
   const fetchChannelStatistics = async (channelId) => {
      if (!YOUTUBE_API_KEY) {
-        throw new Error("YouTube API Key is not configured.");
+        throw new Error("YouTube API Key is not configured or is invalid. Please set NEXT_PUBLIC_YOUTUBE_API_KEY in your environment variables. You can get a key from the Google Cloud Console.");
     }
     const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics,contentDetails,topicDetails&id=${channelId}&key=${YOUTUBE_API_KEY}`;
     try {
@@ -212,7 +225,7 @@ export default function Ml() {
       if (data.items && data.items.length > 0) {
         return data.items[0];
       } else {
-        throw new Error("Channel statistics not found. Ensure the Channel ID is correct.");
+        throw new Error("Channel statistics not found. Ensure the Channel ID is correct and the API key has permissions.");
       }
     } catch (error)
      {
@@ -227,9 +240,22 @@ export default function Ml() {
     const currentVideos = parseInt(stats.statistics.videoCount, 10) || 0;
     const viewCount = stats.statistics?.viewCount ? parseInt(stats.statistics.viewCount, 10) : 0;
     
-    // Simplified monthly growth rate - can be made more complex
+    // Base monthly growth rate
     let monthlyGrowthRate = 0.01 + (Math.random() * 0.02); // Base 1-3% monthly
-    if (inputs.contentType.toLowerCase().includes("gaming") || inputs.contentType.toLowerCase().includes("entertainment")) monthlyGrowthRate *= 1.1;
+
+    // Adjust growth rate based on content type
+    if (inputs.contentType.toLowerCase().includes("gaming") || inputs.contentType.toLowerCase().includes("entertainment")) monthlyGrowthRate *= 1.2;
+    if (inputs.contentType.toLowerCase().includes("education") || inputs.contentType.toLowerCase().includes("tutorial")) monthlyGrowthRate *= 1.1;
+    
+    // Adjust based on upload frequency
+    if(inputs.uploadFrequency === "daily") monthlyGrowthRate *= 1.15;
+    if(inputs.uploadFrequency === "multiple_weekly") monthlyGrowthRate *= 1.1;
+    if(inputs.uploadFrequency === "monthly") monthlyGrowthRate *= 0.9;
+
+    // Adjust based on ad spend (very simplified)
+    if (inputs.adSpend > 0 && inputs.adSpend <= 100) monthlyGrowthRate *= 1.05;
+    if (inputs.adSpend > 100 && inputs.adSpend <= 500) monthlyGrowthRate *= 1.1;
+    if (inputs.adSpend > 500) monthlyGrowthRate *= 1.15;
 
 
     const predictedSubscribersNextMonth = Math.floor(currentSubs * (1 + monthlyGrowthRate));
@@ -289,11 +315,20 @@ export default function Ml() {
   const handlePredictAudienceGrowth = async () => {
     if (checkPredictionLimit()) return;
 
-    const { channelHandle, contentType, ideaDescription } = audienceGrowthInputs;
-    if (!channelHandle || !contentType || !ideaDescription) {
-      setGrowthRetentionError("Please fill in YouTube Channel Handle/ID, Planned Content Type, and Idea Description.");
+    const { channelHandle, contentType, ideaDescription, platform, manualSubscribers, manualVideoCount } = audienceGrowthInputs;
+    if (!contentType || !ideaDescription) {
+      setGrowthRetentionError("Please fill in Planned Content Type and Idea Description.");
       return;
     }
+    if (platform === "YouTube" && !channelHandle) {
+        setGrowthRetentionError("Please provide your YouTube Channel Handle or ID.");
+        return;
+    }
+    if (platform !== "YouTube" && (!manualSubscribers || !manualVideoCount)) {
+        setGrowthRetentionError("Please provide current subscriber and video counts for non-YouTube platforms.");
+        return;
+    }
+
 
     setGrowthRetentionLoading(true);
     setGrowthRetentionError("");
@@ -301,9 +336,23 @@ export default function Ml() {
     setGrowthRetentionPrediction(null);
 
     try {
-      const id = await fetchChannelIdByHandle(channelHandle);
-      const stats = await fetchChannelStatistics(id);
-      setChannelStats(stats); 
+      let stats;
+      if (platform === "YouTube") {
+          const id = await fetchChannelIdByHandle(channelHandle);
+          stats = await fetchChannelStatistics(id);
+          setChannelStats(stats);
+      } else {
+          // Simulate stats for non-YouTube platforms
+          stats = {
+              statistics: {
+                  subscriberCount: manualSubscribers,
+                  videoCount: manualVideoCount,
+                  viewCount: (parseInt(manualSubscribers,10) * 100 * (Math.random() * 0.5 + 0.5)).toString(), // Rough estimate for views
+              },
+              topicDetails: { topicCategories: [contentType] } // Use content type as topic
+          };
+          setChannelStats(stats); // Store these simulated stats too
+      }
 
       const prediction = simulateGrowthAndRetention(stats, audienceGrowthInputs);
       setGrowthRetentionPrediction(prediction);
@@ -362,7 +411,7 @@ export default function Ml() {
             title="Comment Sentiment Analysis"
             description="Quickly understand what your audience thinks by analyzing YouTube comment sections. Identify key themes and overall sentiment."
             img="https://picsum.photos/400/200?random=predictSentiment&grayscale&blur=1"
-            hint="audience feedback analytics graph"
+            hint="audience feedback analytics"
             delay="1s"
           />
           <PredictFeatureCard
@@ -370,7 +419,7 @@ export default function Ml() {
             title="AI-Powered Improvement Strategies"
             description="Get actionable, AI-generated suggestions on how to refine your content based on audience feedback and performance data."
             img="https://picsum.photos/400/200?random=predictStrategy&grayscale&blur=1"
-            hint="ai brain gears strategy"
+            hint="ai brain strategy"
             delay="1.2s"
           />
            <PredictFeatureCard
@@ -378,7 +427,7 @@ export default function Ml() {
              title="Audience Growth Forecaster"
              description="Estimate subscriber growth and audience retention based on your channel statistics and planned content strategies. Make informed decisions to expand your reach."
              img="https://picsum.photos/400/200?random=predictGrowth&grayscale&blur=1"
-             hint="growth chart arrow upward analytics"
+             hint="growth chart analytics"
              delay="1.4s"
            />
         </div>
@@ -485,7 +534,7 @@ export default function Ml() {
              <LineChart className="h-12 w-12 mx-auto text-primary mb-4" />
              <h2 className="text-3xl md:text-4xl font-bold">Audience Growth &amp; Retention Forecaster</h2>
              <p className="text-muted-foreground max-w-xl mx-auto mt-2">
-                Input your YouTube channel details and planned content to get an AI-simulated forecast for subscriber growth and audience retention.
+                Input your channel details and planned content to get an AI-simulated forecast for subscriber growth and audience retention.
              </p>
           </div>
            <Card className="max-w-4xl mx-auto shadow-xl border-border/50">
@@ -497,11 +546,40 @@ export default function Ml() {
             </CardHeader>
              <CardContent className="max-w-3xl mx-auto space-y-6">
                 {/* Inputs for Audience Growth Forecaster */}
-                <div className="space-y-2">
-                    <Label htmlFor="channelHandle" className="flex items-center gap-1"><Youtube className="h-4 w-4"/> YouTube Channel Handle/ID</Label>
-                    <Input id="channelHandle" name="channelHandle" value={audienceGrowthInputs.channelHandle} onChange={handleAudienceGrowthInputChange} placeholder="e.g., @YourChannelHandle or UCxxxx" disabled={growthRetentionLoading || (!isLoggedIn && predictionCount >=1 && !growthRetentionPrediction)} required />
-                    <p className="text-xs text-muted-foreground">Your Channel ID from your Wcontent profile is pre-filled if available.</p>
-                </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="platform" className="flex items-center gap-1"><Palette className="h-4 w-4"/> Platform</Label>
+                        <Select onValueChange={handlePlatformChange} value={audienceGrowthInputs.platform} disabled={growthRetentionLoading || (!isLoggedIn && predictionCount >=1 && !growthRetentionPrediction)}>
+                            <SelectTrigger id="platform"><SelectValue placeholder="Select platform" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="YouTube">YouTube</SelectItem>
+                                <SelectItem value="Instagram">Instagram</SelectItem>
+                                {/* Add other platforms as needed */}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     {audienceGrowthInputs.platform === "YouTube" && (
+                        <div className="space-y-2">
+                            <Label htmlFor="channelHandle" className="flex items-center gap-1"><Youtube className="h-4 w-4"/> YouTube Channel Handle/ID</Label>
+                            <Input id="channelHandle" name="channelHandle" value={audienceGrowthInputs.channelHandle} onChange={handleAudienceGrowthInputChange} placeholder="e.g., @YourChannelHandle or UCxxxx" disabled={growthRetentionLoading || (!isLoggedIn && predictionCount >=1 && !growthRetentionPrediction)} required />
+                            <p className="text-xs text-muted-foreground">Your Channel ID from profile is pre-filled if available.</p>
+                        </div>
+                     )}
+                 </div>
+
+                {audienceGrowthInputs.platform !== "YouTube" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="manualSubscribers" className="flex items-center gap-1"><Users2 className="h-4 w-4"/> Current Subscribers/Followers</Label>
+                            <Input id="manualSubscribers" name="manualSubscribers" type="number" value={audienceGrowthInputs.manualSubscribers} onChange={handleAudienceGrowthInputChange} placeholder="e.g., 10000" disabled={growthRetentionLoading || (!isLoggedIn && predictionCount >=1 && !growthRetentionPrediction)} required />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="manualVideoCount" className="flex items-center gap-1"><Video className="h-4 w-4"/> Total Videos/Posts</Label>
+                            <Input id="manualVideoCount" name="manualVideoCount" type="number" value={audienceGrowthInputs.manualVideoCount} onChange={handleAudienceGrowthInputChange} placeholder="e.g., 150" disabled={growthRetentionLoading || (!isLoggedIn && predictionCount >=1 && !growthRetentionPrediction)} required />
+                        </div>
+                    </div>
+                )}
+
 
                 <div className="space-y-2">
                   <Label htmlFor="contentTypeGrowth" className="flex items-center gap-1"><Video className="h-4 w-4"/> Planned Content Type / Genre</Label>
@@ -512,6 +590,39 @@ export default function Ml() {
                     <Label htmlFor="ideaDescriptionGrowth" className="flex items-center gap-1"><Lightbulb className="h-4 w-4"/> Description of New Content Ideas</Label>
                     <Textarea id="ideaDescriptionGrowth" name="ideaDescription" value={audienceGrowthInputs.ideaDescription} onChange={handleAudienceGrowthInputChange} placeholder="Briefly describe the type of content you plan to create next, topics, style..." rows={3} disabled={growthRetentionLoading || (!isLoggedIn && predictionCount >=1 && !growthRetentionPrediction)} required />
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="uploadFrequency" className="flex items-center gap-1"><CalendarDays className="h-4 w-4"/> Planned Upload Frequency</Label>
+                        <Select onValueChange={(value) => setAudienceGrowthInputs(prev => ({...prev, uploadFrequency: value}))} value={audienceGrowthInputs.uploadFrequency} disabled={growthRetentionLoading || (!isLoggedIn && predictionCount >=1 && !growthRetentionPrediction)}>
+                            <SelectTrigger id="uploadFrequency"><SelectValue placeholder="Select frequency" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="daily">Daily</SelectItem>
+                                <SelectItem value="multiple_weekly">2-3 times a week</SelectItem>
+                                <SelectItem value="weekly">Weekly</SelectItem>
+                                <SelectItem value="biweekly">Bi-Weekly</SelectItem>
+                                <SelectItem value="monthly">Monthly</SelectItem>
+                                <SelectItem value="occasional">Occasional</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="adSpend" className="flex items-center gap-1"><DollarSign className="h-4 w-4"/> Estimated Ad Spend (USD, Optional)</Label>
+                        <Input id="adSpend" name="adSpend" type="number" value={audienceGrowthInputs.adSpend} onChange={handleAudienceGrowthInputChange} placeholder="e.g., 100" disabled={growthRetentionLoading || (!isLoggedIn && predictionCount >=1 && !growthRetentionPrediction)}/>
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="targetAudienceAge" className="flex items-center gap-1"><Users className="h-4 w-4"/> Target Audience Age (Optional)</Label>
+                        <Input id="targetAudienceAge" name="targetAudienceAge" value={audienceGrowthInputs.targetAudienceAge} onChange={handleAudienceGrowthInputChange} placeholder="e.g., 18-24, 25-34" disabled={growthRetentionLoading}/>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="targetAudienceLocation" className="flex items-center gap-1"><MapPin className="h-4 w-4"/> Target Audience Location (Optional)</Label>
+                        <Input id="targetAudienceLocation" name="targetAudienceLocation" value={audienceGrowthInputs.targetAudienceLocation} onChange={handleAudienceGrowthInputChange} placeholder="e.g., USA, India, Global" disabled={growthRetentionLoading}/>
+                    </div>
+                </div>
+
 
                 {growthRetentionError && (
                     <Alert variant="destructive">
@@ -547,17 +658,17 @@ export default function Ml() {
                 <Card className="bg-background/50 border-border/70 mt-6 animate-fade-in">
                     <CardHeader>
                     <CardTitle className="text-xl flex items-center gap-2">
-                        <UserCheck className="h-6 w-6 text-green-500"/> Audience Trajectory Forecast for <span className="text-primary">{audienceGrowthInputs.channelHandle}</span>
+                        <UserCheck className="h-6 w-6 text-green-500"/> Audience Trajectory Forecast for <span className="text-primary">{audienceGrowthInputs.platform === 'YouTube' ? audienceGrowthInputs.channelHandle : audienceGrowthInputs.platform}</span>
                     </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                     <div>
                         <h4 className="text-md font-semibold mb-2 text-foreground/80">Current Channel Snapshot:</h4>
                         <ul className="text-sm list-disc list-inside space-y-1 pl-4 text-foreground/90">
-                            <li>Subscribers: {growthRetentionPrediction.currentStats.subscribers}</li>
-                            <li>Total Videos: {growthRetentionPrediction.currentStats.videos}</li>
+                            <li>Subscribers/Followers: {growthRetentionPrediction.currentStats.subscribers}</li>
+                            <li>Total Videos/Posts: {growthRetentionPrediction.currentStats.videos}</li>
                             <li>Total Views: {growthRetentionPrediction.currentStats.views}</li>
-                            <li>Main Topics: {growthRetentionPrediction.currentStats.topics.join(', ') || 'N/A'}</li>
+                            {audienceGrowthInputs.platform === 'YouTube' && <li>Main Topics: {growthRetentionPrediction.currentStats.topics.join(', ') || 'N/A'}</li>}
                         </ul>
                     </div>
                     <div>
@@ -626,3 +737,4 @@ export default function Ml() {
     </div>
   );
 }
+
