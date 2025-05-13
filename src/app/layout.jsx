@@ -4,8 +4,8 @@ import { cn } from '@/lib/utils';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
-import { Providers } from './providers'; // Import Providers
-import { TooltipProvider } from '@/components/ui/tooltip'; // Import TooltipProvider
+import { Providers } from './providers';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 
 const geistSans = Geist({
@@ -19,38 +19,32 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: 'Wcontent', // Updated title
-  description: 'ultimate platform for creators', // Updated description
-  // Add icon links for favicon
+  title: 'Wcontent',
+  description: 'ultimate platform for creators',
   icons: {
-    icon: '/favicon.svg', // Link to the SVG favicon in the public directory
-    // You can add other sizes/formats if needed
-    // apple: '/apple-touch-icon.png',
+    icon: '/favicon.svg',
   },
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark"> {/* Ensure html has lang and dark class */}
+    <html lang="en" className="dark">
       <head>
-        {/* Manually link the SVG favicon for broader compatibility */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
       <body
         className={cn(
           geistSans.variable,
           geistMono.variable,
-          'antialiased flex flex-col min-h-screen' // Ensures body takes full height and uses flex column layout
+          'antialiased flex flex-col min-h-screen'
         )}
       >
-        <Providers> {/* Wrap content with Providers */}
-          <TooltipProvider delayDuration={0}> {/* Wrap with TooltipProvider */}
+        <Providers>
+          <TooltipProvider delayDuration={0}>
             <Navbar />
-            {/* flex-1 allows main content to grow and push footer down */}
-            {/* overflow-y-auto allows content scrolling if it exceeds viewport */}
             <main className="flex flex-col flex-1">
-               {/* Padding applied to the direct child of main */}
-               <div className="flex-1 p-4 md:p-6"> {/* Adjust padding as needed */}
+               {/* Adjusted padding: pt-4 for top padding below navbar, pb-8 for bottom padding before footer */}
+               <div className="flex-1 p-4 md:px-6 md:pt-6 md:pb-12">
                  {children}
                </div>
             </main>

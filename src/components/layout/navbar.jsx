@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet'; // Added SheetHeader, SheetTitle, SheetDescription
-import { Menu, LogOut, Loader2, User } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
+import { Menu, LogOut, Loader2, User, Settings, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import WcontentLogo from '@/components/icons/wcontent-logo';
 import {
@@ -20,6 +20,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -27,7 +36,6 @@ const navLinks = [
   { href: '/predict', label: 'Predict' },
   { href: '/opportunities', label: 'Opportunities' },
   { href: '/collabs', label: 'Collabs' },
-  { href: '/dashboard', label: 'Dashboard' },
 ];
 
 export default function Navbar() {
@@ -54,19 +62,16 @@ export default function Navbar() {
     setIsClient(true);
     checkLoginStatus();
 
-    // Listen for the custom authChange event
     const handleAuthChange = () => {
-      console.log("Auth change detected in navbar, updating state...");
       checkLoginStatus();
     };
     window.addEventListener('authChange', handleAuthChange);
 
-    // Cleanup listener on component unmount
     return () => {
       window.removeEventListener('authChange', handleAuthChange);
     };
 
-  }, []); // Run only on client-side mount
+  }, []);
 
 
   const confirmLogout = () => {
@@ -76,7 +81,6 @@ export default function Navbar() {
         localStorage.removeItem('token');
         localStorage.removeItem('id');
         localStorage.removeItem('username');
-        // Dispatch custom event to notify other components (like sidebar)
         window.dispatchEvent(new CustomEvent('authChange'));
         }
         setShowLogoutConfirm(false);
@@ -88,13 +92,12 @@ export default function Navbar() {
 
 
   if (!isClient) {
-    // Basic skeleton or loading state during SSR/hydration
     return (
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
+        <div className="container flex h-16 items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <WcontentLogo className="h-6 w-6" />
-            <span className="font-bold sm:inline-block">Wcontent</span>
+            <WcontentLogo className="h-7 w-7" />
+            <span className="font-semibold text-lg sm:inline-block">Wcontent</span>
           </Link>
            <div className="flex flex-1 items-center justify-end space-x-4 md:hidden">
              <Button variant="ghost" size="icon" disabled>
@@ -113,19 +116,21 @@ export default function Navbar() {
   return (
     <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
+      <div className="container flex h-16 items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <WcontentLogo className="h-6 w-6" />
-          <span className="font-bold sm:inline-block">Wcontent</span>
+          <WcontentLogo className="h-7 w-7" />
+          <span className="font-semibold text-lg sm:inline-block">Wcontent</span>
         </Link>
-        <nav className="hidden flex-1 items-center space-x-4 md:flex">
+        
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex flex-1 items-center justify-center space-x-6">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
                 'text-sm font-medium transition-colors hover:text-primary',
-                pathname === link.href ? 'text-primary' : 'text-foreground/60'
+                pathname === link.href ? 'text-primary' : 'text-foreground/70'
               )}
             >
               {link.label}
@@ -133,36 +138,57 @@ export default function Navbar() {
           ))}
         </nav>
 
+        {/* Desktop Auth/User Section */}
         <div className="hidden md:flex items-center ml-auto space-x-4">
            {isLoggedIn ? (
-             <>
-               {/* Avatar */}
-               <Link href="/dashboard" className="flex items-center gap-2">
-                 <Avatar className="h-8 w-8">
-                   <AvatarImage src={`https://avatar.vercel.sh/${username}.svg?size=40`} alt={username} />
-                   <AvatarFallback>{username ? username.substring(0, 1).toUpperCase() : 'U'}</AvatarFallback>
-                 </Avatar>
-                 <span className="text-sm font-medium text-foreground/80 hidden lg:inline">{username}</span>
-               </Link>
-
-               {/* Logout Button */}
-               <AlertDialogTrigger asChild>
-                 <Button
-                   variant="ghost"
-                   className="text-sm font-medium transition-colors hover:text-primary text-foreground/60"
-                   disabled={isLoggingOut}
-                 >
-                   {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
-                    Logout
-                 </Button>
-               </AlertDialogTrigger>
-             </>
+             <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2 px-2 hover:bg-accent">
+                        <Avatar className="h-8 w-8">
+                        <AvatarImage src={`https://avatar.vercel.sh/${username || 'user'}.svg?size=40`} alt={username} />
+                        <AvatarFallback>{username ? username.substring(0, 1).toUpperCase() : 'U'}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium text-foreground/80 hidden lg:inline">{username}</span>
+                        <ChevronDown className="h-4 w-4 text-foreground/60"/>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                        <Link href="/dashboard" className="flex items-center">
+                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            <span>Dashboard</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="/dashboard/update" className="flex items-center">
+                            <User className="mr-2 h-4 w-4" />
+                            <span>Profile Settings</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <AlertDialogTrigger asChild>
+                        <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive flex items-center cursor-pointer" disabled={isLoggingOut}>
+                             {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+                            <span>Logout</span>
+                        </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                </DropdownMenuContent>
+             </DropdownMenu>
            ) : (
-             <Button asChild variant="outline" size="sm">
-               <Link href="/auth">Login / Sign Up</Link>
+            <>
+             <Button variant="ghost" asChild size="sm">
+               <Link href="/auth">Login</Link>
              </Button>
+             <Button asChild size="sm">
+               <Link href="/auth">Sign Up</Link>
+             </Button>
+            </>
            )}
          </div>
+
+        {/* Mobile Menu Trigger */}
         <div className="flex flex-1 items-center justify-end space-x-4 md:hidden">
            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -171,63 +197,53 @@ export default function Navbar() {
                 <span className="sr-only">Toggle Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="pr-0">
-               {/* Visually hidden title for accessibility */}
-               <SheetHeader className="sr-only">
-                 <SheetTitle>Mobile Navigation Menu</SheetTitle>
-                 <SheetDescription>Links to navigate the Wcontent website.</SheetDescription>
+            <SheetContent side="left" className="pr-0 w-[280px]">
+               <SheetHeader className="p-4 border-b">
+                 <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
+                     <WcontentLogo className="h-6 w-6" />
+                     <SheetTitle className="font-semibold text-md">Wcontent</SheetTitle>
+                  </Link>
+                 <SheetDescription className="sr-only">Mobile navigation menu</SheetDescription>
                </SheetHeader>
 
-               {/* Mobile Menu Header */}
-               <div className="flex items-center justify-between p-4 border-b">
-                  <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
-                     <WcontentLogo className="h-6 w-6" />
-                     <span className="font-bold">Wcontent</span>
-                  </Link>
-                   {/* Avatar in mobile menu if logged in */}
-                   {isLoggedIn && (
-                     <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                       <Avatar className="h-8 w-8">
-                         <AvatarImage src={`https://avatar.vercel.sh/${username}.svg?size=40`} alt={username} />
-                          <AvatarFallback>{username ? username.substring(0, 1).toUpperCase() : 'U'}</AvatarFallback>
-                       </Avatar>
-                     </Link>
-                   )}
-                </div>
-
-              <div className="flex flex-col space-y-3 p-4">
+              <div className="flex flex-col space-y-2 p-4">
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={cn(
-                      'text-sm font-medium transition-colors hover:text-primary',
-                      pathname === link.href ? 'text-primary' : 'text-foreground/80'
+                      'block rounded-md px-3 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+                      pathname === link.href ? 'bg-accent text-accent-foreground' : 'text-foreground/80'
                     )}
                   >
                     {link.label}
                   </Link>
                 ))}
-                {/* Conditional Login/Logout in Mobile Menu */}
+                 <div className="pt-4 mt-4 border-t">
                   {isLoggedIn ? (
                      <>
-                       {/* Show username in mobile menu */}
                         <Link
                          href="/dashboard"
                          onClick={() => setIsMobileMenuOpen(false)}
-                         className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+                         className="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-foreground/80"
                          >
-                         <User className="h-4 w-4" /> {username}
+                         <LayoutDashboard className="h-5 w-5" /> Dashboard
                        </Link>
-                       {/* Logout Trigger */}
+                        <Link
+                         href="/dashboard/update"
+                         onClick={() => setIsMobileMenuOpen(false)}
+                         className="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground text-foreground/80"
+                         >
+                         <User className="h-5 w-5" /> {username || 'Profile'}
+                       </Link>
                        <AlertDialogTrigger asChild>
                            <Button
                            variant="ghost"
-                           className="justify-start px-0 text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+                           className="w-full justify-start px-3 py-2 text-base font-medium transition-colors hover:bg-destructive/10 text-destructive"
                            disabled={isLoggingOut}
                            >
-                            {isLoggingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+                            {isLoggingOut ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <LogOut className="mr-2 h-5 w-5" />}
                                Logout
                            </Button>
                        </AlertDialogTrigger>
@@ -235,19 +251,19 @@ export default function Navbar() {
                   ) : (
                   <Link
                       href="/auth"
-                      className="text-sm font-medium transition-colors hover:text-primary text-foreground/80"
+                      className="block rounded-md px-3 py-2 text-base font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 text-center"
                       onClick={() => setIsMobileMenuOpen(false)}
                   >
                       Login / Sign Up
                   </Link>
                   )}
+                </div>
               </div>
             </SheetContent>
           </Sheet>
         </div>
       </div>
     </header>
-      {/* Logout Confirmation Dialog Content */}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
@@ -257,7 +273,7 @@ export default function Navbar() {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoggingOut}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={confirmLogout} disabled={isLoggingOut}>
+          <AlertDialogAction onClick={confirmLogout} disabled={isLoggingOut} className="bg-destructive hover:bg-destructive/90">
               {isLoggingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Logout
           </AlertDialogAction>
