@@ -6,8 +6,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { ArrowRight, Zap, BarChart2, Users, Briefcase, Lightbulb, Star, Brain, TrendingUp, DollarSign, Share2, CheckCircle, Search } from 'lucide-react';
+import { ArrowRight, Zap, Lightbulb, Star, Brain, TrendingUp, DollarSign, Share2, CheckCircle, Search, Users as UsersIcon, Briefcase, FileText, Video, MessageSquare, Target as TargetIcon, BarChart2 } from 'lucide-react';
 import WcontentLogo from '@/components/icons/wcontent-logo';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+
 
 // Reusable Feature Card component for detailed feature sections
 const FeatureSectionCard = ({ icon: Icon, title, description, imageSrc, imageHint, ctaText, ctaLink, reverse = false }) => (
@@ -49,6 +52,14 @@ const HowItWorksStep = ({ step, title, description }) => (
   </Card>
 );
 
+const testimonials = [
+  { quote: "Wcontent's AI tools are a game-changer for brainstorming. I'm never stuck for ideas anymore!", name: "Alex R.", role: "Tech YouTuber", stars: 5, image: "https://picsum.photos/100/100?random=person1&grayscale" },
+  { quote: "Found an amazing brand deal through the Opportunity Hub. The process was seamless.", name: "Maria G.", role: "Lifestyle Blogger", stars: 5, image: "https://picsum.photos/100/100?random=person2&grayscale" },
+  { quote: "Collaborating with another creator I met on Wcontent doubled my video's reach!", name: "Sam K.", role: "Gaming Streamer", stars: 4, image: "https://picsum.photos/100/100?random=person3&grayscale" },
+  { quote: "The prediction tools helped me understand my audience better. Highly recommend!", name: "Priya S.", role: "Educational Content Creator", stars: 5, image: "https://picsum.photos/100/100?random=person4&grayscale" },
+];
+
+
 export default function Home() {
   const [isClient, setIsClient] = useState(false);
 
@@ -58,34 +69,38 @@ export default function Home() {
 
   if (!isClient) {
     // Basic skeleton or null to prevent hydration mismatch during SSR
-    return null; 
+    return null;
   }
 
   return (
-    <div className="space-y-20 md:space-y-32">
+    <div className="space-y-20 md:space-y-32 overflow-x-hidden"> {/* Added overflow-x-hidden */}
       {/* Hero Section */}
-      <section className="relative text-center py-20 md:py-32 min-h-[70vh] flex flex-col justify-center items-center text-white overflow-hidden">
+      <section className="relative text-center py-20 md:py-32 min-h-[80vh] md:min-h-[90vh] flex flex-col justify-center items-center text-white overflow-hidden">
+        {/* Placeholder for 3D Animated SaaS Background */}
+        {/* Integrate libraries like Three.js, react-three-fiber, or Spline here for true 3D animation. */}
+        {/* The following Image serves as a static fallback. */}
         <Image
-          src="https://picsum.photos/1600/900?random=hero&grayscale&blur=2"
+          src="https://picsum.photos/1600/900?random=saasHero&blur=1"
           alt="Abstract background for Wcontent hero section"
-          data-ai-hint="abstract dark tech background"
+          data-ai-hint="futuristic abstract tech"
           fill
           priority
           className="object-cover -z-10"
         />
-        <div className="absolute inset-0 bg-black/60 -z-[5]"></div>
+        {/* Overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/70 to-black/80 -z-[5]"></div>
 
         <div className="container mx-auto px-4 z-10 animate-fade-in">
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <WcontentLogo className="h-16 w-16 md:h-20 md:w-20 text-primary" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            Wcontent: Your AI Co-Pilot for Content Creation Success
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            Wcontent: The Ultimate Platform for Creators
           </h1>
-          <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto mb-10">
-            Generate ideas, predict performance, find opportunities, and collaborate with ease. Elevate your content game.
+          <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto mb-10 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            Generate ideas, predict performance, find opportunities, and collaborate with ease. Elevate your content game with AI-powered tools and a vibrant community.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in" style={{ animationDelay: '0.8s' }}>
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transform hover:scale-105 transition-transform">
               <Link href="/generate">
                 Get Started Free <ArrowRight className="ml-2 h-5 w-5" />
@@ -95,6 +110,10 @@ export default function Home() {
               <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
           </div>
+        </div>
+        {/* Optional: Subtle down arrow or scroll hint */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce hidden md:block">
+            <ArrowRight className="h-6 w-6 text-white/70 rotate-90" />
         </div>
       </section>
 
@@ -110,7 +129,7 @@ export default function Home() {
             { icon: DollarSign, title: 'Monetize Your Talent', description: 'Discover paid gigs, sponsorships, and projects from brands actively seeking creators like you.' },
             { icon: Share2, title: 'Expand Your Network', description: 'Connect with fellow creators for collaborations, cross-promotions, and building valuable partnerships.' },
           ].map((benefit, index) => (
-            <Card key={index} className="text-center p-6 hover:shadow-xl transition-shadow duration-300">
+            <Card key={index} className="text-center p-6 hover:shadow-xl transition-shadow duration-300 bg-card/80 border-border/50">
               <div className="flex justify-center mb-4">
                 <benefit.icon className="h-10 w-10 text-primary" />
               </div>
@@ -154,7 +173,7 @@ export default function Home() {
       />
 
       <FeatureSectionCard
-        icon={Users}
+        icon={UsersIcon}
         title="Connect and Create with Fellow Creators"
         description="Join our Collaboration Hub to find like-minded creators for joint videos, podcast guest swaps, social media campaigns, and more. Expand your reach and create amazing content together."
         imageSrc="https://picsum.photos/600/400?random=collabs&grayscale&blur=1"
@@ -163,9 +182,9 @@ export default function Home() {
         ctaLink="/collabs"
         reverse={true}
       />
-      
+
       {/* How It Works Section */}
-      <section className="container mx-auto px-4 py-16 bg-muted/30 rounded-lg">
+      <section className="container mx-auto px-4 py-16 bg-gradient-to-br from-card/50 via-muted/30 to-card/50 rounded-lg">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold">Get Started in 3 Simple Steps</h2>
           <p className="text-lg text-muted-foreground mt-2 max-w-xl mx-auto">Joining Wcontent and leveraging its power is quick and easy.</p>
@@ -189,41 +208,55 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* Testimonials Section with Carousel */}
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold">Loved by Creators Worldwide</h2>
           <p className="text-lg text-muted-foreground mt-2 max-w-xl mx-auto">Hear what our community says about Wcontent.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            { quote: "Wcontent's AI tools are a game-changer for brainstorming. I'm never stuck for ideas anymore!", name: "Alex R.", role: "Tech YouTuber", stars: 5 },
-            { quote: "Found an amazing brand deal through the Opportunity Hub. The process was seamless.", name: "Maria G.", role: "Lifestyle Blogger", stars: 5 },
-            { quote: "Collaborating with another creator I met on Wcontent doubled my video's reach!", name: "Sam K.", role: "Gaming Streamer", stars: 4 },
-          ].map((testimonial, index) => (
-            <Card key={index} className="flex flex-col p-6 hover:shadow-xl transition-shadow duration-300">
-              <CardHeader className="p-0 mb-4">
-                <div className="flex">
-                  {[...Array(testimonial.stars)].map((_, i) => <Star key={i} className="h-5 w-5 text-primary fill-primary" />)}
-                  {[...Array(5-testimonial.stars)].map((_, i) => <Star key={i+testimonial.stars} className="h-5 w-5 text-muted-foreground/50 fill-muted-foreground/30" />)}
+        <Carousel
+          opts={{ align: "start", loop: true }}
+          plugins={[ Autoplay({ delay: 5000, stopOnInteraction: true }) ]}
+          className="w-full max-w-xs sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto"
+        >
+          <CarouselContent className="-ml-4">
+            {testimonials.map((testimonial, index) => (
+              <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                <div className="p-1">
+                  <Card className="flex flex-col h-full p-6 hover:shadow-xl transition-shadow duration-300 bg-card/70 border-border/60">
+                    <CardHeader className="p-0 mb-4 items-center">
+                       <Image
+                         src={testimonial.image}
+                         alt={testimonial.name}
+                         data-ai-hint="person portrait professional"
+                         width={80}
+                         height={80}
+                         className="rounded-full mb-3 border-2 border-primary"
+                       />
+                      <div className="flex">
+                        {[...Array(testimonial.stars)].map((_, i) => <Star key={i} className="h-5 w-5 text-primary fill-primary" />)}
+                        {[...Array(5 - testimonial.stars)].map((_, i) => <Star key={i + testimonial.stars} className="h-5 w-5 text-muted-foreground/50 fill-muted-foreground/30" />)}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0 flex-grow">
+                      <p className="italic text-lg text-foreground/90 mb-4 text-center">"{testimonial.quote}"</p>
+                    </CardContent>
+                    <CardFooter className="p-0 mt-auto text-center flex flex-col items-center">
+                      <p className="font-semibold">{testimonial.name}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                    </CardFooter>
+                  </Card>
                 </div>
-              </CardHeader>
-              <CardContent className="p-0 flex-grow">
-                <p className="italic text-lg text-foreground/90 mb-4">"{testimonial.quote}"</p>
-              </CardContent>
-              <CardFooter className="p-0 mt-auto">
-                <div>
-                  <p className="font-semibold">{testimonial.name}</p>
-                  <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 disabled:opacity-30" />
+          <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 disabled:opacity-30" />
+        </Carousel>
       </section>
 
       {/* Final Call to Action Section */}
-      <section className="container mx-auto px-4 py-16 text-center bg-gradient-to-br from-primary/10 via-background to-primary/20 rounded-lg border border-primary/30">
+      <section className="container mx-auto px-4 py-16 text-center bg-gradient-to-r from-primary/10 via-background to-primary/20 rounded-lg border border-primary/30">
         <CheckCircle className="h-16 w-16 text-primary mx-auto mb-6" />
         <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to Elevate Your Content Game?</h2>
         <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
