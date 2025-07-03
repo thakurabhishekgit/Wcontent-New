@@ -103,7 +103,6 @@ const googleLogin = useGoogleLogin({
         setError("Google login failed. Please try again.");
         setIsGoogleLoading(false);
     },
-    flow: 'implicit', // Explicitly set the flow
 });
 
 
@@ -512,6 +511,7 @@ const googleLogin = useGoogleLogin({
                            </SelectContent>
                           </Select>
                       </div>
+                      {userType === 'ChannelOwner' && (
                        <>
                            <div>
                               <Label htmlFor="channelName">Channel Name</Label>
@@ -550,6 +550,7 @@ const googleLogin = useGoogleLogin({
                                <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p>
                            </div>
                        </>
+                      )}
                       <Button type="submit" className="w-full" disabled={isRegisteringSubmit || isGoogleLoading}>
                         {isRegisteringSubmit ? (
                           <>
@@ -596,3 +597,5 @@ const googleLogin = useGoogleLogin({
 };
 
 export default Login;
+
+    
