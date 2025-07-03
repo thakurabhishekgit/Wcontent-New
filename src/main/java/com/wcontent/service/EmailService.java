@@ -7,8 +7,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import com.wcontent.model.Applicant;
-import com.wcontent.model.CollabRequest;
+import com.example.demo.model.Applicant;
+import com.example.demo.model.CollabRequest;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -39,6 +39,22 @@ public class EmailService {
                 + "<li style='margin-bottom: 10px;'><strong>Find Opportunities:</strong> Explore our marketplace for paid gigs and sponsorships.</li>"
                 + "<li style='margin-bottom: 10px;'><strong>Collaborate:</strong> Connect with other creators to grow your audience together.</li>"
                 + "</ul>"
+                + getCtaButton("Go to Your Dashboard", DEPLOYED_URL + "/dashboard");
+
+        sendStyledEmail(recipientEmail, subject, title, body);
+    }
+
+    /**
+     * Sends a notification email upon successful login.
+     *
+     * @param recipientEmail The email address of the user who logged in.
+     */
+    public void sendLoginEmail(String recipientEmail) {
+        String subject = "Successful Login to Your Wcontent Account";
+        String title = "Login Successful";
+        String body = "<p>Hi there,</p>"
+                + "<p>This is a confirmation that your Wcontent account was just accessed. If this was you, you can safely ignore this email.</p>"
+                + "<p>If you do not recognize this activity, we recommend securing your account immediately by changing your password.</p>"
                 + getCtaButton("Go to Your Dashboard", DEPLOYED_URL + "/dashboard");
 
         sendStyledEmail(recipientEmail, subject, title, body);
