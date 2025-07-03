@@ -60,12 +60,12 @@ The dashboard is the central command center for authenticated users, providing t
 
 ## 3. Technology & Architecture
 
-*   **Frontend:** A modern, server-rendered application built with **Next.js** and **React**. The UI is crafted using **Shadcn UI** components and styled with **Tailwind CSS**, ensuring a responsive, accessible, and aesthetically pleasing design.
-*   **Backend:** A powerful and scalable RESTful API built with **Spring Boot** (Java), responsible for all business logic, user authentication, and data persistence.
-*   **Database:** **MongoDB** is used as the NoSQL database, providing the flexibility needed to store diverse data structures for users, opportunities, and collaborations.
-*   **AI Integration:** **Genkit (with Google Gemini)** is used for all generative AI functionalities, from content idea generation to performance prediction.
-*   **External APIs:** The platform integrates with the **YouTube API** to fetch channel statistics for the prediction features.
-*   **Authentication:** Secure authentication is handled via JWT (JSON Web Tokens).
+Wcontent is built on a modern technology stack to ensure a scalable, secure, and responsive user experience.
+*   **Frontend:** Next.js, React, Shadcn UI, and Tailwind CSS, deployed on **Vercel**.
+*   **Backend:** Spring Boot (Java) RESTful API, deployed on **Render**.
+*   **Database:** MongoDB, with the MVP hosted on **Railway**.
+*   **AI:** Genkit framework with Google Gemini models.
+*   **Authentication:** Secure JWT (JSON Web Tokens) with OTP email verification.
 
 ## 4. Conclusion
 

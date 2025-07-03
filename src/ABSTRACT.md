@@ -60,28 +60,12 @@ The dashboard is the central command center for authenticated users, providing t
 
 ## 3. Technology & Architecture
 
-Wcontent is built on a modern, decoupled architecture designed for scalability, performance, and maintainability.
-
-*   **Frontend:**
-    *   **Framework:** A dynamic, server-rendered application built with **Next.js** and **React**.
-    *   **UI/Styling:** The user interface is crafted with **Shadcn UI** components and styled with **Tailwind CSS** for a responsive, accessible, and aesthetically pleasing design.
-    *   **Deployment:** Deployed globally on **Vercel**, ensuring fast load times and seamless continuous integration.
-
-*   **Backend:**
-    *   **Framework:** A powerful and scalable RESTful API built with **Spring Boot** (Java), handling all business logic, user authentication, and data persistence.
-    *   **Deployment:** Hosted on **Render**, providing a reliable and auto-scaling environment for the backend services.
-
-*   **Database:**
-    *   **Technology:** **MongoDB** is used as the primary NoSQL database, offering the flexibility required to store diverse data structures for users, opportunities, and collaborations.
-    *   **Deployment:** The MVP database is hosted on **Railway**, allowing for rapid provisioning and easy management.
-
-*   **AI Integration:**
-    *   **Framework:** **Genkit** serves as the core framework for integrating generative AI capabilities, orchestrating calls to large language models.
-    *   **Model:** **Google Gemini** is utilized for all AI tasks, from content idea generation to performance prediction and sentiment analysis.
-
-*   **Key Integrations & Protocols:**
-    *   **External APIs:** Integrates with the **YouTube API** to fetch channel statistics for the prediction features.
-    *   **Authentication:** Secure authentication is handled via **JSON Web Tokens (JWT)**, ensuring stateless and secure communication between the frontend and backend.
+Wcontent is built on a modern technology stack to ensure a scalable, secure, and responsive user experience.
+*   **Frontend:** Next.js, React, Shadcn UI, and Tailwind CSS, deployed on **Vercel**.
+*   **Backend:** Spring Boot (Java) RESTful API, deployed on **Render**.
+*   **Database:** MongoDB, with the MVP hosted on **Railway**.
+*   **AI:** Genkit framework with Google Gemini models.
+*   **Authentication:** Secure JWT (JSON Web Tokens) with OTP email verification.
 
 ## 4. Conclusion
 
