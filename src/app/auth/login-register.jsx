@@ -597,5 +597,3 @@ const googleLogin = useGoogleLogin({
 };
 
 export default Login;
-
-    

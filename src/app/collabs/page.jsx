@@ -713,5 +713,3 @@ export default function CollaborationsPage() {
     </div>
   );
 }
-
-    

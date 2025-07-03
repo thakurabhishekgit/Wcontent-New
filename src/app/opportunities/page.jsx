@@ -679,5 +679,3 @@ export default function OpportunitiesPage() {
     </div>
   );
 }
-
-    
