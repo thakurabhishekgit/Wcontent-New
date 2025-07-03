@@ -35,12 +35,13 @@ graph LR
         C -- Business Logic --> D[Service Layer]
         D -- Data Access --> E[Repository Layer (Spring Data MongoDB)]
         E -- CRUD Operations --> F[MongoDB Database]
-        C -- AI Tasks --> G[Genkit Layer]
+        C -- AI/ML Tasks --> G[AI & ML Layer]
     end
 
-    subgraph AI Layer (Genkit integrated with Backend or Separate Service)
-        G -- Calls LLMs --> H[Google Gemini API / Other LLMs]
-        G -- YouTube Data (for Predict) --> I[YouTube Graph v4 API]
+    subgraph AI Layer (Genkit / Custom ML Models)
+        G -- Calls LLMs --> H[Large Language Models]
+        G -- YouTube Data --> I[YouTube API]
+        G -- ML Predictions --> J[RandomForest Model]
     end
 
     A --> B;
@@ -57,15 +58,16 @@ graph LR
     *   Hosted on a cloud platform like Render, Heroku, or AWS.
     *   Exposes a RESTful API for the frontend to consume.
     *   Handles business logic, user authentication, data persistence, and integration with the AI layer.
-*   **AI Layer (Genkit):**
-    *   Likely integrated within the Spring Boot backend or deployed as a separate microservice.
-    *   Manages interactions with Large Language Models (LLMs) like Google Gemini for content generation and prediction tasks.
-    *   Interacts with external APIs like the YouTube Graph v4 API for data retrieval (e.g., comments for sentiment analysis).
+*   **AI & ML Layer:**
+    *   Likely integrated within the Spring Boot backend or deployed as separate microservices.
+    *   Manages interactions with Large Language Models (LLMs) for content generation and NLP tasks.
+    *   Serves the custom-trained **RandomForest** model for prediction tasks.
+    *   Interacts with external APIs like the YouTube API for data retrieval.
 *   **MongoDB Database:**
     *   A NoSQL document database used to store user profiles, opportunity listings, collaboration posts, applications, and other platform data.
 *   **External Services:**
-    *   **Google Gemini API:** For AI-powered text generation and analysis.
-    *   **YouTube Graph v4 API:** For fetching YouTube video comments and potentially other video metadata.
+    *   **LLM APIs:** For AI-powered text generation and analysis.
+    *   **YouTube API:** For fetching YouTube video comments and other video metadata.
 
 ## 4. Frontend Design
 
@@ -102,7 +104,7 @@ graph LR
         *   Orchestrates interactions between controllers and repositories.
         *   Implements data validation, transformation, and complex operations.
         *   Handles transactions where necessary.
-        *   Interacts with the Genkit layer for AI-related tasks.
+        *   Interacts with the AI & ML layer for intelligent features.
     *   **Repository Layer (`@Repository`, Spring Data MongoDB):**
         *   Provides an abstraction over MongoDB.
         *   Uses Spring Data MongoDB interfaces (e.g., `MongoRepository`) for CRUD operations.
@@ -121,26 +123,27 @@ graph LR
     *   CRUD operations for all platform entities (users, opportunities, collabs, etc.).
     *   Business logic for matching, recommendations (future), and managing applications.
     *   Serving data to the frontend.
-    *   Interacting with the AI layer for intelligent features.
+    *   Interacting with the AI & ML layer for intelligent features.
 
-## 6. AI/Genkit Layer
+## 6. AI & Machine Learning Layer
 
-*   **Framework:** Genkit
-*   **Primary LLM:** Google Gemini (e.g., `gemini-2.0-flash`)
+*   **Frameworks:** Genkit for LLM orchestration, Scikit-learn (or similar) for ML models.
 *   **Integration:**
-    *   Genkit flows (`.js` files with `'use server';`) are defined for specific AI tasks.
-    *   These flows can be called from the Spring Boot backend (e.g., via HTTP requests if Genkit is run as a separate service, or direct Java-to-JavaScript interop if embedded, though HTTP is more common for decoupling).
-*   **Key Flows:**
-    *   `generateContentIdeas`: Takes a prompt, tone, and format to generate content ideas, headlines, and outlines.
-    *   **YouTube Comment Analysis Flow:** Takes a video URL (or pre-fetched comments using YouTube Graph v4 API), summarizes sentiment, and suggests improvements. This would involve:
-        1.  Backend fetching comments using YouTube Graph v4 API.
-        2.  Passing comments to a Genkit flow for summarization and sentiment analysis using Gemini.
-    *   **Future Reach Prediction Flow:** Takes content details (type, description, estimated cost) and channel stats (subscribers, avg. views) to predict potential reach (views, likes, comments) and engagement metrics using a custom-trained model or a sophisticated prompting strategy with Gemini. Also provides actionable tips for improvement.
+    *   AI/ML tasks are exposed as services that the Spring Boot backend can call.
+    *   Genkit flows are used for tasks involving Large Language Models (LLMs), such as content generation.
+*   **Key AI/ML Features:**
+    *   **Content Generation (`generateContentIdeas`):** A Genkit flow that takes a prompt, tone, and format to generate content ideas, headlines, and outlines using an LLM.
+    *   **YouTube Comment Sentiment Analysis:**
+        1.  Backend fetches comments using the YouTube API.
+        2.  Comments are passed to an NLP model (e.g., via a Genkit flow) for sentiment summarization and identification of key themes.
+    *   **Future Reach Prediction Flow:** This involves a custom-trained machine learning model.
+        *   **Model:** A **RandomForest Regressor** model is trained on historical data (e.g., content type, channel stats, engagement metrics).
+        *   **Process:** The model takes new content details (type, description) and current channel stats to predict potential reach (views, likes, comments) and engagement metrics.
 *   **Responsibilities:**
-    *   Abstracting the complexities of interacting with LLMs.
-    *   Defining structured inputs (Zod schemas) and outputs for AI tasks.
-    *   Managing prompts and model configurations.
-    *   Potentially handling fine-tuning or RAG (Retrieval Augmented Generation) in more advanced scenarios.
+    *   Abstracting the complexities of interacting with LLMs and ML models.
+    *   Defining structured inputs (Zod schemas for Genkit) and outputs for AI tasks.
+    *   Managing prompts and model configurations for generation.
+    *   Handling the training, evaluation, and serving of the reach prediction model.
 
 ## 7. Database Design (MongoDB)
 
@@ -307,7 +310,7 @@ For the future reach prediction feature on the `/predict` page, users input:
 *   **Average Views Per Video:** (Number, Optional) - The user's typical average views for recent videos. *Example: 5000*
 *   **Estimated Production Cost ($):** (Number, Optional) - Approximate cost to produce the content. *Example: 100*
 
-This input is sent to an AI/Genkit flow (e.g., `Future Reach Prediction Flow`) which then processes it (potentially using a trained model or advanced prompting with Gemini) to estimate:
+This input is sent to an AI/ML service, which uses a **RandomForest Regressor** model to estimate:
 
 *   **Predicted Views:** (Number)
 *   **Predicted Likes:** (Number)

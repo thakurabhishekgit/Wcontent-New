@@ -60,12 +60,25 @@ The dashboard is the central command center for authenticated users, providing t
 
 ## 3. Technology & Architecture
 
-Wcontent is built on a modern technology stack to ensure a scalable, secure, and responsive user experience.
-*   **Frontend:** Next.js, React, Shadcn UI, and Tailwind CSS, deployed on **Vercel**.
-*   **Backend:** Spring Boot (Java) RESTful API, deployed on **Render**.
-*   **Database:** MongoDB, with the MVP hosted on **Railway**.
-*   **AI:** Genkit framework with Google Gemini models.
-*   **Authentication:** Secure JWT (JSON Web Tokens) with OTP email verification.
+Wcontent is architected using a modern, decoupled technology stack chosen for scalability, performance, and a rich user experience.
+
+*   **Frontend (Vercel Deployment):**
+    *   A dynamic and responsive user interface built with **Next.js** and **React**.
+    *   Component-based UI development using **Shadcn UI** and styled with **Tailwind CSS**.
+    *   Leverages Server-Side Rendering (SSR) for fast initial page loads and improved SEO.
+
+*   **Backend (Render Deployment):**
+    *   A robust and scalable RESTful API powered by **Spring Boot** (Java).
+    *   Manages all core business logic, from user management to opportunity and collaboration postings.
+    *   Implements secure authentication using **Spring Security** with **JSON Web Tokens (JWT)** and a one-time password (OTP) system for email verification.
+
+*   **Database (Railway Deployment for MVP):**
+    *   **MongoDB** serves as the NoSQL database, providing the flexibility needed to handle diverse data structures for users, listings, and applications.
+
+*   **Artificial Intelligence & Machine Learning Core:**
+    *   **Content Generation:** Employs Large Language Models (LLMs) via the **Genkit framework** to power the creative suite for generating ideas, headlines, and outlines.
+    *   **Sentiment Analysis:** Utilizes Natural Language Processing (NLP) models to analyze and summarize sentiment from YouTube video comments, providing creators with a quick pulse on audience feedback.
+    *   **Reach Prediction:** A **RandomForest Regressor** machine learning model is used to forecast audience growth and content reach by analyzing inputs like content type, channel statistics, and idea descriptions.
 
 ## 4. Conclusion
 
