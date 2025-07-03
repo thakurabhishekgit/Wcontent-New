@@ -50,7 +50,7 @@ This hub fosters a sense of community and facilitates synergistic partnerships b
 
 The dashboard is the central command center for authenticated users, providing tools to manage all their activities on the platform.
 
-*   **Profile Management:** Users can view their profile details and update their information, including username, user type, and channel-specific details (name, ID, URL).
+*   **Profile Management:** Users can view their profile details and update their information, including username, user type, and channel-specific-details (name, ID, URL).
 *   **My Opportunities:** A dedicated section where users can view all the opportunities they have posted, track their status, and, crucially, view a list of all applications received for each gig.
 *   **My Applications (Opportunities):** Allows creators to track the status of all the applications they have sent out for various opportunities.
 *   **My Collaborations:** A section for creators to manage the collaboration proposals they have posted and review all incoming requests from other creators who wish to partner with them.
@@ -82,4 +82,4 @@ Wcontent is architected using a modern, decoupled technology stack chosen for sc
 
 ## 4. Conclusion
 
-Wcontent stands as a holistic solution designed to empower content creators at every stage of their journey. By seamlessly integrating AI-powered creative and analytical tools with a robust marketplace for monetization and collaboration, it provides a unique and powerful platform. It aims not only to simplify the creator workflow but also to foster growth, community, and financial sustainability in the dynamic digital landscape.
+Wcontent is a holistic solution empowering creators by integrating AI-driven tools for ideation and analytics with a marketplace for monetization and collaboration. By simplifying the creator workflow, the platform fosters growth, community, and financial sustainability in the digital landscape.
