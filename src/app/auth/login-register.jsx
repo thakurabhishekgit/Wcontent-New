@@ -102,7 +102,8 @@ const googleLogin = useGoogleLogin({
     onError: () => {
         setError("Google login failed. Please try again.");
         setIsGoogleLoading(false);
-    }
+    },
+    flow: 'implicit', // Explicitly set the flow
 });
 
 
