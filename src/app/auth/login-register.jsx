@@ -358,8 +358,8 @@ const googleLogin = useGoogleLogin({
           </p>
           <Image
             src="https://placehold.co/400x300.png"
-            alt="Abstract background for content creation platform"
-            data-ai-hint="abstract dark texture"
+            alt="Vector illustration for a content creation platform"
+            data-ai-hint="vector content creation"
             width={400}
             height={300}
             className="rounded-lg object-cover shadow-lg"

@@ -131,7 +131,7 @@ export default function Home() {
         title="Never Run Out of Ideas Again"
         description="Our AI Content Generation Suite helps you brainstorm unique ideas, craft compelling headlines, and structure your content with comprehensive outlines. Say goodbye to creative blocks!"
         imageSrc="https://placehold.co/600x400.png"
-        imageHint="ai brain idea generation abstract"
+        imageHint="vector idea generation"
         ctaText="Try Our Idea Generator"
         ctaLink="/generate"
       />
@@ -141,7 +141,7 @@ export default function Home() {
         title="Understand Your Audience, Predict Your Success"
         description="Analyze YouTube comment sentiment to gauge audience reaction and get AI-driven suggestions. Forecast potential audience growth and retention for your upcoming content strategies."
         imageSrc="https://placehold.co/600x400.png"
-        imageHint="data analytics chart graph arrow"
+        imageHint="vector data analytics"
         ctaText="Analyze Your Content"
         ctaLink="/predict"
         reverse={true}
@@ -152,7 +152,7 @@ export default function Home() {
         title="Find Your Next Paid Gig or Project"
         description="Explore a curated marketplace of opportunities from brands and businesses looking for content creators. Filter by type, location, and budget to find your perfect match."
         imageSrc="https://placehold.co/600x400.png"
-        imageHint="job board opportunity network briefcase"
+        imageHint="vector opportunity search"
         ctaText="Browse Opportunities"
         ctaLink="/opportunities"
       />
@@ -162,7 +162,7 @@ export default function Home() {
         title="Connect and Create with Fellow Creators"
         description="Join our Collaboration Hub to find like-minded creators for joint videos, podcast guest swaps, social media campaigns, and more. Expand your reach and create amazing content together."
         imageSrc="https://placehold.co/600x400.png"
-        imageHint="team collaboration network people connect"
+        imageHint="vector collaboration network"
         ctaText="Find Collaborators"
         ctaLink="/collabs"
         reverse={true}
@@ -213,7 +213,7 @@ export default function Home() {
                        <Image
                          src={testimonial.image}
                          alt={testimonial.name}
-                         data-ai-hint="person portrait"
+                         data-ai-hint="vector person avatar"
                          width={80}
                          height={80}
                          className="rounded-full mb-3 border-2 border-primary"
@@ -256,3 +256,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

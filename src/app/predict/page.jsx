@@ -326,21 +326,21 @@ function Ml() {
             title="Comment Sentiment Analysis"
             description="Quickly understand what your audience thinks by analyzing comment sections."
             img="https://placehold.co/400x250.png"
-            data-ai-hint="comments feedback"
+            hint="vector feedback chat"
           />
           <FeatureCard
             icon={Lightbulb}
             title="Actionable Improvement Ideas"
             description="Get AI-powered suggestions on how to make your next video even better based on feedback."
             img="https://placehold.co/400x250.png"
-            data-ai-hint="lightbulb idea"
+            hint="vector idea lightbulb"
           />
            <FeatureCard
              icon={TrendingUp}
              title="Audience Growth Forecaster"
              description="Estimate subscriber growth and retention based on your channel stats and content plans."
              img="https://placehold.co/400x250.png"
-             data-ai-hint="graph chart"
+             hint="vector chart growth"
            />
         </div>
        </section>
@@ -585,3 +585,5 @@ function Ml() {
 }
 
 export default Ml;
+
+    
