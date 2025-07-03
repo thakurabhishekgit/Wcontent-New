@@ -13,6 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -49,7 +52,6 @@ public class UserController {
 
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOTP(@RequestParam String email, @RequestParam String otp) {
-        // Validate the OTP
         boolean isValid = otpService.validateOTP(email, otp);
         if (!isValid) {
             return new ResponseEntity<>("Invalid or expired OTP", HttpStatus.BAD_REQUEST);
@@ -57,9 +59,34 @@ public class UserController {
         return new ResponseEntity<>("OTP verified successfully. Proceed to registration.", HttpStatus.OK);
     }
 
+    @PostMapping("/google-auth")
+    public ResponseEntity<?> googleAuthentication(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+        String username = payload.get("username");
+
+        if (email == null || email.isEmpty()) {
+            return new ResponseEntity<>("Email from Google is required.", HttpStatus.BAD_REQUEST);
+        }
+
+        return userRepository.findByEmail(email)
+                .map(existingUser -> {
+                    // User exists, log them in
+                    String token = JwtUtil.generateToken(existingUser.getEmail());
+                    TokenResponse tokenResponse = new TokenResponse(existingUser, token);
+                    return new ResponseEntity<>(tokenResponse, HttpStatus.OK);
+                })
+                .orElseGet(() -> {
+                    // User does not exist, signal frontend to register
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("action", "register");
+                    response.put("email", email);
+                    response.put("username", username);
+                    return new ResponseEntity<>(response, HttpStatus.OK);
+                });
+    }
+
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
-        // Basic validation first
         if (user.getUsername() == null || user.getUsername().isEmpty()) {
             return new ResponseEntity<>("Username is required", HttpStatus.BAD_REQUEST);
         }
@@ -73,7 +100,6 @@ public class UserController {
             return new ResponseEntity<>("User type is required", HttpStatus.BAD_REQUEST);
         }
 
-        // Conditional validation for Channel Owners
         if ("ChannelOwner".equals(user.getUserType())) {
             if (user.getChannelId() == null || user.getChannelId().isEmpty()) {
                 return new ResponseEntity<>("Channel ID is required for Channel Owners", HttpStatus.BAD_REQUEST);
@@ -90,7 +116,7 @@ public class UserController {
             return new ResponseEntity<>("User with email " + user.getEmail() + " already exists", HttpStatus.CONFLICT);
         }
 
-        user.setVerified(true); // OTP verification implies the user is verified
+        user.setVerified(true);
         User savedUser = userRepository.save(user);
 
         emailService.sendWelcomeEmail(savedUser.getEmail());

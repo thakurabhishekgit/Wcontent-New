@@ -9,7 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react'; // Import Loader2 icon
+import { Loader2 } from 'lucide-react';
+import { useGoogleLogin } from '@react-oauth/google';
+import axios from 'axios';
 
 
 const Login = ({ handleLogin }) => {
@@ -22,9 +24,9 @@ const Login = ({ handleLogin }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [username, setUsername] = useState("");
   const [userType, setUserType] = useState("");
-  const [channelName, setChannelName] = useState(""); // Added channel name state
-  const [channelId, setChannelId] = useState(""); // Added channel ID state
-  const [channelURL, setChannelURL] = useState(""); // Added channel URL state
+  const [channelName, setChannelName] = useState("");
+  const [channelId, setChannelId] = useState("");
+  const [channelURL, setChannelURL] = useState("");
   const [isClient, setIsClient] = useState(false);
 
   // Loading states
@@ -32,18 +34,82 @@ const Login = ({ handleLogin }) => {
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [isRegisteringSubmit, setIsRegisteringSubmit] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const router = useRouter();
 
    useEffect(() => {
-    setIsClient(true); // Indicate component has mounted
+    setIsClient(true);
    }, []);
+   
+   const handleGoogleAuthBackend = async (googleUser) => {
+    setIsGoogleLoading(true);
+    setError('');
+    try {
+        const response = await fetch('https://wcontent-app-latest.onrender.com/api/users/google-auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: googleUser.email, username: googleUser.name })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            if (data.action === 'register') {
+                // Start registration flow, skipping OTP steps
+                setIsRegistering(true);
+                setEmail(data.email);
+                setUsername(data.username);
+                setIsOtpSent(true);
+                setIsOtpVerified(true);
+            } else {
+                // Login successful
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem("token", data.token);
+                    localStorage.setItem("id", data.user.id);
+                    localStorage.setItem("username", data.user.username);
+                    window.dispatchEvent(new CustomEvent('authChange'));
+                }
+                router.push("/");
+            }
+        } else {
+            setError(data.message || "Google authentication failed on the server.");
+        }
+    } catch (error) {
+        console.error("Google Auth Backend Error:", error);
+        setError("Error communicating with server during Google authentication.");
+    } finally {
+        setIsGoogleLoading(false);
+    }
+};
+
+const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+        setIsGoogleLoading(true);
+        setError('');
+        try {
+            const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+            });
+            await handleGoogleAuthBackend(userInfoResponse.data);
+        } catch (err) {
+            console.error("Google user info fetch error:", err);
+            setError("Failed to fetch user information from Google.");
+            setIsGoogleLoading(false);
+        }
+    },
+    onError: () => {
+        setError("Google login failed. Please try again.");
+        setIsGoogleLoading(false);
+    }
+});
+
 
   // Handle Login
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setIsLoggingIn(true); // Start loading
+    setIsLoggingIn(true);
 
     try {
       const backendUrl = "https://wcontent-app-latest.onrender.com/api/users/login";
@@ -58,27 +124,24 @@ const Login = ({ handleLogin }) => {
       if (response.ok) {
         const data = await response.json();
         if (typeof window !== 'undefined') {
-          localStorage.setItem("token", data.token); // Store backend token
+          localStorage.setItem("token", data.token);
           localStorage.setItem("id", data.user.id);
           localStorage.setItem("username", data.user.username);
-          // Dispatch custom event to notify navbar
           window.dispatchEvent(new CustomEvent('authChange'));
         }
         router.push("/");
       } else {
         let errorMessage = "Login failed. Please check credentials and try again.";
         try {
-            const data = await response.json().catch(() => null); // Catch potential JSON parsing errors
+            const data = await response.json().catch(() => null);
             errorMessage = data?.message || errorMessage;
 
-             // Specific check for the null password error
              if (response.status === 500 && data?.message?.includes('Cannot invoke "String.equals(Object)"')) {
                  errorMessage = "Login failed: Account data issue. Please try resetting your password or contact support.";
              }
 
         } catch (jsonError) {
             console.error("Could not parse error response:", jsonError);
-             // Check if response text gives a clue
              const text = await response.text().catch(() => '');
              console.error("Login error response text:", text);
               if (response.status === 500 && text.includes('Cannot invoke "String.equals(Object)"')) {
@@ -92,13 +155,12 @@ const Login = ({ handleLogin }) => {
     } catch (error) {
        console.error("Login network error:", error);
        let networkErrorMessage = "Error logging in. Please check your connection and try again.";
-       // Check if it's a fetch error (often CORS or network related)
-       if (isClient && error instanceof TypeError && error.message.includes('fetch')) { // More robust check
+       if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
           networkErrorMessage = `Error logging in. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and that CORS is configured correctly on the server to allow requests from your frontend origin (${window.location.origin}).`;
        }
        setError(networkErrorMessage);
     } finally {
-      setIsLoggingIn(false); // Stop loading
+      setIsLoggingIn(false);
     }
   };
 
@@ -107,7 +169,7 @@ const Login = ({ handleLogin }) => {
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setIsSendingOtp(true); // Start loading
+    setIsSendingOtp(true);
 
     try {
       const backendUrl = `https://wcontent-app-latest.onrender.com/api/users/request-otp?email=${encodeURIComponent(email)}`;
@@ -142,7 +204,7 @@ const Login = ({ handleLogin }) => {
        }
        setError(networkErrorMessage);
     } finally {
-      setIsSendingOtp(false); // Stop loading
+      setIsSendingOtp(false);
     }
   };
 
@@ -150,7 +212,7 @@ const Login = ({ handleLogin }) => {
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
      setError("");
-     setIsVerifyingOtp(true); // Start loading
+     setIsVerifyingOtp(true);
 
     try {
       const backendUrl = `https://wcontent-app-latest.onrender.com/api/users/verify-otp?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`;
@@ -185,7 +247,7 @@ const Login = ({ handleLogin }) => {
        }
       setError(networkErrorMessage);
     } finally {
-       setIsVerifyingOtp(false); // Stop loading
+       setIsVerifyingOtp(false);
     }
   };
 
@@ -193,28 +255,26 @@ const Login = ({ handleLogin }) => {
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
      setError("");
-     setIsRegisteringSubmit(true); // Start loading
+     setIsRegisteringSubmit(true);
 
     if (!userType) {
       setError("Please select a user type.");
       setIsRegisteringSubmit(false);
       return;
     }
-     // Basic password confirmation validation
      if (password.length < 6) {
         setError("Password must be at least 6 characters long.");
          setIsRegisteringSubmit(false);
         return;
      }
 
-    // Prepare payload
      const payload = {
        username,
        email,
        password,
        userType,
-       channelName, // Always include channel fields
-       channelId,   // Backend should handle if they are optional for RoleSeeker
+       channelName,
+       channelId,
        channelURL,
      };
 
@@ -234,7 +294,6 @@ const Login = ({ handleLogin }) => {
             localStorage.setItem("token", data.token);
             localStorage.setItem("id", data.user.id);
             localStorage.setItem("username", data.user.username);
-             // Dispatch custom event to notify navbar
             window.dispatchEvent(new CustomEvent('authChange'));
          }
         setIsRegistering(false);
@@ -260,13 +319,12 @@ const Login = ({ handleLogin }) => {
        }
        setError(networkErrorMessage);
     } finally {
-       setIsRegisteringSubmit(false); // Stop loading
+       setIsRegisteringSubmit(false);
     }
   };
 
   const toggleMode = () => {
     setIsRegistering(!isRegistering);
-    // Reset state when toggling modes
     setEmail("");
     setPassword("");
     setOtp("");
@@ -278,11 +336,11 @@ const Login = ({ handleLogin }) => {
     setChannelId("");
     setChannelURL("");
     setError("");
-    // Reset loading states
     setIsLoggingIn(false);
     setIsSendingOtp(false);
     setIsVerifyingOtp(false);
     setIsRegisteringSubmit(false);
+    setIsGoogleLoading(false);
   };
 
 
@@ -290,25 +348,23 @@ const Login = ({ handleLogin }) => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-primary/10 p-4">
       <div className="w-full max-w-4xl grid md:grid-cols-2 gap-0 bg-card text-card-foreground rounded-xl shadow-2xl overflow-hidden border border-border">
 
-        {/* Left Side - Illustration and Welcome */}
         <div className="hidden md:flex flex-col justify-center items-center p-8 lg:p-12 bg-gradient-to-br from-primary/50 via-primary/30 to-primary/50 text-primary-foreground">
-          <h1 className="text-3xl font-bold mb-4 text-center">Welcome to Wcontent</h1> {/* Updated name */}
+          <h1 className="text-3xl font-bold mb-4 text-center">Welcome to Wcontent</h1>
           <p className="text-center mb-8 text-primary-foreground/80">
             Join the ultimate platform for creators today to explore amazing features and take your career to
             the next level. Whether you're a content creator or a role seeker,
-            we've got you covered. {/* Updated description */}
+            we've got you covered.
           </p>
           <Image
-            src="https://picsum.photos/400/300?grayscale&blur=2" // Updated image URL with grayscale and blur
+            src="https://picsum.photos/400/300?grayscale&blur=2"
             alt="Abstract background for content creation platform"
-            data-ai-hint="abstract dark texture background" // Updated hint
+            data-ai-hint="abstract dark texture background"
             width={400}
             height={300}
             className="rounded-lg object-cover shadow-lg"
           />
         </div>
 
-        {/* Right Side - Form */}
         <div className="p-8 lg:p-12 flex flex-col justify-center">
           <Card className="w-full border-0 shadow-none bg-transparent">
             <CardHeader className="text-center">
@@ -320,7 +376,6 @@ const Login = ({ handleLogin }) => {
             <CardContent>
               {error && <p className="text-destructive text-sm mb-4 text-center bg-destructive/10 p-2 rounded-md border border-destructive/50">{error}</p>}
 
-              {/* Login Form */}
               {!isRegistering && (
                 <form onSubmit={handleLoginSubmit} className="space-y-4">
                   <div>
@@ -332,7 +387,7 @@ const Login = ({ handleLogin }) => {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       placeholder="you@example.com"
-                      disabled={isLoggingIn}
+                      disabled={isLoggingIn || isGoogleLoading}
                     />
                   </div>
                   <div>
@@ -344,10 +399,10 @@ const Login = ({ handleLogin }) => {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       placeholder="••••••••"
-                      disabled={isLoggingIn}
+                      disabled={isLoggingIn || isGoogleLoading}
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoggingIn}>
+                  <Button type="submit" className="w-full" disabled={isLoggingIn || isGoogleLoading}>
                     {isLoggingIn ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logging In...
@@ -359,12 +414,9 @@ const Login = ({ handleLogin }) => {
                 </form>
               )}
 
-              {/* Registration Flow */}
               {isRegistering && (
                 <>
-                  {/* Step 1: Email Input */}
                   {!isOtpSent && (
-                     <>
                     <form onSubmit={handleEmailSubmit} className="space-y-4">
                       <div>
                         <Label htmlFor="register-email">Email</Label>
@@ -375,11 +427,11 @@ const Login = ({ handleLogin }) => {
                           onChange={(e) => setEmail(e.target.value)}
                           required
                           placeholder="you@example.com"
-                          disabled={isSendingOtp}
+                          disabled={isSendingOtp || isGoogleLoading}
                         />
                          <p className="text-xs text-muted-foreground mt-1">We'll send an OTP to verify your email.</p>
                       </div>
-                      <Button type="submit" className="w-full" disabled={isSendingOtp}>
+                      <Button type="submit" className="w-full" disabled={isSendingOtp || isGoogleLoading}>
                         {isSendingOtp ? (
                            <>
                              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending OTP...
@@ -389,10 +441,8 @@ const Login = ({ handleLogin }) => {
                          )}
                       </Button>
                     </form>
-                     </>
                   )}
 
-                  {/* Step 2: OTP Verification */}
                   {isOtpSent && !isOtpVerified && (
                     <form onSubmit={handleOtpSubmit} className="space-y-4">
                       <div>
@@ -405,11 +455,11 @@ const Login = ({ handleLogin }) => {
                           required
                           placeholder="Enter the 6-digit code"
                           maxLength={6}
-                          disabled={isVerifyingOtp}
+                          disabled={isVerifyingOtp || isGoogleLoading}
                         />
                          <p className="text-xs text-muted-foreground mt-1">Check your email for the verification code.</p>
                       </div>
-                      <Button type="submit" className="w-full" disabled={isVerifyingOtp}>
+                      <Button type="submit" className="w-full" disabled={isVerifyingOtp || isGoogleLoading}>
                         {isVerifyingOtp ? (
                            <>
                              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...
@@ -421,7 +471,6 @@ const Login = ({ handleLogin }) => {
                     </form>
                   )}
 
-                  {/* Step 3: Registration Details */}
                   {isOtpVerified && (
                     <form onSubmit={handleRegisterSubmit} className="space-y-4">
                       <div>
@@ -433,7 +482,7 @@ const Login = ({ handleLogin }) => {
                           onChange={(e) => setUsername(e.target.value)}
                           required
                           placeholder="Choose a username"
-                          disabled={isRegisteringSubmit}
+                          disabled={isRegisteringSubmit || isGoogleLoading}
                         />
                       </div>
                       <div>
@@ -445,13 +494,13 @@ const Login = ({ handleLogin }) => {
                           onChange={(e) => setPassword(e.target.value)}
                           required
                            placeholder="Choose a strong password (min. 6 chars)"
-                           minLength={6} // Add hint for minimum length
-                           disabled={isRegisteringSubmit}
+                           minLength={6}
+                           disabled={isRegisteringSubmit || isGoogleLoading}
                         />
                       </div>
                       <div>
                         <Label htmlFor="userType">User Type</Label>
-                         <Select onValueChange={setUserType} value={userType} required disabled={isRegisteringSubmit}>
+                         <Select onValueChange={setUserType} value={userType} required disabled={isRegisteringSubmit || isGoogleLoading}>
                             <SelectTrigger id="userType">
                               <SelectValue placeholder="Select your role" />
                             </SelectTrigger>
@@ -461,49 +510,45 @@ const Login = ({ handleLogin }) => {
                            </SelectContent>
                           </Select>
                       </div>
-                       {/* Always show Channel fields, remove conditional rendering */}
                        <>
                            <div>
-                              <Label htmlFor="channelName">Channel Name</Label> {/* Removed Optional */}
+                              <Label htmlFor="channelName">Channel Name</Label>
                               <Input
                                  id="channelName"
                                  type="text"
                                  value={channelName}
                                  onChange={(e) => setChannelName(e.target.value)}
-                                 // required={userType === 'ChannelOwner'} // Backend validates based on type
                                  placeholder="Your YouTube Channel Name"
-                                 disabled={isRegisteringSubmit}
+                                 disabled={isRegisteringSubmit || isGoogleLoading}
                                />
-                                <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p> {/* Add hint */}
+                                <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p>
                            </div>
                            <div>
-                              <Label htmlFor="channelId">Channel ID</Label> {/* Removed Optional */}
+                              <Label htmlFor="channelId">Channel ID</Label>
                               <Input
                                  id="channelId"
                                  type="text"
                                  value={channelId}
                                  onChange={(e) => setChannelId(e.target.value)}
-                                 // required={userType === 'ChannelOwner'}
                                   placeholder="Your YouTube Channel ID"
-                                  disabled={isRegisteringSubmit}
+                                  disabled={isRegisteringSubmit || isGoogleLoading}
                                />
-                                <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p> {/* Add hint */}
+                                <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p>
                            </div>
                            <div>
-                             <Label htmlFor="channelURL">Channel URL</Label> {/* Removed Optional */}
+                             <Label htmlFor="channelURL">Channel URL</Label>
                               <Input
                                  id="channelURL"
                                  type="url"
                                  value={channelURL}
                                  onChange={(e) => setChannelURL(e.target.value)}
-                                 // required={userType === 'ChannelOwner'}
                                  placeholder="https://youtube.com/..."
-                                 disabled={isRegisteringSubmit}
+                                 disabled={isRegisteringSubmit || isGoogleLoading}
                               />
-                               <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p> {/* Add hint */}
+                               <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p>
                            </div>
                        </>
-                      <Button type="submit" className="w-full" disabled={isRegisteringSubmit}>
+                      <Button type="submit" className="w-full" disabled={isRegisteringSubmit || isGoogleLoading}>
                         {isRegisteringSubmit ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing Up...
@@ -516,11 +561,27 @@ const Login = ({ handleLogin }) => {
                   )}
                 </>
               )}
+               <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-card px-2 text-muted-foreground">Or</span>
+                    </div>
+                </div>
+                <Button variant="outline" className="w-full" type="button" onClick={() => googleLogin()} disabled={isLoggingIn || isSendingOtp || isVerifyingOtp || isRegisteringSubmit || isGoogleLoading}>
+                    {isGoogleLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 172.9 56.6l-69.7 69.7C324.9 100.6 289.1 84 248 84c-80.9 0-146.4 65.5-146.4 146.4s65.5 146.4 146.4 146.4c97.4 0 130.3-72.2 134.8-109.8H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>
+                    )}
+                    Continue with Google
+                </Button>
             </CardContent>
             <CardFooter className="flex justify-center">
                <p className="text-sm text-muted-foreground">
                 {isRegistering ? "Already have an account?" : "No account?"}{" "}
-                <Button variant="link" className="p-0 h-auto text-primary" onClick={toggleMode} disabled={isLoggingIn || isSendingOtp || isVerifyingOtp || isRegisteringSubmit}>
+                <Button variant="link" className="p-0 h-auto text-primary" onClick={toggleMode} disabled={isLoggingIn || isSendingOtp || isVerifyingOtp || isRegisteringSubmit || isGoogleLoading}>
                   {isRegistering ? "Login" : "Sign Up"}
                 </Button>
               </p>
@@ -533,5 +594,3 @@ const Login = ({ handleLogin }) => {
 };
 
 export default Login;
-
-    
