@@ -325,22 +325,22 @@ function Ml() {
             icon={Search}
             title="Comment Sentiment Analysis"
             description="Quickly understand what your audience thinks by analyzing comment sections."
-            img="https://picsum.photos/400/250?random=20&grayscale&blur=1"
-            data-ai-hint="comments feedback sentiment graph"
+            img="https://placehold.co/400x250.png"
+            data-ai-hint="comments feedback"
           />
           <FeatureCard
             icon={Lightbulb}
             title="Actionable Improvement Ideas"
             description="Get AI-powered suggestions on how to make your next video even better based on feedback."
-            img="https://picsum.photos/400/250?random=21&grayscale&blur=1"
-            data-ai-hint="lightbulb idea strategy improvement"
+            img="https://placehold.co/400x250.png"
+            data-ai-hint="lightbulb idea"
           />
            <FeatureCard
              icon={TrendingUp}
              title="Audience Growth Forecaster"
              description="Estimate subscriber growth and retention based on your channel stats and content plans."
-             img="https://picsum.photos/400/250?random=22&grayscale&blur=1"
-             data-ai-hint="graph chart prediction forecast user growth"
+             img="https://placehold.co/400x250.png"
+             data-ai-hint="graph chart"
            />
         </div>
        </section>

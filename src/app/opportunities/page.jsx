@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from "react";
@@ -415,9 +416,9 @@ export default function OpportunitiesPage() {
           <p className="text-muted-foreground max-w-xl mx-auto">Connect directly with brands and businesses looking for your talent.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <FeatureCard icon={Award} title='Curated Gigs' description='Access opportunities specifically for content creators.' img='https://picsum.photos/400/200?random=oppCurated&grayscale&blur=1' hint='trophy award job' delay="1s" />
-          <FeatureCard icon={Filter} title='Smart Filters' description='Easily find relevant gigs by type, location, and budget.' img='https://picsum.photos/400/200?random=oppFilters&grayscale&blur=1' hint='filter search find' delay="1.2s" />
-          <FeatureCard icon={TargetIcon} title='Direct Applications' description='Apply directly to opportunities through the platform.' img='https://picsum.photos/400/200?random=oppApply&grayscale&blur=1' hint='apply form submit' delay="1.4s" />
+          <FeatureCard icon={Award} title='Curated Gigs' description='Access opportunities specifically for content creators.' img='https://placehold.co/400x200.png' hint='trophy award' delay="1s" />
+          <FeatureCard icon={Filter} title='Smart Filters' description='Easily find relevant gigs by type, location, and budget.' img='https://placehold.co/400x200.png' hint='filter search' delay="1.2s" />
+          <FeatureCard icon={TargetIcon} title='Direct Applications' description='Apply directly to opportunities through the platform.' img='https://placehold.co/400x200.png' hint='apply form' delay="1.4s" />
         </div>
       </section>
 
@@ -529,9 +530,9 @@ export default function OpportunitiesPage() {
              <Card key={index} className="bg-card/80 border border-border/60 text-left hover:shadow-lg transition-shadow duration-300 animate-slide-in-from-bottom" style={{ animationDelay: `${index * 0.15}s` }}>
                 <CardHeader className="items-center">
                    <Image
-                      src={`https://picsum.photos/100/100?random=${testimonial.imageSeed}&grayscale&blur=1`}
+                      src={`https://placehold.co/100x100.png`}
                       alt={testimonial.name}
-                      data-ai-hint="person portrait professional"
+                      data-ai-hint="person portrait"
                       width={80}
                       height={80}
                       className="rounded-full mb-3 border-2 border-primary"

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from "react";
@@ -356,9 +357,9 @@ const googleLogin = useGoogleLogin({
             we've got you covered.
           </p>
           <Image
-            src="https://picsum.photos/400/300?grayscale&blur=2"
+            src="https://placehold.co/400x300.png"
             alt="Abstract background for content creation platform"
-            data-ai-hint="abstract dark texture background"
+            data-ai-hint="abstract dark texture"
             width={400}
             height={300}
             className="rounded-lg object-cover shadow-lg"
