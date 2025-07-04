@@ -31,7 +31,9 @@ public class SecurityConfig {
                     "/api/users/register",
                     "/api/users/request-otp",
                     "/api/users/verify-otp",
-                    "/api/users/google-auth",
+                    "/api/users/oauth/login", // New OAuth2 login endpoint
+                    "/api/users/oauth/register", // New OAuth2 register endpoint
+                    "/login/oauth2/code/google", // Google redirect URI
                     "/api/users/opportunities/opportunitiesGetAll", // Publicly viewable
                     "/api/users/collabration/getCollabOfAllUsers"  // Publicly viewable
                 ).permitAll()

@@ -58,32 +58,6 @@ public class UserController {
         return new ResponseEntity<>("OTP verified successfully. Proceed to registration.", HttpStatus.OK);
     }
 
-    @PostMapping("/google-auth")
-    public ResponseEntity<?> googleAuthentication(@RequestBody Map<String, String> payload) {
-        String email = payload.get("email");
-        String username = payload.get("username");
-
-        if (email == null || email.isEmpty()) {
-            return new ResponseEntity<>("Email from Google is required.", HttpStatus.BAD_REQUEST);
-        }
-
-        return userRepository.findByEmail(email)
-                .map(existingUser -> {
-                    // User exists, log them in
-                    String token = JwtUtil.generateToken(existingUser.getEmail());
-                    TokenResponse tokenResponse = new TokenResponse(existingUser, token);
-                    return new ResponseEntity<>(tokenResponse, HttpStatus.OK);
-                })
-                .orElseGet(() -> {
-                    // User does not exist, signal frontend to register
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("action", "register");
-                    response.put("email", email);
-                    response.put("username", username);
-                    return new ResponseEntity<>(response, HttpStatus.OK);
-                });
-    }
-
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         if (user.getUsername() == null || user.getUsername().isEmpty()) {

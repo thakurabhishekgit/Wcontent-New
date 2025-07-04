@@ -11,9 +11,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Image from 'next/image';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
-import { useGoogleLogin } from '@react-oauth/google';
-import axios from 'axios';
-
 
 const Login = ({ handleLogin }) => {
   const [email, setEmail] = useState("");
@@ -41,71 +38,25 @@ const Login = ({ handleLogin }) => {
 
    useEffect(() => {
     setIsClient(true);
-   }, []);
+     // This logic handles the case where the user is redirected back from the backend
+     // after a successful Google OAuth login, with a token in the URL query parameters.
+     const queryParams = new URLSearchParams(window.location.search);
+     const token = queryParams.get('token');
+     const userId = queryParams.get('userId');
+     const usernameFromQuery = queryParams.get('username');
+
+     if (token && userId && usernameFromQuery) {
+       // Store the token and user info from the query params
+       localStorage.setItem("token", token);
+       localStorage.setItem("id", userId);
+       localStorage.setItem("username", usernameFromQuery);
+       window.dispatchEvent(new CustomEvent('authChange'));
+       
+       // Redirect to the dashboard and remove the query params from the URL
+       router.replace('/dashboard');
+     }
+   }, [router]);
    
-   const handleGoogleAuthBackend = async (googleUser) => {
-    setIsGoogleLoading(true);
-    setError('');
-    try {
-        const response = await fetch('https://wcontent-app-latest.onrender.com/api/users/google-auth', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: googleUser.email, username: googleUser.name })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            if (data.action === 'register') {
-                // Start registration flow, skipping OTP steps
-                setIsRegistering(true);
-                setEmail(data.email);
-                setUsername(data.username);
-                setIsOtpSent(true);
-                setIsOtpVerified(true);
-            } else {
-                // Login successful
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem("token", data.token);
-                    localStorage.setItem("id", data.user.id);
-                    localStorage.setItem("username", data.user.username);
-                    window.dispatchEvent(new CustomEvent('authChange'));
-                }
-                router.push("/");
-            }
-        } else {
-            setError(data.message || "Google authentication failed on the server.");
-        }
-    } catch (error) {
-        console.error("Google Auth Backend Error:", error);
-        setError("Error communicating with server during Google authentication.");
-    } finally {
-        setIsGoogleLoading(false);
-    }
-};
-
-const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-        setIsGoogleLoading(true);
-        setError('');
-        try {
-            const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-                headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-            });
-            await handleGoogleAuthBackend(userInfoResponse.data);
-        } catch (err) {
-            console.error("Google user info fetch error:", err);
-            setError("Failed to fetch user information from Google.");
-            setIsGoogleLoading(false);
-        }
-    },
-    onError: () => {
-        setError("Google login failed. Please try again.");
-        setIsGoogleLoading(false);
-    },
-});
-
-
   // Handle Login
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -572,13 +523,11 @@ const googleLogin = useGoogleLogin({
                         <span className="bg-card px-2 text-muted-foreground">Or</span>
                     </div>
                 </div>
-                <Button variant="outline" className="w-full" type="button" onClick={() => googleLogin()} disabled={isLoggingIn || isSendingOtp || isVerifyingOtp || isRegisteringSubmit || isGoogleLoading}>
-                    {isGoogleLoading ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 172.9 56.6l-69.7 69.7C324.9 100.6 289.1 84 248 84c-80.9 0-146.4 65.5-146.4 146.4s65.5 146.4 146.4 146.4c97.4 0 130.3-72.2 134.8-109.8H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>
-                    )}
-                    Continue with Google
+                 <Button variant="outline" className="w-full" asChild>
+                    <a href="https://wcontent-app-latest.onrender.com/api/users/oauth/login">
+                       <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 172.9 56.6l-69.7 69.7C324.9 100.6 289.1 84 248 84c-80.9 0-146.4 65.5-146.4 146.4s65.5 146.4 146.4 146.4c97.4 0 130.3-72.2 134.8-109.8H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>
+                       Continue with Google
+                    </a>
                 </Button>
             </CardContent>
             <CardFooter className="flex justify-center">
