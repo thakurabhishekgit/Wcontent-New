@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -9,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Flame, TrendingUp, Search, ArrowRight, Lightbulb, Bot, Video, Mic, BarChart as BarChartIcon, Check, LogIn, Sparkles } from 'lucide-react';
+import { Flame, TrendingUp, Search, ArrowRight, Lightbulb, Bot, Video, Mic, BarChart as BarChartIcon, Check, LogIn, Sparkles, Loader2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -272,78 +273,84 @@ export default function TrendingPage() {
             )}
         </section>
 
-        <Dialog open={!!selectedTrend} onOpenChange={() => setSelectedTrend(null)}>
+        <Dialog open={!!selectedTrend} onOpenChange={() => {setSelectedTrend(null); setIsHelpModal(false); setGrowthPrediction(null);}}>
             <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle className="text-2xl">{selectedTrend?.title}</DialogTitle>
                     <DialogDescription>
-                        {selectedTrend?.description}
+                        { !isHelpModal ? selectedTrend?.description : 'Use our AI assistant to help you create this content.'}
                     </DialogDescription>
                 </DialogHeader>
 
-                {!isHelpModal ? (
-                    <>
-                        <div className="py-4 flex-grow overflow-y-auto pr-6 -mr-6">
+                <div className="flex-grow overflow-y-auto pr-6 -mr-6 py-4">
+                    {!isHelpModal ? (
+                        <div>
                             <h3 className="font-semibold text-lg mb-2">Trend Breakdown</h3>
                             <p className="text-sm text-muted-foreground">{selectedTrend?.details}</p>
                         </div>
-                        <DialogFooter className="mt-auto border-t pt-4">
+                    ) : (
+                        <div>
+                            <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Bot className="h-5 w-5 text-primary" /> AI Creation Assistant</h3>
+                            <Accordion type="single" collapsible className="w-full" defaultValue="item-0">
+                               {selectedTrend?.aiSteps.map((step, index) => (
+                                  <AccordionItem key={index} value={`item-${index}`}>
+                                    <AccordionTrigger>{step.title}</AccordionTrigger>
+                                    <AccordionContent className="whitespace-pre-wrap text-sm text-muted-foreground">{step.content}</AccordionContent>
+                                  </AccordionItem>
+                               ))}
+                            </Accordion>
+                            
+                            <div className="mt-6">
+                                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><BarChartIcon className="h-5 w-5 text-primary" /> Potential Growth</h3>
+                                {!growthPrediction ? (
+                                    <div className="p-4 border border-dashed rounded-md text-center">
+                                        <p className="text-sm text-muted-foreground mb-2">Simulate how this trend could impact your channel's views.</p>
+                                        <Label htmlFor="youtube-handle" className="sr-only">YouTube Handle</Label>
+                                        <Input id="youtube-handle" placeholder="@YourHandle (optional)" className="mb-2 max-w-xs mx-auto" />
+                                        <Button onClick={handleSimulateGrowth} disabled={growthLoading}>
+                                           {growthLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                           Forecast Potential Views
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Card>
+                                        <CardContent className="pt-6">
+                                            <p className="text-center text-sm mb-2 text-muted-foreground">Based on your channel, creating this content could increase average views by up to <strong className="text-primary">{growthPrediction.growthPercentage}%</strong>.</p>
+                                            <div className="h-[200px]">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <RechartsBarChart data={growthChartData} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
+                                                        <CartesianGrid strokeDasharray="3 3" />
+                                                        <XAxis dataKey="name" fontSize={12} />
+                                                        <YAxis fontSize={12} />
+                                                        <RechartsTooltip contentStyle={{backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))'}}/>
+                                                        <Bar dataKey="value" fill="hsl(var(--primary))" name="Views" radius={[4, 4, 0, 0]} />
+                                                    </RechartsBarChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                            <p className="text-xs text-center text-muted-foreground mt-1">*This is a simulation. Actual results may vary.</p>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <DialogFooter className="mt-auto border-t pt-4">
+                    {!isHelpModal ? (
+                        <>
                            <DialogClose asChild><Button type="button" variant="outline">Close</Button></DialogClose>
                            <Button onClick={() => setIsHelpModal(true)}>
                              <Sparkles className="mr-2 h-4 w-4" /> Help Me Create This
                            </Button>
-                        </DialogFooter>
-                    </>
-                ) : (
-                    <div className="flex-grow overflow-y-auto pr-6 -mr-6">
-                        <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Bot className="h-5 w-5 text-primary" /> AI Creation Assistant</h3>
-                        <Accordion type="single" collapsible className="w-full" defaultValue="item-0">
-                           {selectedTrend?.aiSteps.map((step, index) => (
-                              <AccordionItem key={index} value={`item-${index}`}>
-                                <AccordionTrigger>{step.title}</AccordionTrigger>
-                                <AccordionContent className="whitespace-pre-wrap text-sm text-muted-foreground">{step.content}</AccordionContent>
-                              </AccordionItem>
-                           ))}
-                        </Accordion>
-                        
-                        <div className="mt-6">
-                            <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><BarChartIcon className="h-5 w-5 text-primary" /> Potential Growth</h3>
-                            {!growthPrediction ? (
-                                <div className="p-4 border border-dashed rounded-md text-center">
-                                    <p className="text-sm text-muted-foreground mb-2">Simulate how this trend could impact your channel's views.</p>
-                                    <Label htmlFor="youtube-handle" className="sr-only">YouTube Handle</Label>
-                                    <Input id="youtube-handle" placeholder="@YourHandle (optional)" className="mb-2 max-w-xs mx-auto" />
-                                    <Button onClick={handleSimulateGrowth} disabled={growthLoading}>
-                                       {growthLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                       Forecast Potential Views
-                                    </Button>
-                                </div>
-                            ) : (
-                                <Card>
-                                    <CardContent className="pt-6">
-                                        <p className="text-center text-sm mb-2 text-muted-foreground">Based on your channel, creating this content could increase average views by up to <strong className="text-primary">{growthPrediction.growthPercentage}%</strong>.</p>
-                                        <div className="h-[200px]">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <RechartsBarChart data={growthChartData} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
-                                                    <CartesianGrid strokeDasharray="3 3" />
-                                                    <XAxis dataKey="name" fontSize={12} />
-                                                    <YAxis fontSize={12} />
-                                                    <RechartsTooltip contentStyle={{backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))'}}/>
-                                                    <Bar dataKey="value" fill="hsl(var(--primary))" name="Views" radius={[4, 4, 0, 0]} />
-                                                </RechartsBarChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                        <p className="text-xs text-center text-muted-foreground mt-1">*This is a simulation. Actual results may vary.</p>
-                                    </CardContent>
-                                </Card>
-                            )}
-                        </div>
-                    </div>
-                     <DialogFooter className="mt-auto border-t pt-4">
-                           <Button type="button" variant="outline" onClick={() => setIsHelpModal(false)}>Back to Details</Button>
-                           <DialogClose asChild><Button>Done</Button></DialogClose>
-                     </DialogFooter>
-                )}
+                        </>
+                    ) : (
+                        <>
+                            <Button type="button" variant="outline" onClick={() => setIsHelpModal(false)}>Back to Details</Button>
+                            <DialogClose asChild><Button>Done</Button></DialogClose>
+                        </>
+                    )}
+                </DialogFooter>
             </DialogContent>
         </Dialog>
         
