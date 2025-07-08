@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, LogOut, Loader2, User, Settings, LayoutDashboard, ChevronDown, PlusCircle, Briefcase, Inbox, Users as UsersIcon } from 'lucide-react'; // Added PlusCircle, Briefcase, Inbox, UsersIcon
+import { Menu, LogOut, Loader2, User, Settings, LayoutDashboard, ChevronDown, PlusCircle, Briefcase, Inbox, Users as UsersIcon, TrendingUp } from 'lucide-react'; // Added PlusCircle, Briefcase, Inbox, UsersIcon, TrendingUp
 import { useState, useEffect } from 'react';
 import WcontentLogo from '@/components/icons/wcontent-logo';
 import {
@@ -33,6 +33,7 @@ import {
 
 const navLinks = [
   { href: '/', label: 'Home' },
+  { href: '/trending', label: 'Trending' },
   { href: '/generate', label: 'Generate' },
   { href: '/predict', label: 'Predict' },
   { href: '/opportunities', label: 'Opportunities' },

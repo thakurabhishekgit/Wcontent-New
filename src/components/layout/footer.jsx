@@ -1,9 +1,9 @@
-
 import Link from 'next/link';
 import { Github, Twitter, Linkedin, Mail, User as UserIcon } from 'lucide-react';
 import WcontentLogo from '@/components/icons/wcontent-logo';
 
 const primaryLinks = [
+  { href: '/trending', label: 'Trending' },
   { href: '/generate', label: 'Generate' },
   { href: '/predict', label: 'Predict' },
   { href: '/opportunities', label: 'Opportunities' },
