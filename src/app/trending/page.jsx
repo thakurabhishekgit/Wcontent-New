@@ -41,34 +41,43 @@ const TrendArticleItem = ({ trend, onClick }) => (
 );
 
 export default function TrendingPage() {
-  const [trends, setTrends] = useState([]);
+  const [allTrends, setAllTrends] = useState([]);
+  const [filteredTrends, setFilteredTrends] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
 
   useEffect(() => {
-    // Simulate fetching data
+    // Simulate fetching data from an API
     setIsLoading(true);
-    setTimeout(() => {
-      let filtered = dummyTrends;
-
-      if (activeCategory !== 'All') {
-        filtered = filtered.filter(t => t.category === activeCategory);
-      }
-
-      if (searchTerm) {
-        const lowerSearch = searchTerm.toLowerCase();
-        filtered = filtered.filter(t => 
-            t.title.toLowerCase().includes(lowerSearch) || 
-            t.excerpt.toLowerCase().includes(lowerSearch)
-        );
-      }
-      
-      setTrends(filtered);
+    const timer = setTimeout(() => {
+      setAllTrends(dummyTrends);
+      setFilteredTrends(dummyTrends);
       setIsLoading(false);
-    }, 500); // Simulate network delay
-  }, [activeCategory, searchTerm]);
+    }, 1000); // Simulate 1 second network delay
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    // This effect runs whenever the filters or search term change
+    let results = allTrends;
+
+    if (activeCategory !== 'All') {
+      results = results.filter(t => t.category === activeCategory);
+    }
+
+    if (searchTerm) {
+      const lowerSearch = searchTerm.toLowerCase();
+      results = results.filter(t => 
+          t.title.toLowerCase().includes(lowerSearch) || 
+          t.excerpt.toLowerCase().includes(lowerSearch)
+      );
+    }
+    
+    setFilteredTrends(results);
+  }, [activeCategory, searchTerm, allTrends]);
   
   const handleTrendClick = (trend) => {
       router.push(`/trending/${trend.id}`);
@@ -124,8 +133,8 @@ export default function TrendingPage() {
                       </CardContent>
                     </Card>
                   ))
-              ) : trends.length > 0 ? (
-                  trends.map(trend => <TrendArticleItem key={trend.id} trend={trend} onClick={handleTrendClick} />)
+              ) : filteredTrends.length > 0 ? (
+                  filteredTrends.map(trend => <TrendArticleItem key={trend.id} trend={trend} onClick={handleTrendClick} />)
               ) : (
                 <Card className="text-center py-12 border-dashed bg-card/50 col-span-full">
                     <CardContent className="flex flex-col items-center gap-3">
