@@ -416,9 +416,9 @@ export default function OpportunitiesPage() {
           <p className="text-muted-foreground max-w-xl mx-auto">Connect directly with brands and businesses looking for your talent.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <FeatureCard icon={Award} title='Curated Gigs' description='Access opportunities specifically for content creators.' img='https://placehold.co/400x200.png' hint='vector curated list' delay="1s" />
-          <FeatureCard icon={Filter} title='Smart Filters' description='Easily find relevant gigs by type, location, and budget.' img='https://placehold.co/400x200.png' hint='vector filter options' delay="1.2s" />
-          <FeatureCard icon={TargetIcon} title='Direct Applications' description='Apply directly to opportunities through the platform.' img='https://placehold.co/400x200.png' hint='vector apply form' delay="1.4s" />
+          <FeatureCard icon={Award} title='Curated Gigs' description='Access opportunities specifically for content creators.' img='https://picsum.photos/seed/gigs/400/200' hint='vector curated list' delay="1s" />
+          <FeatureCard icon={Filter} title='Smart Filters' description='Easily find relevant gigs by type, location, and budget.' img='https://picsum.photos/seed/filters/400/200' hint='vector filter options' delay="1.2s" />
+          <FeatureCard icon={TargetIcon} title='Direct Applications' description='Apply directly to opportunities through the platform.' img='https://picsum.photos/seed/apply/400/200' hint='vector apply form' delay="1.4s" />
         </div>
       </section>
 
@@ -530,7 +530,7 @@ export default function OpportunitiesPage() {
              <Card key={index} className="bg-card/80 border border-border/60 text-left hover:shadow-lg transition-shadow duration-300 animate-slide-in-from-bottom" style={{ animationDelay: `${index * 0.15}s` }}>
                 <CardHeader className="items-center">
                    <Image
-                      src={`https://placehold.co/100x100.png`}
+                      src={`https://picsum.photos/seed/${testimonial.imageSeed}/100/100`}
                       alt={testimonial.name}
                       data-ai-hint="vector person avatar"
                       width={80}

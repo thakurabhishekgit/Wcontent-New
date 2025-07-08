@@ -53,10 +53,10 @@ const HowItWorksStep = ({ step, title, description }) => (
 );
 
 const testimonials = [
-  { quote: "Wcontent's AI tools are a game-changer for brainstorming. I'm never stuck for ideas anymore!", name: "Alex R.", role: "Tech YouTuber", stars: 5, image: "https://placehold.co/100x100.png" },
-  { quote: "Found an amazing brand deal through the Opportunity Hub. The process was seamless.", name: "Maria G.", role: "Lifestyle Blogger", stars: 5, image: "https://placehold.co/100x100.png" },
-  { quote: "Collaborating with another creator I met on Wcontent doubled my video's reach!", name: "Sam K.", role: "Gaming Streamer", stars: 4, image: "https://placehold.co/100x100.png" },
-  { quote: "The prediction tools helped me understand my audience better. Highly recommend!", name: "Priya S.", role: "Educational Content Creator", stars: 5, image: "https://placehold.co/100x100.png" },
+  { quote: "Wcontent's AI tools are a game-changer for brainstorming. I'm never stuck for ideas anymore!", name: "Alex R.", role: "Tech YouTuber", stars: 5, image: "https://picsum.photos/seed/testi1/100/100" },
+  { quote: "Found an amazing brand deal through the Opportunity Hub. The process was seamless.", name: "Maria G.", role: "Lifestyle Blogger", stars: 5, image: "https://picsum.photos/seed/testi2/100/100" },
+  { quote: "Collaborating with another creator I met on Wcontent doubled my video's reach!", name: "Sam K.", role: "Gaming Streamer", stars: 4, image: "https://picsum.photos/seed/testi3/100/100" },
+  { quote: "The prediction tools helped me understand my audience better. Highly recommend!", name: "Priya S.", role: "Educational Content Creator", stars: 5, image: "https://picsum.photos/seed/testi4/100/100" },
 ];
 
 
@@ -130,7 +130,7 @@ export default function Home() {
         icon={Lightbulb}
         title="Never Run Out of Ideas Again"
         description="Our AI Content Generation Suite helps you brainstorm unique ideas, craft compelling headlines, and structure your content with comprehensive outlines. Say goodbye to creative blocks!"
-        imageSrc="https://placehold.co/600x400.png"
+        imageSrc="https://picsum.photos/seed/ideas/600/400"
         imageHint="vector idea generation"
         ctaText="Try Our Idea Generator"
         ctaLink="/generate"
@@ -140,7 +140,7 @@ export default function Home() {
         icon={TrendingUp}
         title="Understand Your Audience, Predict Your Success"
         description="Analyze YouTube comment sentiment to gauge audience reaction and get AI-driven suggestions. Forecast potential audience growth and retention for your upcoming content strategies."
-        imageSrc="https://placehold.co/600x400.png"
+        imageSrc="https://picsum.photos/seed/analytics/600/400"
         imageHint="vector data analytics"
         ctaText="Analyze Your Content"
         ctaLink="/predict"
@@ -151,7 +151,7 @@ export default function Home() {
         icon={Briefcase}
         title="Find Your Next Paid Gig or Project"
         description="Explore a curated marketplace of opportunities from brands and businesses looking for content creators. Filter by type, location, and budget to find your perfect match."
-        imageSrc="https://placehold.co/600x400.png"
+        imageSrc="https://picsum.photos/seed/gigs/600/400"
         imageHint="vector opportunity search"
         ctaText="Browse Opportunities"
         ctaLink="/opportunities"
@@ -161,7 +161,7 @@ export default function Home() {
         icon={UsersIcon}
         title="Connect and Create with Fellow Creators"
         description="Join our Collaboration Hub to find like-minded creators for joint videos, podcast guest swaps, social media campaigns, and more. Expand your reach and create amazing content together."
-        imageSrc="https://placehold.co/600x400.png"
+        imageSrc="https://picsum.photos/seed/network/600/400"
         imageHint="vector collaboration network"
         ctaText="Find Collaborators"
         ctaLink="/collabs"

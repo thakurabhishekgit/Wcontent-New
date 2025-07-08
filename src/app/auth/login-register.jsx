@@ -308,7 +308,7 @@ const Login = ({ handleLogin }) => {
             we've got you covered.
           </p>
           <Image
-            src="https://placehold.co/400x300.png"
+            src="https://picsum.photos/seed/auth/400/300"
             alt="Vector illustration for a content creation platform"
             data-ai-hint="vector content creation"
             width={400}

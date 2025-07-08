@@ -435,9 +435,9 @@ export default function CollaborationsPage() {
           <p className="text-muted-foreground max-w-xl mx-auto">Expand your reach, spark creativity, and build your network.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"> {/* Changed to 3 cols */}
-          <FeatureCard icon={UsersIcon} title='Find Partners' description='Discover creators in your niche or explore new ones.' img="https://placehold.co/400x200.png" hint='vector network partnership' delay="1s" />
-          <FeatureCard icon={Zap} title='Spark Creativity' description='Brainstorm ideas and create unique content together.' img="https://placehold.co/400x200.png" hint='vector creativity spark' delay="1.2s" />
-          <FeatureCard icon={Target} title='Reach New Audiences' description='Cross-promote to grow your combined following.' img="https://placehold.co/400x200.png" hint='vector audience growth' delay="1.4s" />
+          <FeatureCard icon={UsersIcon} title='Find Partners' description='Discover creators in your niche or explore new ones.' img="https://picsum.photos/seed/partners/400/200" hint='vector network partnership' delay="1s" />
+          <FeatureCard icon={Zap} title='Spark Creativity' description='Brainstorm ideas and create unique content together.' img="https://picsum.photos/seed/creativity/400/200" hint='vector creativity spark' delay="1.2s" />
+          <FeatureCard icon={Target} title='Reach New Audiences' description='Cross-promote to grow your combined following.' img="https://picsum.photos/seed/audiences/400/200" hint='vector audience growth' delay="1.4s" />
         </div>
       </section>
 
@@ -550,7 +550,7 @@ export default function CollaborationsPage() {
              <Card key={index} className="bg-card/80 border border-border/60 text-left hover:shadow-lg transition-shadow duration-300 animate-slide-in-from-bottom" style={{ animationDelay: `${index * 0.15}s`}}>
                 <CardHeader className="items-center">
                    <Image
-                      src={`https://placehold.co/100x100.png`}
+                      src={`https://picsum.photos/seed/${testimonial.imageSeed}/100/100`}
                       alt={testimonial.name}
                       data-ai-hint="vector person avatar"
                       width={80}
