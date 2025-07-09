@@ -9,11 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Flame, ArrowLeft, Bot, Sparkles, Loader2, BarChart as BarChartIcon } from 'lucide-react';
+import { Flame, ArrowLeft, Bot, Sparkles, Loader2, BarChart as BarChartIcon, Lightbulb, UserCheck } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { fetchTrendDetails } from '../actions';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 export default function TrendDetailPage() {
   const params = useParams();
@@ -24,9 +24,10 @@ export default function TrendDetailPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginAlert, setShowLoginAlert] = useState(false);
 
-  // For simulated growth prediction
-  const [growthLoading, setGrowthLoading] = useState(false);
-  const [growthPrediction, setGrowthPrediction] = useState(null);
+  // State for the new Trend-Channel Fit Analysis
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [analysisError, setAnalysisError] = useState(null);
   const [userChannel, setUserChannel] = useState('');
   const [isChannelPrefilled, setIsChannelPrefilled] = useState(false);
 
@@ -73,26 +74,52 @@ export default function TrendDetailPage() {
     }
   }, [params.id]);
 
-  const handleSimulateGrowth = () => {
+  const handleAnalyzeFit = () => {
     if (!isLoggedIn) {
         setShowLoginAlert(true);
         return;
     }
-    setGrowthLoading(true);
+    if (!userChannel) {
+        setAnalysisError("Please provide your YouTube handle or Channel ID.");
+        return;
+    }
+
+    setAnalysisLoading(true);
+    setAnalysisError(null);
+    setAnalysisResult(null);
+
+    // Simulate fetching channel data and comparing with the trend
     setTimeout(() => {
-      setGrowthPrediction({
-        currentViews: Math.floor(Math.random() * 5000) + 1000,
-        predictedViews: Math.floor(Math.random() * 8000) + 7000,
-        growthPercentage: Math.floor(Math.random() * 150) + 50,
-      });
-      setGrowthLoading(false);
+      // Mock channel summary
+      const mockChannelSummary = {
+          mainTopics: userChannel.toLowerCase().includes('tech') ? ['Tech Reviews', 'Gadgets'] : ['Gaming', 'Livestreams'],
+          audienceDescription: 'enjoys detailed analysis and high-quality production.'
+      };
+
+      // Generate analysis summary
+      let summary = `**Channel Analysis:** Your channel primarily focuses on **${mockChannelSummary.mainTopics.join(', ')}**, and your audience ${mockChannelSummary.audienceDescription}\n\n`;
+      summary += `**Trend Comparison ("${trend.title}"):** This trend, which falls under the **${trend.category}** category, `;
+
+      if (mockChannelSummary.mainTopics.includes(trend.category)) {
+          summary += `aligns perfectly with your existing content. Adopting this format could lead to **high engagement** from your core subscribers and reinforce your channel's authority.`;
+      } else {
+          summary += `represents an opportunity to branch out. While it's different from your usual content, it could attract a **new audience segment**. We recommend introducing it as a special episode to gauge interest.`;
+      }
+      
+      summary += `\n\n**Recommendation:** This is a **${mockChannelSummary.mainTopics.includes(trend.category) ? 'strong' : 'moderate'}** fit. Focus on leveraging your unique style to make this trend your own.`;
+
+      setAnalysisResult(summary);
+      setAnalysisLoading(false);
     }, 1500);
   };
   
-  const growthChartData = growthPrediction ? [
-    { name: 'Average Views', value: growthPrediction.currentViews },
-    { name: 'Predicted Views', value: growthPrediction.predictedViews },
-  ] : [];
+  const renderMarkdown = (text) => {
+    // Basic markdown for bold and newlines
+    const html = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br />');
+    return { __html: html };
+  };
 
   if (isLoading) {
     return (
@@ -100,8 +127,7 @@ export default function TrendDetailPage() {
         <Skeleton className="h-8 w-40" />
         <Skeleton className="h-10 w-3/4" />
         <div className="flex gap-2"><Skeleton className="h-6 w-20" /><Skeleton className="h-6 w-24" /></div>
-        <Skeleton className="h-60 w-full" />
-        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-40 w-full" />
         <Skeleton className="h-40 w-full" />
       </div>
     );
@@ -133,12 +159,6 @@ export default function TrendDetailPage() {
     );
   }
   
-  // Use a library like 'marked' or 'react-markdown' for production
-  // For simplicity, we'll just use a basic replacement here.
-  const renderMarkdown = (text) => {
-    return { __html: text.replace(/\n/g, '<br />').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') };
-  };
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 animate-fade-in">
         <Button onClick={() => router.push('/trending')} variant="outline" size="sm">
@@ -189,47 +209,50 @@ export default function TrendDetailPage() {
 
         <Card className="bg-muted/30">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><BarChartIcon className="h-6 w-6 text-primary"/> Potential Growth</CardTitle>
-                <CardDescription>Simulate how this trend could impact your channel's views.</CardDescription>
+                <CardTitle className="flex items-center gap-2"><UserCheck className="h-6 w-6 text-primary"/> Trend-Channel Fit Analysis</CardTitle>
+                <CardDescription>See how well this trend fits your channel's current content and audience.</CardDescription>
             </CardHeader>
             <CardContent>
-                {!growthPrediction ? (
-                    <div className="p-4 border border-dashed rounded-md text-center">
-                        <Label htmlFor="youtube-handle" className="sr-only">YouTube Handle</Label>
+                <div className="p-4 border border-dashed rounded-md space-y-4">
+                    <div>
+                        <Label htmlFor="youtube-handle" className="text-sm font-medium">Your YouTube Handle or Channel ID</Label>
                         <Input 
                             id="youtube-handle" 
                             placeholder="@YourHandle or Channel ID" 
                             value={userChannel}
                             onChange={(e) => setUserChannel(e.target.value)}
-                            className="mb-2 max-w-xs mx-auto" 
-                            disabled={!isLoggedIn || growthLoading}
+                            className="mt-1" 
+                            disabled={!isLoggedIn || analysisLoading}
                         />
-                         {isChannelPrefilled && <p className="text-xs text-muted-foreground mt-1">Your channel has been pre-filled from your profile.</p>}
-                        <Button onClick={handleSimulateGrowth} disabled={growthLoading || !isLoggedIn}>
-                           {growthLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                           Forecast Potential Views
-                        </Button>
-                         {!isLoggedIn && <p className="text-xs text-muted-foreground mt-2">Login to use the forecast tool.</p>}
+                         {isChannelPrefilled && <p className="text-xs text-muted-foreground mt-1">Your channel info has been pre-filled from your profile.</p>}
                     </div>
-                ) : (
-                    <div>
-                        <p className="text-center text-sm mb-2 text-muted-foreground">Based on your channel, creating this content could increase average views by up to <strong className="text-primary">{growthPrediction.growthPercentage}%</strong>.</p>
-                        <div className="h-[200px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <RechartsBarChart data={growthChartData} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" fontSize={12} />
-                                    <YAxis fontSize={12} />
-                                    <RechartsTooltip contentStyle={{backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))'}}/>
-                                    <Bar dataKey="value" fill="hsl(var(--primary))" name="Views" radius={[4, 4, 0, 0]} />
-                                </RechartsBarChart>
-                            </ResponsiveContainer>
-                        </div>
-                        <p className="text-xs text-center text-muted-foreground mt-1">*This is a simulation. Actual results may vary.</p>
-                        <div className="text-center mt-2">
-                          <Button variant="link" size="sm" onClick={handleSimulateGrowth}>Recalculate</Button>
-                        </div>
+                    <Button onClick={handleAnalyzeFit} disabled={analysisLoading || !isLoggedIn || !userChannel}>
+                       {analysisLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                       Analyze Fit
+                    </Button>
+                     {!isLoggedIn && <p className="text-xs text-muted-foreground mt-2">Login to use the analysis tool.</p>}
+                </div>
+                
+                {analysisLoading && (
+                    <div className="mt-4 space-y-3">
+                        <Skeleton className="h-5 w-1/3" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-4/5" />
                     </div>
+                )}
+                
+                {analysisError && (
+                    <Alert variant="destructive" className="mt-4">
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{analysisError}</AlertDescription>
+                    </Alert>
+                )}
+
+                {analysisResult && (
+                     <div className="mt-4 p-4 border rounded-md bg-background">
+                         <h4 className="font-semibold text-lg mb-2 flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary"/> Analysis Summary</h4>
+                         <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90" dangerouslySetInnerHTML={renderMarkdown(analysisResult)} />
+                     </div>
                 )}
             </CardContent>
         </Card>
@@ -239,7 +262,7 @@ export default function TrendDetailPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>Login Required</AlertDialogTitle>
               <AlertDialogDescription>
-                You need to be logged in to use the AI Creation Assistant and Growth Forecast tools.
+                You need to be logged in to use the AI Creation Assistant and Analysis tools.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
