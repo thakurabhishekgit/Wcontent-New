@@ -54,6 +54,7 @@ export default function LoginRegisterPage() {
           },
           body: JSON.stringify({ email, password }),
         }
+        
       );
       if (!response.ok) {
         const errorData = await response.json();
