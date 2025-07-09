@@ -1,3 +1,4 @@
+
 'use server';
 import axios from 'axios';
 import { generateTrendArticle } from '@/ai/flows/generate-trend-article-flow';
@@ -38,7 +39,7 @@ function guessCategory(title) {
 
 
 export async function fetchTrendingVideos() {
-  const apiKey = "8e5a691368b75b19f43db4f3fb566699d60de19a20210fde2118b2263d46dbe7";
+  const apiKey = process.env.SERPAPI_KEY;
   if (!apiKey) {
     throw new Error('SerpApi API key is not configured in environment variables.');
   }
@@ -75,7 +76,7 @@ export async function fetchTrendDetails(videoId) {
         throw new Error('Video ID is required to fetch trend details.');
     }
 
-    const apiKey = "8e5a691368b75b19f43db4f3fb566699d60de19a20210fde2118b2263d46dbe7";
+    const apiKey = process.env.SERPAPI_KEY;
     if (!apiKey) {
         throw new Error('SerpApi API key is not configured in environment variables.');
     }
