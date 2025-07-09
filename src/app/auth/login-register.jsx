@@ -31,7 +31,6 @@ const Login = ({ handleLogin }) => {
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [isRegisteringSubmit, setIsRegisteringSubmit] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const router = useRouter();
 
@@ -291,7 +290,6 @@ const Login = ({ handleLogin }) => {
     setIsSendingOtp(false);
     setIsVerifyingOtp(false);
     setIsRegisteringSubmit(false);
-    setIsGoogleLoading(false);
   };
 
 
@@ -307,9 +305,9 @@ const Login = ({ handleLogin }) => {
             we've got you covered.
           </p>
           <Image
-            src="https://picsum.photos/seed/auth/400/300"
-            alt="Vector illustration for a content creation platform"
-            data-ai-hint="vector content creation"
+            src="https://storage.googleapis.com/project-omnibox-assets-prod/11692e8e-8e43-42e7-a9a3-a71ac769f3e9/11692e8e-8e43-42e7-a9a3-a71ac769f3e9.jpeg"
+            alt="Illustration of a user logging into a secure cloud service"
+            data-ai-hint="vector cloud security"
             width={400}
             height={300}
             className="rounded-lg object-cover shadow-lg"
@@ -338,7 +336,7 @@ const Login = ({ handleLogin }) => {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       placeholder="you@example.com"
-                      disabled={isLoggingIn || isGoogleLoading}
+                      disabled={isLoggingIn}
                     />
                   </div>
                   <div>
@@ -350,10 +348,10 @@ const Login = ({ handleLogin }) => {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       placeholder="••••••••"
-                      disabled={isLoggingIn || isGoogleLoading}
+                      disabled={isLoggingIn}
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoggingIn || isGoogleLoading}>
+                  <Button type="submit" className="w-full" disabled={isLoggingIn}>
                     {isLoggingIn ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logging In...
@@ -378,11 +376,11 @@ const Login = ({ handleLogin }) => {
                           onChange={(e) => setEmail(e.target.value)}
                           required
                           placeholder="you@example.com"
-                          disabled={isSendingOtp || isGoogleLoading}
+                          disabled={isSendingOtp}
                         />
                          <p className="text-xs text-muted-foreground mt-1">We'll send an OTP to verify your email.</p>
                       </div>
-                      <Button type="submit" className="w-full" disabled={isSendingOtp || isGoogleLoading}>
+                      <Button type="submit" className="w-full" disabled={isSendingOtp}>
                         {isSendingOtp ? (
                            <>
                              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending OTP...
@@ -406,11 +404,11 @@ const Login = ({ handleLogin }) => {
                           required
                           placeholder="Enter the 6-digit code"
                           maxLength={6}
-                          disabled={isVerifyingOtp || isGoogleLoading}
+                          disabled={isVerifyingOtp}
                         />
                          <p className="text-xs text-muted-foreground mt-1">Check your email for the verification code.</p>
                       </div>
-                      <Button type="submit" className="w-full" disabled={isVerifyingOtp || isGoogleLoading}>
+                      <Button type="submit" className="w-full" disabled={isVerifyingOtp}>
                         {isVerifyingOtp ? (
                            <>
                              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...
@@ -433,7 +431,7 @@ const Login = ({ handleLogin }) => {
                           onChange={(e) => setUsername(e.target.value)}
                           required
                           placeholder="Choose a username"
-                          disabled={isRegisteringSubmit || isGoogleLoading}
+                          disabled={isRegisteringSubmit}
                         />
                       </div>
                       <div>
@@ -446,12 +444,12 @@ const Login = ({ handleLogin }) => {
                           required
                            placeholder="Choose a strong password (min. 6 chars)"
                            minLength={6}
-                           disabled={isRegisteringSubmit || isGoogleLoading}
+                           disabled={isRegisteringSubmit}
                         />
                       </div>
                       <div>
                         <Label htmlFor="userType">User Type</Label>
-                         <Select onValueChange={setUserType} value={userType} required disabled={isRegisteringSubmit || isGoogleLoading}>
+                         <Select onValueChange={setUserType} value={userType} required disabled={isRegisteringSubmit}>
                             <SelectTrigger id="userType">
                               <SelectValue placeholder="Select your role" />
                             </SelectTrigger>
@@ -471,7 +469,7 @@ const Login = ({ handleLogin }) => {
                                  value={channelName}
                                  onChange={(e) => setChannelName(e.target.value)}
                                  placeholder="Your YouTube Channel Name"
-                                 disabled={isRegisteringSubmit || isGoogleLoading}
+                                 disabled={isRegisteringSubmit}
                                />
                                 <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p>
                            </div>
@@ -483,7 +481,7 @@ const Login = ({ handleLogin }) => {
                                  value={channelId}
                                  onChange={(e) => setChannelId(e.target.value)}
                                   placeholder="Your YouTube Channel ID"
-                                  disabled={isRegisteringSubmit || isGoogleLoading}
+                                  disabled={isRegisteringSubmit}
                                />
                                 <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p>
                            </div>
@@ -495,13 +493,13 @@ const Login = ({ handleLogin }) => {
                                  value={channelURL}
                                  onChange={(e) => setChannelURL(e.target.value)}
                                  placeholder="https://youtube.com/..."
-                                 disabled={isRegisteringSubmit || isGoogleLoading}
+                                 disabled={isRegisteringSubmit}
                               />
                                <p className="text-xs text-muted-foreground mt-1">Required for Channel Owners.</p>
                            </div>
                        </>
                       )}
-                      <Button type="submit" className="w-full" disabled={isRegisteringSubmit || isGoogleLoading}>
+                      <Button type="submit" className="w-full" disabled={isRegisteringSubmit}>
                         {isRegisteringSubmit ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing Up...
@@ -515,10 +513,10 @@ const Login = ({ handleLogin }) => {
                 </>
               )}
             </CardContent>
-            <CardFooter className="flex justify-center pt-4">
+            <CardFooter className="flex-col pt-4 gap-4">
                <p className="text-sm text-muted-foreground">
                 {isRegistering ? "Already have an account?" : "No account?"}{" "}
-                <Button variant="link" className="p-0 h-auto text-primary" onClick={toggleMode} disabled={isLoggingIn || isSendingOtp || isVerifyingOtp || isRegisteringSubmit || isGoogleLoading}>
+                <Button variant="link" className="p-0 h-auto text-primary" onClick={toggleMode} disabled={isLoggingIn || isSendingOtp || isVerifyingOtp || isRegisteringSubmit}>
                   {isRegistering ? "Login" : "Sign Up"}
                 </Button>
               </p>

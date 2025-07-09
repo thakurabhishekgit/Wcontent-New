@@ -1,4 +1,3 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
@@ -32,6 +31,12 @@ const nextConfig = {
       { // Added pattern for avatar.vercel.sh (used for avatars)
         protocol: 'https',
         hostname: 'avatar.vercel.sh',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
         port: '',
         pathname: '/**',
       },
