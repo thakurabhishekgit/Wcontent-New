@@ -63,6 +63,7 @@ export async function fetchTrendingVideos(category = 'All') {
     return staticFallbackTrends;
   }
 
+  // Construct a more specific search query for better results.
   const searchQuery = category === 'All'
     ? 'youtube trending videos for content creators in india'
     : `new trending ${category.toLowerCase()} videos india`;
@@ -78,8 +79,9 @@ export async function fetchTrendingVideos(category = 'All') {
   try {
     const response = await axios.get('https://serpapi.com/search.json', { params });
     const videoResults = response.data?.video_results || [];
-
-    // If API returns no results, return an empty array to let the frontend show a "not found" message.
+    
+    // CRITICAL FIX: If API returns no results, return an empty array.
+    // This allows the frontend to correctly display the "No results" message.
     if (videoResults.length === 0) {
         console.warn(`No live results from SerpApi for category "${category}".`);
         return [];
@@ -97,13 +99,16 @@ export async function fetchTrendingVideos(category = 'All') {
     return trends;
 
   } catch (error) {
-    // If the entire API call fails (e.g., bad key, network error), fall back to filtered static data.
+    // CRITICAL FIX: This block handles API failures (e.g., bad key, network error).
+    // It falls back to the static data, but FILTERS it by the requested category.
     console.error(`Error fetching trends for category "${category}" from SerpApi. Falling back to static data. Error:`, error.response?.data?.error || error.message);
     
     if (category === 'All') {
         return staticFallbackTrends;
     } else {
-        return staticFallbackTrends.filter(trend => trend.category.toLowerCase() === category.toLowerCase());
+        const filteredFallback = staticFallbackTrends.filter(trend => trend.category.toLowerCase() === category.toLowerCase());
+        // If the static data has nothing for that category, return empty array
+        return filteredFallback.length > 0 ? filteredFallback : [];
     }
   }
 }
