@@ -63,17 +63,16 @@ export async function fetchTrendingVideos(category = 'All') {
     return staticFallbackTrends;
   }
 
-  // **FIXED**: Construct a more specific search query for Indian region and categories.
-  const baseQuery = 'new content trends for creators india';
+  // **FIXED**: Refined search query and parameters for better regional and category targeting.
   const searchQuery = category === 'All'
-    ? baseQuery
-    : `new ${category} content trends for creators in india`;
+    ? 'youtube trending videos for content creators'
+    : `new ${category.toLowerCase()} video trends`;
 
   const params = {
     engine: 'youtube',
     search_query: searchQuery,
-    // **FIXED**: Added gl: 'in' to target search results to India.
-    gl: 'in', 
+    gl: 'in', // Explicitly set geographical location to India
+    location: 'India', // Use the location parameter for more specificity
     api_key: apiKey,
   };
 
@@ -81,7 +80,6 @@ export async function fetchTrendingVideos(category = 'All') {
     const response = await axios.get('https://serpapi.com/search.json', { params });
     const videoResults = response.data?.video_results || [];
 
-    // **FIXED**: Map up to 20 results instead of 5.
     const trends = videoResults.slice(0, 20).map(video => ({
       id: video.video_id,
       title: video.title,
@@ -90,15 +88,16 @@ export async function fetchTrendingVideos(category = 'All') {
       excerpt: video.snippet || 'No description available.',
     }));
     
-    // If API returns no results, use fallback to prevent empty page
+    // If the API call is successful but returns no results, fall back to static data.
     if (trends.length === 0) {
+        console.warn(`No results from SerpApi for category "${category}". Returning static fallback.`);
         return staticFallbackTrends;
     }
     
     return trends;
   } catch (error) {
-    console.error(`Error fetching trends for category "${category}" from SerpApi, returning static fallback data. Error:`, error.response?.data?.error || error.message);
-    // **FIXED**: Instead of throwing an error, return the static data so the page doesn't break.
+    console.error(`Error fetching trends for category "${category}" from SerpApi. Error:`, error.response?.data?.error || error.message);
+    // On any error, return the static data so the page doesn't break.
     return staticFallbackTrends;
   }
 }
@@ -138,7 +137,9 @@ export async function fetchTrendDetails(videoId) {
     // Step 1: Fetch video details from SerpApi
     const params = {
         engine: 'youtube',
-        search_query: videoId,
+        search_query: videoId, // Searching by videoId usually returns it as the top result
+        gl: 'in', // Maintain region consistency
+        location: 'India',
         api_key: apiKey,
     };
     
