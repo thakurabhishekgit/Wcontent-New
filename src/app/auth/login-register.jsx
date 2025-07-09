@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from "react";
@@ -515,22 +514,8 @@ const Login = ({ handleLogin }) => {
                   )}
                 </>
               )}
-               <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground">Or</span>
-                    </div>
-                </div>
-                 <Button variant="outline" className="w-full" asChild>
-                    <a href="https://wcontent-app-latest.onrender.com/api/users/oauth/login">
-                       <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 172.9 56.6l-69.7 69.7C324.9 100.6 289.1 84 248 84c-80.9 0-146.4 65.5-146.4 146.4s65.5 146.4 146.4 146.4c97.4 0 130.3-72.2 134.8-109.8H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>
-                       Continue with Google
-                    </a>
-                </Button>
             </CardContent>
-            <CardFooter className="flex justify-center">
+            <CardFooter className="flex justify-center pt-4">
                <p className="text-sm text-muted-foreground">
                 {isRegistering ? "Already have an account?" : "No account?"}{" "}
                 <Button variant="link" className="p-0 h-auto text-primary" onClick={toggleMode} disabled={isLoggingIn || isSendingOtp || isVerifyingOtp || isRegisteringSubmit || isGoogleLoading}>
