@@ -2,9 +2,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -12,27 +11,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Flame, TrendingUp, Search, ArrowRight, Rss } from 'lucide-react';
 import { fetchTrendingVideos } from './actions'; // Import server action
 
-// categories will be dynamic now.
-
 const TrendArticleItem = ({ trend, onClick }) => (
   <Card 
     className="w-full hover:shadow-md transition-shadow duration-300 cursor-pointer group" 
     onClick={() => onClick(trend)}
   >
-    <CardContent className="p-4 flex items-center gap-4">
-      {trend.thumbnail && (
-        <div className="relative w-32 h-20 rounded-md overflow-hidden shrink-0">
-          <Image
-            src={trend.thumbnail}
-            alt={trend.title}
-            layout="fill"
-            objectFit="cover"
-            data-ai-hint="youtube video"
-          />
-        </div>
-      )}
+    <CardContent className="p-4 flex items-start gap-4">
       <div className="flex-grow">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
           <Badge variant="secondary">{trend.category}</Badge>
           <div className="flex items-center gap-1" title={`${trend.hotness}/5 Hotness`}>
               {[...Array(trend.hotness)].map((_, i) => <Flame key={i} className="h-4 w-4 text-orange-500 fill-orange-400" />)}
@@ -59,34 +45,31 @@ export default function TrendingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    async function loadTrends() {
+  const loadTrends = async (category) => {
       setIsLoading(true);
       setError(null);
       try {
-        const trends = await fetchTrendingVideos();
+        const trends = await fetchTrendingVideos(category);
         setAllTrends(trends);
-        setFilteredTrends(trends);
-        // Dynamically create category list
-        const uniqueCategories = ['All', ...new Set(trends.map(t => t.category))];
-        setCategories(uniqueCategories);
+        // Dynamically create category list from the new data if it's the initial 'All' fetch
+        if (category === 'All') {
+            const uniqueCategories = ['All', ...new Set(trends.map(t => t.category))];
+            setCategories(uniqueCategories);
+        }
       } catch (err) {
         setError(err.message);
         setAllTrends([]);
-        setFilteredTrends([]);
       } finally {
         setIsLoading(false);
       }
-    }
-    loadTrends();
-  }, []);
+  };
+
+  useEffect(() => {
+    loadTrends(activeCategory);
+  }, [activeCategory]);
 
   useEffect(() => {
     let results = [...allTrends];
-
-    if (activeCategory !== 'All') {
-      results = results.filter(t => t.category === activeCategory);
-    }
 
     if (searchTerm) {
       const lowerSearch = searchTerm.toLowerCase();
@@ -97,7 +80,7 @@ export default function TrendingPage() {
     }
     
     setFilteredTrends(results);
-  }, [activeCategory, searchTerm, allTrends]);
+  }, [searchTerm, allTrends]);
   
   const handleTrendClick = (trend) => {
       router.push(`/trending/${trend.id}`);
@@ -109,7 +92,7 @@ export default function TrendingPage() {
             <TrendingUp className="h-16 w-16 text-primary mx-auto mb-6" />
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Content Trends Feed</h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-                Discover the latest formats, topics, and styles taking over the internet. Powered by live data.
+                Discover the latest formats, topics, and styles taking over the internet. Powered by live data from India.
             </p>
         </section>
 
@@ -143,7 +126,6 @@ export default function TrendingPage() {
                   [...Array(5)].map((_, i) => (
                     <Card key={i} className="w-full">
                       <CardContent className="p-4 flex items-center gap-4">
-                          <Skeleton className="w-32 h-20 rounded-md" />
                           <div className="flex-grow space-y-2">
                               <Skeleton className="h-5 w-3/4" />
                               <Skeleton className="h-4 w-full" />

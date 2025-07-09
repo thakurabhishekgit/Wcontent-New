@@ -27,10 +27,33 @@ export default function TrendDetailPage() {
   // For simulated growth prediction
   const [growthLoading, setGrowthLoading] = useState(false);
   const [growthPrediction, setGrowthPrediction] = useState(null);
+  const [userChannel, setUserChannel] = useState('');
+  const [isChannelPrefilled, setIsChannelPrefilled] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
+    const loggedIn = !!token;
+    setIsLoggedIn(loggedIn);
+
+    if (loggedIn) {
+        const userId = localStorage.getItem("id");
+        async function fetchUserChannel() {
+            try {
+                const res = await fetch(`https://wcontent-app-latest.onrender.com/api/users/getUser/${userId}`, { headers: { Authorization: `Bearer ${token}` }});
+                if (res.ok) {
+                    const userData = await res.json();
+                    if (userData.userType === 'ChannelOwner' && (userData.channelId || userData.channelHandle)) {
+                        setUserChannel(userData.channelId || userData.channelHandle || '');
+                        setIsChannelPrefilled(true);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch user channel info", err);
+            }
+        }
+        fetchUserChannel();
+    }
+
 
     if (params.id) {
         async function loadTrendDetails() {
@@ -173,7 +196,15 @@ export default function TrendDetailPage() {
                 {!growthPrediction ? (
                     <div className="p-4 border border-dashed rounded-md text-center">
                         <Label htmlFor="youtube-handle" className="sr-only">YouTube Handle</Label>
-                        <Input id="youtube-handle" placeholder="@YourHandle (optional)" className="mb-2 max-w-xs mx-auto" disabled={!isLoggedIn}/>
+                        <Input 
+                            id="youtube-handle" 
+                            placeholder="@YourHandle or Channel ID" 
+                            value={userChannel}
+                            onChange={(e) => setUserChannel(e.target.value)}
+                            className="mb-2 max-w-xs mx-auto" 
+                            disabled={!isLoggedIn || growthLoading}
+                        />
+                         {isChannelPrefilled && <p className="text-xs text-muted-foreground mt-1">Your channel has been pre-filled from your profile.</p>}
                         <Button onClick={handleSimulateGrowth} disabled={growthLoading || !isLoggedIn}>
                            {growthLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                            Forecast Potential Views
