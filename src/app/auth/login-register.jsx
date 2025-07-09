@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 
@@ -304,14 +303,37 @@ const Login = ({ handleLogin }) => {
             the next level. Whether you're a content creator or a role seeker,
             we've got you covered.
           </p>
-          <Image
-            src="https://placehold.co/400x300.png"
-            alt="Illustration of a user logging into a secure cloud service"
-            data-ai-hint="vector cloud security"
-            width={400}
-            height={300}
-            className="rounded-lg object-cover shadow-lg"
-          />
+          <div className="w-full h-auto p-4 flex items-center justify-center">
+            <svg width="100%" height="100%" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-[400px] h-auto rounded-lg">
+              <title>Creator Dashboard Illustration</title>
+              <rect width="400" height="300" rx="12" fill="hsl(var(--primary) / 0.1)"/>
+              
+              <circle cx="350" cy="50" r="80" fill="hsl(var(--primary) / 0.05)" />
+              <rect x="-50" y="150" width="200" height="200" rx="30" transform="rotate(-30, 50, 250)" fill="hsl(var(--primary) / 0.05)" />
+
+              <g transform="translate(40 50)">
+                  <path d="M10 210 L310 210 L320 230 L0 230 Z" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary) / 0.4)" strokeWidth="2" />
+                  <rect x="20" y="70" width="280" height="140" rx="12" fill="hsl(var(--background))" strokeWidth="4" stroke="hsl(var(--primary) / 0.2)" />
+              </g>
+
+              <g transform="translate(60 120)" stroke="hsl(var(--primary))" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 80 L60 50 L100 70 L140 40 L180 60 L220 30" />
+                  <circle cx="20" cy="80" r="4" fill="currentColor" stroke="none" />
+                  <circle cx="60" cy="50" r="4" fill="currentColor" stroke="none" />
+                  <circle cx="100" cy="70" r="4" fill="currentColor" stroke="none" />
+                  <circle cx="140" cy="40" r="4" fill="currentColor" stroke="none" />
+                  <circle cx="180" cy="60" r="4" fill="currentColor" stroke="none" />
+                  <circle cx="220" cy="30" r="4" fill="currentColor" stroke="none" />
+              </g>
+              
+              <g transform="translate(300 60)" fill="hsl(var(--primary) / 0.8)">
+                  <path d="M22.4 14.5c-1.2-1.2-2-2.9-2-4.8s.8-3.6 2-4.8c1.2-1.2 2.9-2 4.8-2s3.6.8 4.8 2c1.2 1.2 2 2.9 2 4.8s-.8 3.6-2 4.8c-1.2 1.2-2.9 2-4.8 2s-3.6-.8-4.8-2zm16.5 5.2c-1.9 1.4-4.2 2.1-6.9 2.1s-5-1-6.9-2.5l-6.9 6.9c-1.2 1.2-1.2 3.1 0 4.2 1.2 1.2 3.1 1.2 4.2 0l6.9-6.9c1.9-1.4 4.2-2.1 6.9-2.1s5 1 6.9 2.5l6.9 6.9c1.2 1.2 3.1 1.2 4.2 0 1.2-1.2 1.2-3.1 0-4.2l-6.9-6.9z" opacity="0.6" transform="scale(1.2)" />
+              </g>
+              <g transform="translate(40 40)" fill="hsl(var(--primary) / 0.8)">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" transform="scale(1.5)" opacity="0.5"/>
+              </g>
+            </svg>
+          </div>
         </div>
 
         <div className="p-8 lg:p-12 flex flex-col justify-center">
