@@ -66,7 +66,7 @@ function Ml() {
 
   // State for New Audience Growth & Retention Predictor
   const [audienceGrowthInputs, setAudienceGrowthInputs] = useState({
-    channelHandle: "", // e.g., @LoLzZzGaming
+    channelHandle: "",
     contentType: "",
     ideaDescription: ""
   });
@@ -74,17 +74,43 @@ function Ml() {
   const [growthRetentionPrediction, setGrowthRetentionPrediction] = useState(null);
   const [growthRetentionLoading, setGrowthRetentionLoading] = useState(false);
   const [growthRetentionError, setGrowthRetentionError] = useState("");
+  const [isChannelIdPrefilled, setIsChannelIdPrefilled] = useState(false);
 
 
   useEffect(() => {
     setIsClient(true);
     const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
+    const loggedIn = !!token;
+    setIsLoggedIn(loggedIn);
+
+    if (loggedIn) {
+        const userId = localStorage.getItem("id");
+        fetchAndSetChannelId(userId, token);
+    }
+
     const storedCount = localStorage.getItem('predictionCount');
     if (storedCount) {
       setPredictionCount(parseInt(storedCount, 10));
     }
   }, []);
+
+  const fetchAndSetChannelId = async (userId, token) => {
+    if (!userId || !token) return;
+    try {
+        const response = await fetch(`https://wcontent-app-latest.onrender.com/api/users/getUser/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const userData = await response.json();
+            if (userData.userType === 'ChannelOwner' && userData.channelId) {
+                setAudienceGrowthInputs(prev => ({ ...prev, channelHandle: userData.channelId }));
+                setIsChannelIdPrefilled(true);
+            }
+        }
+    } catch (err) {
+        console.error("Failed to pre-fill channel ID:", err);
+    }
+  }
 
   const incrementPredictionCount = () => {
     const newCount = predictionCount + 1;
@@ -265,7 +291,7 @@ function Ml() {
 
     const { channelHandle, contentType, ideaDescription } = audienceGrowthInputs;
     if (!channelHandle || !contentType || !ideaDescription) {
-      setGrowthRetentionError("Please fill in Channel Handle, Content Type, and Description.");
+      setGrowthRetentionError("Please fill in Channel Handle/ID, Content Type, and Description.");
       return;
     }
 
@@ -275,16 +301,23 @@ function Ml() {
     setGrowthRetentionPrediction(null);
 
     try {
-      const id = await fetchChannelIdByHandle(channelHandle);
-      const stats = await fetchChannelStatistics(id);
-      setChannelStats(stats); // Store full stats object
+       let channelIdToUse = channelHandle;
+
+       // If the input doesn't start with 'UC' (a common channel ID prefix),
+       // assume it's a handle and try to resolve it.
+       if (!channelHandle.startsWith('UC')) {
+           channelIdToUse = await fetchChannelIdByHandle(channelHandle);
+       }
+       
+      const stats = await fetchChannelStatistics(channelIdToUse);
+      setChannelStats(stats); 
 
       const prediction = simulateGrowthAndRetention(stats, contentType, ideaDescription);
       setGrowthRetentionPrediction(prediction);
       if(!isLoggedIn) incrementPredictionCount();
 
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to predict audience growth.";
+      const message = err instanceof Error ? err.message : "Failed to predict audience growth. Ensure the handle or ID is correct.";
       setGrowthRetentionError(message);
     } finally {
       setGrowthRetentionLoading(false);
@@ -446,16 +479,17 @@ function Ml() {
             </CardHeader>
             <CardContent className="max-w-3xl mx-auto space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="channelHandle" className="flex items-center gap-1"><Youtube className="h-4 w-4"/> YouTube Channel Handle</Label>
+                <Label htmlFor="channelHandle" className="flex items-center gap-1"><Youtube className="h-4 w-4"/> YouTube Channel Handle or ID</Label>
                 <Input
                   id="channelHandle"
                   name="channelHandle"
                   value={audienceGrowthInputs.channelHandle}
                   onChange={handleAudienceGrowthInputChange}
-                  placeholder="e.g., @YourChannelHandle or drop your youtube channel id @id"
+                  placeholder="e.g., @YourHandle or UC_..."
                   disabled={growthRetentionLoading || (!isLoggedIn && predictionCount >=1)}
                   required
                 />
+                 {isChannelIdPrefilled && <p className="text-xs text-muted-foreground mt-1">Your Channel ID has been pre-filled from your profile.</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="contentTypeGrowth" className="flex items-center gap-1"><Video className="h-4 w-4"/> Planned Content Type / Genre</Label>

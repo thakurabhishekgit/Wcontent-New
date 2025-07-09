@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,11 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Flame, ArrowLeft, Bot, Sparkles, Loader2, BarChart as BarChartIcon, Video, Link as LinkIcon, MessageSquare, Play } from 'lucide-react';
+import { Flame, ArrowLeft, Bot, Sparkles, Loader2, BarChart as BarChartIcon } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { fetchTrendDetails } from '../actions'; // Import the new server action
+import { fetchTrendDetails } from '../actions';
 
 export default function TrendDetailPage() {
   const params = useParams();
@@ -139,32 +138,6 @@ export default function TrendDetailPage() {
             
             <div className="prose dark:prose-invert max-w-none text-lg text-foreground/90 leading-relaxed" dangerouslySetInnerHTML={renderMarkdown(trend.fullArticle)} />
         </article>
-
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Video className="h-6 w-6 text-primary"/> Trend in Action</CardTitle>
-                <CardDescription>See an example of this trend.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="relative aspect-video w-full rounded-lg overflow-hidden border group">
-                    <Image
-                        src={trend.thumbnail}
-                        alt={`Thumbnail for ${trend.title}`}
-                        layout="fill"
-                        objectFit="cover"
-                        className="transition-transform group-hover:scale-105"
-                        data-ai-hint="youtube video"
-                    />
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity opacity-0 group-hover:opacity-100">
-                        <Button asChild size="lg">
-                            <a href={`https://www.youtube.com/watch?v=${trend.id}`} target="_blank" rel="noopener noreferrer">
-                                <Play className="mr-2 h-5 w-5" /> Watch on YouTube
-                            </a>
-                        </Button>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
 
         <Card className="bg-muted/30 border-primary/20">
             <CardHeader>
