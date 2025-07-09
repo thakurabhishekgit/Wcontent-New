@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Flame, ArrowLeft, Bot, Sparkles, Loader2, BarChart as BarChartIcon, Video, Link as LinkIcon, MessageSquare } from 'lucide-react';
+import { Flame, ArrowLeft, Bot, Sparkles, Loader2, BarChart as BarChartIcon, Video, Link as LinkIcon, MessageSquare, Play } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -142,42 +143,25 @@ export default function TrendDetailPage() {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Video className="h-6 w-6 text-primary"/> Trend in Action</CardTitle>
-                <CardDescription>See an example of this trend and find more resources.</CardDescription>
+                <CardDescription>See an example of this trend.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                    <iframe
-                        width="100%"
-                        height="100%"
-                        src={trend.exampleVideoUrl}
-                        title="YouTube video player"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen>
-                    </iframe>
-                </div>
-                 <div className="mt-6">
-                    <h4 className="font-semibold mb-3 text-foreground/90">Further Watching & Reading</h4>
-                    <ul className="space-y-2 text-sm">
-                        <li className="flex items-center gap-2 text-muted-foreground">
-                            <LinkIcon className="h-4 w-4 shrink-0" />
-                            <a href="#" className="text-primary hover:underline" onClick={(e) => e.preventDefault()}>
-                                How this trend dominated TikTok in 24 hours (Analysis)
+                <div className="relative aspect-video w-full rounded-lg overflow-hidden border group">
+                    <Image
+                        src={trend.thumbnail}
+                        alt={`Thumbnail for ${trend.title}`}
+                        layout="fill"
+                        objectFit="cover"
+                        className="transition-transform group-hover:scale-105"
+                        data-ai-hint="youtube video"
+                    />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity opacity-0 group-hover:opacity-100">
+                        <Button asChild size="lg">
+                            <a href={`https://www.youtube.com/watch?v=${trend.id}`} target="_blank" rel="noopener noreferrer">
+                                <Play className="mr-2 h-5 w-5" /> Watch on YouTube
                             </a>
-                        </li>
-                        <li className="flex items-center gap-2 text-muted-foreground">
-                            <Video className="h-4 w-4 shrink-0" />
-                            <a href="#" className="text-primary hover:underline" onClick={(e) => e.preventDefault()}>
-                                Another great example of the trend from a different creator
-                            </a>
-                        </li>
-                        <li className="flex items-center gap-2 text-muted-foreground">
-                            <MessageSquare className="h-4 w-4 shrink-0" />
-                            <a href="#" className="text-primary hover:underline" onClick={(e) => e.preventDefault()}>
-                                Deep-dive discussion on our community forum
-                            </a>
-                        </li>
-                    </ul>
+                        </Button>
+                    </div>
                 </div>
             </CardContent>
         </Card>

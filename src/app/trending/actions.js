@@ -6,11 +6,11 @@ import { generateTrendArticle } from '@/ai/flows/generate-trend-article-flow';
 // --- Static Fallback Data ---
 // This data is used if the live SerpApi fetch fails, ensuring the page is always functional.
 const staticFallbackTrends = [
-    { id: 'fs-ai-docs', title: 'The Rise of AI-Narrated Documentaries', category: 'Tech', hotness: 4, excerpt: 'Explore how creators are using realistic AI voice generation to produce compelling, high-quality documentary-style videos on complex topics with a fraction of the budget.', exampleVideoUrl: 'https://www.youtube.com/embed/1d0Zf9sXl4k' },
-    { id: 'fs-fashion-vlog', title: 'Cinematic "Day in My Life" Fashion Vlogs', category: 'Fashion', hotness: 5, excerpt: 'A move away from simple hauls to highly-edited, story-driven vlogs showing how fashion integrates into a full day, often with a vintage or film-like aesthetic.', exampleVideoUrl: 'https://www.youtube.com/embed/nL21fA4Z9wI' },
-    { id: 'fs-gaming-challenge', title: 'One-Life "Permadeath" Gaming Challenges', category: 'Gaming', hotness: 5, excerpt: 'Streamers and YouTubers take on popular games with a single life, creating high-stakes content where one mistake ends the entire series, driving viewer engagement.', exampleVideoUrl: 'https://www.youtube.com/embed/zihoyzB423U' },
-    { id: 'fs-silent-vlog', title: 'The "Silent Vlog" Aesthetic', category: 'Lifestyle', hotness: 3, excerpt: 'A calming trend focusing on ASMR-like sounds and visual storytelling without any speaking. It emphasizes cozy, everyday activities like cooking, cleaning, and studying.', exampleVideoUrl: 'https://www.youtube.com/embed/1-4_kLPTv8w' },
-    { id: 'fs-deep-dive', title: 'Long-Form Video Essays & Deep Dives', category: 'Education', hotness: 4, excerpt: 'Creators are finding success with 45min+ videos that perform a deep analysis of a niche topic, from historical events to the design philosophy of a video game.', exampleVideoUrl: 'https://www.youtube.com/embed/g3j934pS-3s' }
+    { id: 'fs-ai-docs', title: 'The Rise of AI-Narrated Documentaries', category: 'Tech', hotness: 4, excerpt: 'Explore how creators are using realistic AI voice generation to produce compelling, high-quality documentary-style videos on complex topics with a fraction of the budget.', exampleVideoUrl: 'https://www.youtube.com/embed/1d0Zf9sXl4k', thumbnail: 'https://placehold.co/600x400.png' },
+    { id: 'fs-fashion-vlog', title: 'Cinematic "Day in My Life" Fashion Vlogs', category: 'Fashion', hotness: 5, excerpt: 'A move away from simple hauls to highly-edited, story-driven vlogs showing how fashion integrates into a full day, often with a vintage or film-like aesthetic.', exampleVideoUrl: 'https://www.youtube.com/embed/nL21fA4Z9wI', thumbnail: 'https://placehold.co/600x400.png' },
+    { id: 'fs-gaming-challenge', title: 'One-Life "Permadeath" Gaming Challenges', category: 'Gaming', hotness: 5, excerpt: 'Streamers and YouTubers take on popular games with a single life, creating high-stakes content where one mistake ends the entire series, driving viewer engagement.', exampleVideoUrl: 'https://www.youtube.com/embed/zihoyzB423U', thumbnail: 'https://placehold.co/600x400.png' },
+    { id: 'fs-silent-vlog', title: 'The "Silent Vlog" Aesthetic', category: 'Lifestyle', hotness: 3, excerpt: 'A calming trend focusing on ASMR-like sounds and visual storytelling without any speaking. It emphasizes cozy, everyday activities like cooking, cleaning, and studying.', exampleVideoUrl: 'https://www.youtube.com/embed/1-4_kLPTv8w', thumbnail: 'https://placehold.co/600x400.png' },
+    { id: 'fs-deep-dive', title: 'Long-Form Video Essays & Deep Dives', category: 'Education', hotness: 4, excerpt: 'Creators are finding success with 45min+ videos that perform a deep analysis of a niche topic, from historical events to the design philosophy of a video game.', exampleVideoUrl: 'https://www.youtube.com/embed/g3j934pS-3s', thumbnail: 'https://placehold.co/600x400.png' }
 ];
 
 // Simple function to parse view count for "hotness"
@@ -73,6 +73,7 @@ export async function fetchTrendingVideos() {
       category: guessCategory(video.title),
       hotness: calculateHotness(video.views),
       excerpt: video.snippet || 'No description available.',
+      thumbnail: video.thumbnail,
     }));
     
     return trends;
@@ -155,6 +156,7 @@ export async function fetchTrendDetails(videoId) {
         hotness: calculateHotness(videoDetails.views),
         excerpt: videoDetails.snippet,
         exampleVideoUrl: `https://www.youtube.com/embed/${videoId}`,
+        thumbnail: videoDetails.thumbnail,
         ...generatedContent // This adds fullArticle and aiSteps
     };
     

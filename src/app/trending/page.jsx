@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,10 +19,18 @@ const TrendArticleItem = ({ trend, onClick }) => (
     className="w-full hover:shadow-md transition-shadow duration-300 cursor-pointer group" 
     onClick={() => onClick(trend)}
   >
-    <CardContent className="p-4 flex flex-col sm:flex-row items-start gap-4">
-      <div className="flex items-center justify-center bg-muted rounded-md w-16 h-16 sm:w-12 sm:h-12 text-primary shrink-0">
-        <Flame className="w-8 h-8 sm:w-6 sm:h-6" />
-      </div>
+    <CardContent className="p-4 flex items-center gap-4">
+      {trend.thumbnail && (
+        <div className="relative w-32 h-20 rounded-md overflow-hidden shrink-0">
+          <Image
+            src={trend.thumbnail}
+            alt={trend.title}
+            layout="fill"
+            objectFit="cover"
+            data-ai-hint="youtube video"
+          />
+        </div>
+      )}
       <div className="flex-grow">
         <div className="flex items-center gap-2 mb-1">
           <Badge variant="secondary">{trend.category}</Badge>
@@ -134,9 +143,10 @@ export default function TrendingPage() {
                   [...Array(5)].map((_, i) => (
                     <Card key={i} className="w-full">
                       <CardContent className="p-4 flex items-center gap-4">
-                          <Skeleton className="w-12 h-12 rounded-md" />
+                          <Skeleton className="w-32 h-20 rounded-md" />
                           <div className="flex-grow space-y-2">
                               <Skeleton className="h-5 w-3/4" />
+                              <Skeleton className="h-4 w-full" />
                               <Skeleton className="h-4 w-1/2" />
                           </div>
                       </CardContent>
