@@ -74,6 +74,7 @@ export async function fetchTrendingVideos(category = 'All') {
     gl: 'in', 
     location: 'India', 
     api_key: apiKey,
+    num: 40, // Explicitly request more results
   };
 
   try {
@@ -84,11 +85,16 @@ export async function fetchTrendingVideos(category = 'All') {
     // This allows the frontend to correctly display the "No results" message.
     if (videoResults.length === 0) {
         console.warn(`No live results from SerpApi for category "${category}".`);
+        // Fallback to static data if live search yields no results for a specific category
+        if (category !== 'All') {
+            const filteredFallback = staticFallbackTrends.filter(trend => trend.category.toLowerCase() === category.toLowerCase());
+            return filteredFallback.length > 0 ? filteredFallback : [];
+        }
         return [];
     }
     
     // If we have results, process them.
-    const trends = videoResults.slice(0, 20).map(video => ({
+    const trends = videoResults.slice(0, 40).map(video => ({
       id: video.video_id,
       title: video.title,
       category: guessCategory(video.title),
@@ -203,7 +209,7 @@ export async function fetchTrendDetails(videoId) {
 
 // IMPORTANT: Storing API keys in code is insecure for production.
 // This should be an environment variable. Using it here for project consistency.
-const YOUTUBE_API_KEY = "AIzaSyDEqYeUl6kQpslAsKKa-6D6uqxOKjp_lT4";
+const YOUTUBE_API_KEY = "AIzaSyAFXOKE8qMD6tECr9A9JT9OMPKFcrQIvp4";
 
 async function fetchChannelIdByHandle(handle) {
   const cleanHandle = handle.startsWith('@') ? handle.substring(1) : handle;

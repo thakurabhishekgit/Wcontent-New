@@ -107,13 +107,13 @@ export default function TrendingPage() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex gap-2 overflow-x-auto pb-2 justify-center">
+                <div className="flex flex-wrap justify-center gap-2 pb-2">
                     {categories.map(category => (
                         <Button 
                             key={category}
                             variant={activeCategory === category ? 'default' : 'outline'}
                             onClick={() => setActiveCategory(category)}
-                            className="shrink-0 rounded-full px-4"
+                            className="rounded-full px-4"
                         >
                             {category}
                         </Button>
