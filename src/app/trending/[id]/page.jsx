@@ -101,6 +101,10 @@ export default function TrendDetailPage() {
   };
   
   const renderMarkdown = (text) => {
+    // Robustness: Ensure text is a string before trying to replace
+    if (typeof text !== 'string') {
+        return { __html: '' };
+    }
     // Basic markdown for bold and newlines
     const html = text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
