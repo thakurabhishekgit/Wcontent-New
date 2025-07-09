@@ -198,3 +198,76 @@ export async function fetchTrendDetails(videoId) {
     
     return trendDetails;
 }
+
+// --- New logic for Trend-Channel Fit Analysis ---
+
+// IMPORTANT: Storing API keys in code is insecure for production.
+// This should be an environment variable. Using it here for project consistency.
+const YOUTUBE_API_KEY = "AIzaSyDEqYeUl6kQpslAsKKa-6D6uqxOKjp_lT4";
+
+async function fetchChannelIdByHandle(handle) {
+  const cleanHandle = handle.startsWith('@') ? handle.substring(1) : handle;
+  const url = `https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${cleanHandle}&key=${YOUTUBE_API_KEY}`;
+  const response = await axios.get(url);
+  if (response.data.items && response.data.items.length > 0) {
+    return response.data.items[0].id;
+  }
+  throw new Error("Channel handle not found or invalid.");
+}
+
+async function fetchChannelStatistics(channelId) {
+  const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics,topicDetails,brandingSettings&id=${channelId}&key=${YOUTUBE_API_KEY}`;
+  const response = await axios.get(url);
+  if (response.data.items && response.data.items.length > 0) {
+    return response.data.items[0];
+  }
+  throw new Error("Channel statistics not found.");
+}
+
+
+export async function analyzeChannelTrendFit(channelHandleOrId, trend) {
+  if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY.includes("YOUR_API_KEY")) {
+    throw new Error("YouTube API Key is not configured correctly.");
+  }
+  if (!channelHandleOrId || !trend) {
+      throw new Error("Channel information and trend data are required for analysis.");
+  }
+
+  try {
+      let channelId = channelHandleOrId.startsWith('UC') ? channelHandleOrId : await fetchChannelIdByHandle(channelHandleOrId);
+      const stats = await fetchChannelStatistics(channelId);
+
+      const channelTopics = stats.topicDetails?.topicCategories
+          ?.map(tc => tc.split('/').pop().replace(/_/g, ' ')) || [];
+      const channelTitle = stats.brandingSettings?.channel?.title || "The channel";
+      
+      let summary = `**Channel Analysis for "${channelTitle}":** \n`;
+      if (channelTopics.length > 0) {
+        summary += `The channel's main topics appear to be **${channelTopics.join(', ')}**. `;
+      } else {
+        summary += `The channel does not have specific topics listed, so we'll analyze based on the trend itself. `;
+      }
+      
+      summary += `\n\n**Trend Fit for "${trend.title}":**\nThis trend is in the **${trend.category}** category. `;
+
+      const isDirectFit = channelTopics.some(topic => topic.toLowerCase().includes(trend.category.toLowerCase()));
+
+      if (isDirectFit) {
+          summary += `This is a **Strong Fit**. It aligns perfectly with your existing content themes.`;
+          summary += `\n\n**Recommendation:** Adopting this trend could lead to **high engagement** from your core subscribers and reinforce your channel's authority. Focus on integrating your unique voice and style to stand out.`;
+      } else {
+          summary += `This is a **Potential Growth Opportunity**. It differs from your primary topics.`;
+          summary += `\n\n**Recommendation:** Adopting this trend could attract a **new audience segment**. We recommend introducing it as a special episode or a short series to gauge interest from both your current and potential new viewers before committing fully. Monitor your analytics closely for audience retention on this content.`;
+      }
+
+      return {
+          success: true,
+          analysis: summary,
+      };
+
+  } catch (error) {
+    console.error("Error during channel-trend fit analysis:", error.message);
+    // Return a more user-friendly error message
+    throw new Error(`Analysis failed: ${error.message}. Please check if the channel handle/ID is correct and public.`);
+  }
+}

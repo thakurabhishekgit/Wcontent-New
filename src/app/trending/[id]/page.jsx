@@ -9,10 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Flame, ArrowLeft, Bot, Sparkles, Loader2, BarChart as BarChartIcon, Lightbulb, UserCheck } from 'lucide-react';
+import { Flame, ArrowLeft, Bot, Sparkles, Loader2, Lightbulb, UserCheck } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { fetchTrendDetails } from '../actions';
+import { fetchTrendDetails, analyzeChannelTrendFit } from '../actions';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 export default function TrendDetailPage() {
@@ -74,7 +74,7 @@ export default function TrendDetailPage() {
     }
   }, [params.id]);
 
-  const handleAnalyzeFit = () => {
+  const handleAnalyzeFit = async () => {
     if (!isLoggedIn) {
         setShowLoginAlert(true);
         return;
@@ -88,29 +88,16 @@ export default function TrendDetailPage() {
     setAnalysisError(null);
     setAnalysisResult(null);
 
-    // Simulate fetching channel data and comparing with the trend
-    setTimeout(() => {
-      // Mock channel summary
-      const mockChannelSummary = {
-          mainTopics: userChannel.toLowerCase().includes('tech') ? ['Tech Reviews', 'Gadgets'] : ['Gaming', 'Livestreams'],
-          audienceDescription: 'enjoys detailed analysis and high-quality production.'
-      };
-
-      // Generate analysis summary
-      let summary = `**Channel Analysis:** Your channel primarily focuses on **${mockChannelSummary.mainTopics.join(', ')}**, and your audience ${mockChannelSummary.audienceDescription}\n\n`;
-      summary += `**Trend Comparison ("${trend.title}"):** This trend, which falls under the **${trend.category}** category, `;
-
-      if (mockChannelSummary.mainTopics.includes(trend.category)) {
-          summary += `aligns perfectly with your existing content. Adopting this format could lead to **high engagement** from your core subscribers and reinforce your channel's authority.`;
-      } else {
-          summary += `represents an opportunity to branch out. While it's different from your usual content, it could attract a **new audience segment**. We recommend introducing it as a special episode to gauge interest.`;
-      }
-      
-      summary += `\n\n**Recommendation:** This is a **${mockChannelSummary.mainTopics.includes(trend.category) ? 'strong' : 'moderate'}** fit. Focus on leveraging your unique style to make this trend your own.`;
-
-      setAnalysisResult(summary);
-      setAnalysisLoading(false);
-    }, 1500);
+    try {
+        const result = await analyzeChannelTrendFit(userChannel, trend);
+        if (result.success) {
+            setAnalysisResult(result.analysis);
+        }
+    } catch (err) {
+        setAnalysisError(err.message);
+    } finally {
+        setAnalysisLoading(false);
+    }
   };
   
   const renderMarkdown = (text) => {
