@@ -305,7 +305,7 @@ const Login = ({ handleLogin }) => {
             we've got you covered.
           </p>
           <Image
-            src="https://storage.googleapis.com/project-omnibox-assets-prod/11692e8e-8e43-42e7-a9a3-a71ac769f3e9/11692e8e-8e43-42e7-a9a3-a71ac769f3e9.jpeg"
+            src="https://placehold.co/400x300.png"
             alt="Illustration of a user logging into a secure cloud service"
             data-ai-hint="vector cloud security"
             width={400}
