@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { dummyTrends } from '@/app/trending/trend-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,12 +13,14 @@ import { Flame, ArrowLeft, Bot, Sparkles, Loader2, BarChart as BarChartIcon, Vid
 import { Label } from '@/components/ui/label';
 import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { fetchTrendDetails } from '../actions'; // Import the new server action
 
 export default function TrendDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [trend, setTrend] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginAlert, setShowLoginAlert] = useState(false);
 
@@ -28,17 +29,24 @@ export default function TrendDetailPage() {
   const [growthPrediction, setGrowthPrediction] = useState(null);
 
   useEffect(() => {
-    // Check login status on mount
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
 
-    // Simulate fetching trend data
     if (params.id) {
-      const foundTrend = dummyTrends.find(t => t.id.toString() === params.id);
-      setTimeout(() => {
-        setTrend(foundTrend);
-        setIsLoading(false);
-      }, 300);
+        async function loadTrendDetails() {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const trendData = await fetchTrendDetails(params.id);
+                setTrend(trendData);
+            } catch (err) {
+                setError(err.message);
+                setTrend(null);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        loadTrendDetails();
     }
   }, [params.id]);
 
@@ -76,6 +84,19 @@ export default function TrendDetailPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h1 className="text-2xl font-bold text-destructive">Failed to Load Trend</h1>
+        <p className="text-muted-foreground">{error}</p>
+        <Button onClick={() => router.push('/trending')} className="mt-4">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Trends
+        </Button>
+      </div>
+    );
+  }
+
   if (!trend) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
@@ -88,6 +109,12 @@ export default function TrendDetailPage() {
       </div>
     );
   }
+  
+  // Use a library like 'marked' or 'react-markdown' for production
+  // For simplicity, we'll just use a basic replacement here.
+  const renderMarkdown = (text) => {
+    return { __html: text.replace(/\n/g, '<br />').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') };
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 animate-fade-in">
@@ -109,9 +136,7 @@ export default function TrendDetailPage() {
                 </div>
             </header>
             
-            <div className="prose dark:prose-invert max-w-none text-lg text-foreground/90 leading-relaxed">
-                <p>{trend.fullArticle}</p>
-            </div>
+            <div className="prose dark:prose-invert max-w-none text-lg text-foreground/90 leading-relaxed" dangerouslySetInnerHTML={renderMarkdown(trend.fullArticle)} />
         </article>
 
         <Card>

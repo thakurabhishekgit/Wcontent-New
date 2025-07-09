@@ -9,9 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Flame, TrendingUp, Search, ArrowRight, Rss } from 'lucide-react';
-import { dummyTrends } from '@/app/trending/trend-data'; // Import data from a separate file
+import { fetchTrendingVideos } from './actions'; // Import server action
 
-const categories = ['All', ...new Set(dummyTrends.map(t => t.category))];
+// categories will be dynamic now.
 
 const TrendArticleItem = ({ trend, onClick }) => (
   <Card 
@@ -43,26 +43,37 @@ const TrendArticleItem = ({ trend, onClick }) => (
 export default function TrendingPage() {
   const [allTrends, setAllTrends] = useState([]);
   const [filteredTrends, setFilteredTrends] = useState([]);
+  const [categories, setCategories] = useState(['All']);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
 
   useEffect(() => {
-    // Simulate fetching data from an API
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setAllTrends(dummyTrends);
-      setFilteredTrends(dummyTrends);
-      setIsLoading(false);
-    }, 1000); // Simulate 1 second network delay
-
-    return () => clearTimeout(timer);
+    async function loadTrends() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const trends = await fetchTrendingVideos();
+        setAllTrends(trends);
+        setFilteredTrends(trends);
+        // Dynamically create category list
+        const uniqueCategories = ['All', ...new Set(trends.map(t => t.category))];
+        setCategories(uniqueCategories);
+      } catch (err) {
+        setError(err.message);
+        setAllTrends([]);
+        setFilteredTrends([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadTrends();
   }, []);
 
   useEffect(() => {
-    // This effect runs whenever the filters or search term change
-    let results = allTrends;
+    let results = [...allTrends];
 
     if (activeCategory !== 'All') {
       results = results.filter(t => t.category === activeCategory);
@@ -89,13 +100,12 @@ export default function TrendingPage() {
             <TrendingUp className="h-16 w-16 text-primary mx-auto mb-6" />
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Content Trends Feed</h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-                Discover the latest formats, topics, and styles taking over the internet. Updated daily.
+                Discover the latest formats, topics, and styles taking over the internet. Powered by live data.
             </p>
         </section>
 
         <section className="container mx-auto px-4 max-w-4xl">
             <div className="flex flex-col gap-4 mb-8">
-                {/* Google-like Search Bar */}
                 <div className="relative w-full">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input 
@@ -105,7 +115,6 @@ export default function TrendingPage() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                {/* Filters */}
                 <div className="flex gap-2 overflow-x-auto pb-2 justify-center">
                     {categories.map(category => (
                         <Button 
@@ -133,6 +142,14 @@ export default function TrendingPage() {
                       </CardContent>
                     </Card>
                   ))
+              ) : error ? (
+                <Card className="text-center py-12 border-dashed border-destructive bg-destructive/10 col-span-full">
+                    <CardContent className="flex flex-col items-center gap-3">
+                        <Rss className="h-12 w-12 text-destructive" />
+                        <p className="text-lg text-destructive font-semibold">Failed to load trends</p>
+                        <p className="text-sm text-destructive/80">{error}</p>
+                    </CardContent>
+                </Card>
               ) : filteredTrends.length > 0 ? (
                   filteredTrends.map(trend => <TrendArticleItem key={trend.id} trend={trend} onClick={handleTrendClick} />)
               ) : (
