@@ -4,14 +4,20 @@ import axios from 'axios';
 import { generateTrendArticle } from '@/ai/flows/generate-trend-article-flow';
 
 // --- Static Fallback Data ---
-// This data is used if the live SerpApi fetch fails, ensuring the page is always functional.
+// Expanded and more diverse fallback data to be used if the live API fails.
 const staticFallbackTrends = [
-    { id: 'fs-ai-docs', title: 'The Rise of AI-Narrated Documentaries', category: 'Tech', hotness: 4, excerpt: 'Explore how creators are using realistic AI voice generation to produce compelling, high-quality documentary-style videos on complex topics with a fraction of the budget.' },
+    { id: 'fs-ai-docs', title: 'AI-Narrated Documentaries on Complex Topics', category: 'Tech', hotness: 4, excerpt: 'Explore how creators are using realistic AI voice generation to produce compelling, high-quality documentary-style videos on complex topics with a fraction of the budget.' },
     { id: 'fs-fashion-vlog', title: 'Cinematic "Day in My Life" Fashion Vlogs', category: 'Fashion', hotness: 5, excerpt: 'A move away from simple hauls to highly-edited, story-driven vlogs showing how fashion integrates into a full day, often with a vintage or film-like aesthetic.' },
     { id: 'fs-gaming-challenge', title: 'One-Life "Permadeath" Gaming Challenges', category: 'Gaming', hotness: 5, excerpt: 'Streamers and YouTubers take on popular games with a single life, creating high-stakes content where one mistake ends the entire series, driving viewer engagement.' },
-    { id: 'fs-silent-vlog', title: 'The "Silent Vlog" Aesthetic', category: 'Lifestyle', hotness: 3, excerpt: 'A calming trend focusing on ASMR-like sounds and visual storytelling without any speaking. It emphasizes cozy, everyday activities like cooking, cleaning, and studying.' },
-    { id: 'fs-deep-dive', title: 'Long-Form Video Essays & Deep Dives', category: 'Education', hotness: 4, excerpt: 'Creators are finding success with 45min+ videos that perform a deep analysis of a niche topic, from historical events to the design philosophy of a video game.' }
+    { id: 'fs-silent-vlog', title: 'The "Silent Vlog" Aesthetic for Cozy Content', category: 'Lifestyle', hotness: 3, excerpt: 'A calming trend focusing on ASMR-like sounds and visual storytelling without any speaking. It emphasizes cozy, everyday activities like cooking, cleaning, and studying.' },
+    { id: 'fs-deep-dive', title: 'Long-Form Video Essays & Deep Dives', category: 'Education', hotness: 4, excerpt: 'Creators are finding success with 45min+ videos that perform a deep analysis of a niche topic, from historical events to the design philosophy of a video game.' },
+    { id: 'fs-recipe-quick', title: 'Fast-Paced, ASMR Recipe Videos', category: 'Food', hotness: 4, excerpt: 'Under-60-second recipe videos with satisfying sounds and quick cuts, optimized for short-form platforms like Reels and TikTok.' },
+    { id: 'fs-travel-local', title: 'Hyper-Local Travel Guides', category: 'Travel', hotness: 3, excerpt: 'Instead of international destinations, creators are focusing on hidden gems and unique experiences within their own city or region, appealing to local and budget-conscious audiences.' },
+    { id: 'fs-fitness-challenge', title: '30-Day Fitness Challenge Documentation', category: 'Fitness', hotness: 4, excerpt: 'Creators document their progress, struggles, and results over a 30-day fitness challenge, creating a relatable and inspiring series.' },
+    { id: 'fs-comedy-pov', title: 'POV: Relatable Situation Comedy Skits', category: 'Comedy', hotness: 5, excerpt: 'Short, point-of-view style skits that place the viewer in a funny and relatable situation, often using trending audio.' },
+    { id: 'fs-beauty-dupes', title: 'High-End vs. Drugstore "Dupes" Battle', category: 'Beauty', hotness: 4, excerpt: 'Beauty creators test and compare expensive, high-end products against their affordable "dupe" counterparts, providing valuable insights for viewers.' }
 ];
+
 
 // Simple function to parse view count for "hotness"
 function calculateHotness(viewsText) {
@@ -36,14 +42,16 @@ function calculateHotness(viewsText) {
 // Simple function to guess category
 function guessCategory(title) {
     const lowerTitle = title.toLowerCase();
-    if (lowerTitle.includes('gaming') || lowerTitle.includes('game')) return 'Gaming';
-    if (lowerTitle.includes('tech') || lowerTitle.includes('review') || lowerTitle.includes('unboxing') || lowerTitle.includes('iphone')) return 'Tech';
+    if (lowerTitle.includes('gaming') || lowerTitle.includes('game') || lowerTitle.includes('valorant')) return 'Gaming';
+    if (lowerTitle.includes('tech') || lowerTitle.includes('review') || lowerTitle.includes('unboxing') || lowerTitle.includes('iphone') || lowerTitle.includes('samsung')) return 'Tech';
     if (lowerTitle.includes('vlog') || lowerTitle.includes('daily')) return 'Lifestyle';
-    if (lowerTitle.includes('fashion') || lowerTitle.includes('haul') || lowerTitle.includes('dupe')) return 'Fashion';
-    if (lowerTitle.includes('recipe') || lowerTitle.includes('cooking')) return 'Food';
-    if (lowerTitle.includes('comedy') || lowerTitle.includes('skit')) return 'Comedy';
-    if (lowerTitle.includes('tutorial') || lowerTitle.includes('how to')) return 'Education';
-    if (lowerTitle.includes('travel')) return 'Travel';
+    if (lowerTitle.includes('fashion') || lowerTitle.includes('haul') || lowerTitle.includes('outfit') || lowerTitle.includes('dupe')) return 'Fashion';
+    if (lowerTitle.includes('recipe') || lowerTitle.includes('cooking') || lowerTitle.includes('food')) return 'Food';
+    if (lowerTitle.includes('comedy') || lowerTitle.includes('skit') || lowerTitle.includes('funny')) return 'Comedy';
+    if (lowerTitle.includes('tutorial') || lowerTitle.includes('how to') || lowerTitle.includes('learn')) return 'Education';
+    if (lowerTitle.includes('travel') || lowerTitle.includes('trip')) return 'Travel';
+    if (lowerTitle.includes('fitness') || lowerTitle.includes('workout')) return 'Fitness';
+    if (lowerTitle.includes('beauty') || lowerTitle.includes('makeup')) return 'Beauty';
     return 'General';
 }
 
@@ -55,6 +63,7 @@ export async function fetchTrendingVideos(category = 'All') {
     return staticFallbackTrends;
   }
 
+  // **FIXED**: Construct a more specific search query for Indian region and categories.
   const baseQuery = 'new content trends for creators india';
   const searchQuery = category === 'All'
     ? baseQuery
@@ -63,7 +72,8 @@ export async function fetchTrendingVideos(category = 'All') {
   const params = {
     engine: 'youtube',
     search_query: searchQuery,
-    sort_by: 'upload_date', // To get the latest content
+    // **FIXED**: Added gl: 'in' to target search results to India.
+    gl: 'in', 
     api_key: apiKey,
   };
 
@@ -71,8 +81,8 @@ export async function fetchTrendingVideos(category = 'All') {
     const response = await axios.get('https://serpapi.com/search.json', { params });
     const videoResults = response.data?.video_results || [];
 
-    // Map the results to the format our frontend expects
-    const trends = videoResults.slice(0, 20).map(video => ({ // Increased to 20
+    // **FIXED**: Map up to 20 results instead of 5.
+    const trends = videoResults.slice(0, 20).map(video => ({
       id: video.video_id,
       title: video.title,
       category: guessCategory(video.title),
@@ -80,10 +90,15 @@ export async function fetchTrendingVideos(category = 'All') {
       excerpt: video.snippet || 'No description available.',
     }));
     
+    // If API returns no results, use fallback to prevent empty page
+    if (trends.length === 0) {
+        return staticFallbackTrends;
+    }
+    
     return trends;
   } catch (error) {
     console.error(`Error fetching trends for category "${category}" from SerpApi, returning static fallback data. Error:`, error.response?.data?.error || error.message);
-    // Instead of throwing an error, return the static data so the page doesn't break.
+    // **FIXED**: Instead of throwing an error, return the static data so the page doesn't break.
     return staticFallbackTrends;
   }
 }
@@ -111,7 +126,13 @@ export async function fetchTrendDetails(videoId) {
 
     const apiKey = process.env.SERPAPI_KEY;
     if (!apiKey) {
-        throw new Error('SerpApi API key is not configured in environment variables.');
+        // Fallback to static if key is missing, to prevent detail page error
+        const staticTrend = staticFallbackTrends[0]; // a default fallback
+         const generatedContent = await generateTrendArticle({
+                title: staticTrend.title,
+                snippet: staticTrend.excerpt,
+            });
+        return { ...staticTrend, ...generatedContent, id: videoId };
     }
 
     // Step 1: Fetch video details from SerpApi
@@ -124,7 +145,6 @@ export async function fetchTrendDetails(videoId) {
     let videoDetails;
     try {
         const response = await axios.get('https://serpapi.com/search.json', { params });
-        // The first result should be our video
         if (!response.data?.video_results?.[0]) {
              throw new Error('Video details not found on SerpApi.');
         }
@@ -147,7 +167,9 @@ export async function fetchTrendDetails(videoId) {
         generatedContent = {
             fullArticle: videoDetails.snippet || "Could not generate a full article for this trend. The main idea revolves around the video title.",
             aiSteps: [
-                { title: 'AI Assistant Offline', content: 'The AI assistant could not be reached to generate creation steps.' }
+                { title: 'AI Assistant Offline', content: 'The AI assistant could not be reached to generate creation steps.' },
+                { title: 'Script & Outline', content: 'Focus on creating a clear script. Start with a hook, provide value in the middle, and end with a call to action.'},
+                { title: 'Visuals & Production', content: 'Ensure good lighting and clear audio. Use b-roll and graphics to keep viewers engaged.'}
             ]
         };
     }
@@ -159,7 +181,6 @@ export async function fetchTrendDetails(videoId) {
         category: guessCategory(videoDetails.title),
         hotness: calculateHotness(videoDetails.views),
         excerpt: videoDetails.snippet,
-        exampleVideoUrl: `https://www.youtube.com/embed/${videoId}`,
         ...generatedContent // This adds fullArticle and aiSteps
     };
     
