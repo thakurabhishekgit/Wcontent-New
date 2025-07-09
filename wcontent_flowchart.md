@@ -16,6 +16,7 @@ graph TD
     D --> G(Browse Opportunities Page `/opportunities`);
     D --> H(Browse Collabs Page `/collabs`);
     D --> I(Authentication Page `/auth`);
+    D --> TrendPage(Trending Page `/trending`);
     D --> B;
 
 
@@ -41,7 +42,26 @@ graph TD
 
 ## II. Core Feature Pages (Public/Conditional Access)
 
-### A. Generate Ideas Page (`/generate`)
+### A. Trending Page (`/trending`)
+```mermaid
+graph TD
+    subgraph Trending Page
+        Trend1[Access /trending] --> Trend2[API Call: `fetchTrendingVideos('All')`];
+        Trend2 -- Success --> Trend3[Display List of Trends & Category Filters];
+        Trend2 -- Failure --> Trend4[Show Error / Fallback Data];
+        Trend3 -- Filter by Category --> Trend2;
+        Trend3 -- Click a Trend --> TrendDetail[Trend Detail Page `/trending/[id]`];
+        TrendDetail -- Fetch Data --> Trend5(API Call: `fetchTrendDetails(id)`);
+        Trend5 -- Success --> Trend6[Display Full Article & AI Steps];
+        Trend5 -- Failure --> Trend7[Show Error on Detail Page];
+        Trend6 -- User Logged In --> Trend8[Show Channel Fit Analysis Section];
+        Trend8 -- Input Channel Handle & Submit --> Trend9(API Call: `analyzeChannelTrendFit`);
+        Trend9 -- Success --> Trend10[Display Fit Analysis Result];
+        Trend9 -- Failure --> Trend11[Show Analysis Error];
+    end
+```
+
+### B. Generate Ideas Page (`/generate`)
 
 ```mermaid
 graph TD
@@ -60,7 +80,7 @@ graph TD
     end
 ```
 
-### B. Predict Performance Page (`/predict`)
+### C. Predict Performance Page (`/predict`)
 
 ```mermaid
 graph TD
@@ -93,7 +113,7 @@ graph TD
     end
 ```
 
-### C. Browse Opportunities Page (`/opportunities`)
+### D. Browse Opportunities Page (`/opportunities`)
 
 ```mermaid
 graph TD
@@ -117,7 +137,7 @@ graph TD
     end
 ```
 
-### D. Browse Collaborations Page (`/collabs`)
+### E. Browse Collaborations Page (`/collabs`)
 
 ```mermaid
 graph TD
