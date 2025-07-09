@@ -63,16 +63,15 @@ export async function fetchTrendingVideos(category = 'All') {
     return staticFallbackTrends;
   }
 
-  // **FIXED**: Refined search query and parameters for better regional and category targeting.
   const searchQuery = category === 'All'
-    ? 'youtube trending videos for content creators'
-    : `new ${category.toLowerCase()} video trends`;
+    ? 'youtube trending videos for content creators in india'
+    : `new trending ${category.toLowerCase()} videos india`;
 
   const params = {
     engine: 'youtube',
     search_query: searchQuery,
-    gl: 'in', // Explicitly set geographical location to India
-    location: 'India', // Use the location parameter for more specificity
+    gl: 'in', 
+    location: 'India', 
     api_key: apiKey,
   };
 
@@ -80,6 +79,13 @@ export async function fetchTrendingVideos(category = 'All') {
     const response = await axios.get('https://serpapi.com/search.json', { params });
     const videoResults = response.data?.video_results || [];
 
+    // If API returns no results, return an empty array to let the frontend show a "not found" message.
+    if (videoResults.length === 0) {
+        console.warn(`No live results from SerpApi for category "${category}".`);
+        return [];
+    }
+    
+    // If we have results, process them.
     const trends = videoResults.slice(0, 20).map(video => ({
       id: video.video_id,
       title: video.title,
@@ -88,17 +94,17 @@ export async function fetchTrendingVideos(category = 'All') {
       excerpt: video.snippet || 'No description available.',
     }));
     
-    // If the API call is successful but returns no results, fall back to static data.
-    if (trends.length === 0) {
-        console.warn(`No results from SerpApi for category "${category}". Returning static fallback.`);
-        return staticFallbackTrends;
-    }
-    
     return trends;
+
   } catch (error) {
-    console.error(`Error fetching trends for category "${category}" from SerpApi. Error:`, error.response?.data?.error || error.message);
-    // On any error, return the static data so the page doesn't break.
-    return staticFallbackTrends;
+    // If the entire API call fails (e.g., bad key, network error), fall back to filtered static data.
+    console.error(`Error fetching trends for category "${category}" from SerpApi. Falling back to static data. Error:`, error.response?.data?.error || error.message);
+    
+    if (category === 'All') {
+        return staticFallbackTrends;
+    } else {
+        return staticFallbackTrends.filter(trend => trend.category.toLowerCase() === category.toLowerCase());
+    }
   }
 }
 
