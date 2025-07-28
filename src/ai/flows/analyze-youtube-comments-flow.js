@@ -14,7 +14,7 @@ import {z} from 'genkit';
 const AnalyzeYoutubeCommentsInputSchema = z.object({
   videoUrl: z.string().url().describe("The URL of the YouTube video to analyze."),
 });
-export type AnalyzeYoutubeCommentsInput = z.infer<typeof AnalyzeYoutubeCommentsInputSchema>;
+
 
 const AnalyzeYoutubeCommentsOutputSchema = z.object({
   overallSentiment: z.string().describe("A single word describing the overall sentiment (e.g., Positive, Mixed, Negative)."),
@@ -22,7 +22,7 @@ const AnalyzeYoutubeCommentsOutputSchema = z.object({
   negativePoints: z.array(z.string()).describe("A list of key negative points, critiques, or questions from the comments."),
   suggestions: z.array(z.string()).describe("A list of actionable suggestions for the creator based on the comment analysis."),
 });
-export type AnalyzeYoutubeCommentsOutput = z.infer<typeof AnalyzeYoutubeCommentsOutputSchema>;
+
 
 export async function analyzeYoutubeComments(input) {
   return analyzeYoutubeCommentsFlow(input);

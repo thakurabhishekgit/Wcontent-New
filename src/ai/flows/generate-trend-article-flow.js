@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for generating a detailed article about a content trend.

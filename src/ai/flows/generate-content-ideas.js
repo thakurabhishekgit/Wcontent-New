@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for generating content ideas, headlines, and outlines.
@@ -17,7 +18,7 @@ const GenerateContentIdeasInputSchema = z.object({
   format: z.string().optional().describe('The desired format for the generated content (e.g., Blog Post, Video Script, Tweet).'),
   generationMode: z.string().default('ideas').describe('The type of content to generate: "ideas", "headlines", or "outline".'), // Added 'outline'
 });
-// No explicit type export needed in JS: export type GenerateContentIdeasInput = z.infer<typeof GenerateContentIdeasInputSchema>;
+
 
 // Updated Output Schema - now includes outlines
 const GenerateContentIdeasOutputSchema = z.object({
@@ -25,7 +26,7 @@ const GenerateContentIdeasOutputSchema = z.object({
   headlines: z.array(z.string()).optional().describe('A list of suggested headlines.'),
   outline: z.array(z.string()).optional().describe('A list of main points for a content outline.'), // Added outline field
 });
-// No explicit type export needed in JS: export type GenerateContentIdeasOutput = z.infer<typeof GenerateContentIdeasOutputSchema>;
+
 
 export async function generateContentIdeas(input) { // Input type matches schema implicitly in JS
   return generateContentIdeasFlow(input);
