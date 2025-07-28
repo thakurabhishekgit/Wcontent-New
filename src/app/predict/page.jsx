@@ -23,58 +23,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { Label } from "@/components/ui/label";
 import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
-import { z } from 'zod';
-import { ai } from '@/ai/ai-instance';
-
-
-const AnalyzeYoutubeCommentsInputSchema = z.object({
-  videoUrl: z.string().url().describe("The URL of the YouTube video to analyze."),
-});
-
-const AnalyzeYoutubeCommentsOutputSchema = z.object({
-  overallSentiment: z.string().describe("A single word describing the overall sentiment (e.g., Positive, Mixed, Negative)."),
-  positivePoints: z.array(z.string()).describe("A list of key positive points or compliments from the comments."),
-  negativePoints: z.array(z.string()).describe("A list of key negative points, critiques, or questions from the comments."),
-  suggestions: z.array(z.string()).describe("A list of actionable suggestions for the creator based on the comment analysis."),
-});
-
-// Define the Genkit flow directly in the page for simplicity, as it's only used here.
-const analyzeYoutubeCommentsFlow = ai.defineFlow(
-  {
-    name: 'analyzeYoutubeCommentsClientFlow',
-    inputSchema: AnalyzeYoutubeCommentsInputSchema,
-    outputSchema: AnalyzeYoutubeCommentsOutputSchema,
-  },
-  async (input) => {
-    const prompt = `
-      You are an expert YouTube content strategist. Your task is to simulate an analysis of the comments for a given YouTube video URL.
-      You do not have access to the actual comments, so you must generate a realistic and plausible summary based on the likely topic of the video.
-
-      The creator's video URL is: ${input.videoUrl}
-
-      Based on the video's likely topic from its URL, generate a plausible and constructive analysis. Imagine what viewers would say.
-
-      1.  **Determine the overallSentiment**: Characterize the general feeling in a single word (e.g., 'Positive', 'Mostly Positive', 'Mixed').
-      2.  **Identify plausible positivePoints**: List 2-3 key things viewers would likely praise (e.g., clarity, production quality, unique perspective).
-      3.  **Identify plausible negativePoints**: List 2-3 common critiques or constructive criticisms viewers might have (e.g., audio issues, pacing, a confusing section).
-      4.  **Provide actionable suggestions**: Based on the plausible points, create a list of 2-3 concrete recommendations for the creator.
-
-      Return your response ONLY in the specified JSON format.
-    `;
-    
-    const { output } = await ai.generate({
-        prompt: prompt,
-        output: { schema: AnalyzeYoutubeCommentsOutputSchema },
-    });
-    
-    if (!output) {
-      throw new Error("AI failed to generate a valid analysis.");
-    }
-
-    return output;
-  }
-);
-
+import { analyzeYoutubeComments } from "@/ai/flows/analyze-youtube-comments-flow"; // Import the server action
 
 const FeatureCard = ({ icon: Icon, title, description, img, hint }) => (
    <Card className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -189,8 +138,8 @@ function Ml() {
     setAnalysisResult(null);
 
     try {
-      // Call the new dynamic flow
-      const result = await analyzeYoutubeCommentsFlow({ videoUrl: url });
+      // Call the imported server action
+      const result = await analyzeYoutubeComments({ videoUrl: url });
       setAnalysisResult(result);
       if(!isLoggedIn) incrementPredictionCount();
     } catch (err) {
