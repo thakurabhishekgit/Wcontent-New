@@ -8,7 +8,8 @@ export const ai = genkit({
   promptDir: './prompts',
   plugins: [
     googleAI({
-      // Use the standard environment variable for the Gemini API key
+      // Explicitly use the standard environment variable for the Gemini API key.
+      // This ensures that the key provided by the hosting environment (e.g., Vercel) is used.
       apiKey: process.env.GEMINI_API_KEY,
     }),
   ],
