@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, Youtube, Lightbulb, Loader2, LogIn, Search, TrendingUp, DollarSign, Users, Video, Target, BarChart as BarChartIcon, HelpCircle, LineChart, UserCheck } from "lucide-react"; // Keep BarChartIcon for now, might be used by new feature
+import { Terminal, Youtube, Lightbulb, Loader2, LogIn, Search, TrendingUp, UserCheck, LineChart } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +23,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { Label } from "@/components/ui/label";
 import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { analyzeYoutubeComments } from "@/ai/flows/analyze-youtube-comments-flow";
 
 
 const FeatureCard = ({ icon: Icon, title, description, img, hint }) => (
@@ -48,11 +48,9 @@ const FeatureCard = ({ icon: Icon, title, description, img, hint }) => (
 
 function Ml() {
   const [url, setUrl] = useState("");
-  const [summary, setSummary] = useState("");
+  const [analysisResult, setAnalysisResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [geminiLoading, setGeminiLoading] = useState(false);
   const [error, setError] = useState("");
-  const [geminiResponse, setGeminiResponse] = useState("");
   const [isClient, setIsClient] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [predictionCount, setPredictionCount] = useState(0);
@@ -138,40 +136,17 @@ function Ml() {
     }
     setLoading(true);
     setError("");
-    setSummary("");
-    setGeminiResponse("");
+    setAnalysisResult(null);
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const placeholderSummary = `Placeholder summary for ${url}: Comments generally positive, mentioning good editing but some found the intro too long. Several users asked for a follow-up video on topic X.`;
-      setSummary(placeholderSummary);
+      const result = await analyzeYoutubeComments({ videoUrl: url });
+      setAnalysisResult(result);
       if(!isLoggedIn) incrementPredictionCount();
     } catch (err) {
        const message = err instanceof Error ? err.message : "An error occurred during analysis";
       setError(message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGeminiRequest = async () => {
-     if (checkPredictionLimit() && !summary) return; // Allow if summary was from free tier
-
-    if (!summary) {
-      setError("Please analyze comments first.");
-      return;
-    }
-    setGeminiLoading(true);
-    setError("");
-    setGeminiResponse("");
-    try {
-       await new Promise(resolve => setTimeout(resolve, 2000));
-       const placeholderSuggestions = `Based on the summary:\n- Consider shortening the intro sequence.\n- Address the requests for a follow-up video on topic X in your next content plan.\n- Highlight the positive feedback on editing in your channel metrics.`;
-       setGeminiResponse(placeholderSuggestions);
-    } catch (err) {
-       const message = err instanceof Error ? err.message : "Failed to fetch suggestions.";
-      setError(message);
-    } finally {
-      setGeminiLoading(false);
     }
   };
 
@@ -282,7 +257,7 @@ function Ml() {
                   placeholder="Paste or drop YouTube URL here"
                   className="text-center text-base"
                   aria-label="YouTube Video URL Input"
-                  disabled={loading || geminiLoading || (checkPredictionLimit() && isLoggedIn)}
+                  disabled={loading}
                 />
                 <p className="text-xs text-muted-foreground mt-2">Drag and drop works too!</p>
               </div>
@@ -298,7 +273,7 @@ function Ml() {
               <Button
                 onClick={handleAnalyze}
                 className="w-full"
-                disabled={loading || geminiLoading || (!isLoggedIn && predictionCount >=1)}
+                disabled={loading || (!isLoggedIn && predictionCount >=1)}
               >
                 {loading ? (
                   <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing... </>
@@ -308,34 +283,44 @@ function Ml() {
 
               {loading && (
                 <div className="space-y-4 pt-4">
-                  <Skeleton className="h-6 w-1/4" /> <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-5/6" /> <Skeleton className="h-10 w-1/2" />
+                  <Skeleton className="h-6 w-1/4" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                  </div>
+                  <Skeleton className="h-6 w-1/3 mt-4" />
+                   <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
                 </div>
               )}
 
-              {summary && !loading && (
+              {analysisResult && !loading && (
                 <Card className="bg-muted/30">
-                   <CardHeader> <CardTitle className="text-xl">AI Analysis Summary</CardTitle> </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-foreground/90 whitespace-pre-wrap">{summary}</p>
-                    <Button onClick={handleGeminiRequest} variant="outline" className="w-full" disabled={geminiLoading || loading || (!isLoggedIn && predictionCount >=1)}>
-                      {geminiLoading ? (
-                        <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating Suggestions... </>
-                      ) : ( <> <Lightbulb className="mr-2 h-4 w-4" /> Get Improvement Suggestions </> )}
-                       {!isLoggedIn && predictionCount >= 1 && <span className="ml-2 text-xs">(Login Required)</span>}
-                    </Button>
-                    {geminiLoading && (
-                      <div className="space-y-2 pt-2">
-                        <Skeleton className="h-5 w-1/3" /> <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full" /> <Skeleton className="h-4 w-4/5" />
-                      </div>
-                    )}
-                    {geminiResponse && !geminiLoading && (
-                      <div className="pt-4">
+                   <CardHeader>
+                        <CardTitle className="text-xl">AI Analysis Summary</CardTitle>
+                        <CardDescription>Overall sentiment: <span className="font-semibold text-primary">{analysisResult.overallSentiment}</span></CardDescription>
+                   </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                        <h3 className="text-lg font-semibold mb-2">Key Positive Points:</h3>
+                        <ul className="list-disc pl-5 space-y-1 text-sm text-foreground/90">
+                           {analysisResult.positivePoints.map((point, index) => <li key={`pos-${index}`}>{point}</li>)}
+                        </ul>
+                    </div>
+                     <div>
+                        <h3 className="text-lg font-semibold mb-2">Key Negative Points / Critiques:</h3>
+                        <ul className="list-disc pl-5 space-y-1 text-sm text-foreground/90">
+                           {analysisResult.negativePoints.map((point, index) => <li key={`neg-${index}`}>{point}</li>)}
+                        </ul>
+                    </div>
+                     <div>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary"/> Improvement Suggestions</h3>
-                        <p className="text-sm text-foreground/90 whitespace-pre-wrap">{geminiResponse}</p>
-                      </div>
-                    )}
+                        <ul className="list-disc pl-5 space-y-1 text-sm text-foreground/90">
+                           {analysisResult.suggestions.map((suggestion, index) => <li key={`sug-${index}`}>{suggestion}</li>)}
+                        </ul>
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -371,7 +356,7 @@ function Ml() {
                  {isChannelIdPrefilled && <p className="text-xs text-muted-foreground mt-1">Your Channel ID has been pre-filled from your profile.</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contentTypeGrowth" className="flex items-center gap-1"><Video className="h-4 w-4"/> Planned Content Type / Genre</Label>
+                <Label htmlFor="contentTypeGrowth" className="flex items-center gap-1"><Lightbulb className="h-4 w-4"/> Planned Content Type / Genre</Label>
                 <Input
                   id="contentTypeGrowth"
                   name="contentType"
