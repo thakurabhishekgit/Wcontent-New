@@ -186,6 +186,14 @@ function Ml() {
     }
   };
 
+  const handleAudienceGrowthInputChange = (e) => {
+    const { name, value } = e.target;
+    setAudienceGrowthInputs(prev => ({
+        ...prev,
+        [name]: value
+    }));
+  };
+
   const handlePredictAudienceGrowth = async () => {
     // This is a placeholder function as the backend for this is not implemented.
     setGrowthRetentionLoading(true);
