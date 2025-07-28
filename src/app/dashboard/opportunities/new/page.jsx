@@ -70,7 +70,7 @@ export default function NewOpportunityPage() {
 
     try {
       const response = await fetch(
-        `https://wcontent-app-latest.onrender.com/api/users/opportunities/opportunity/${userId}`, // Use deployed URL
+        `http://localhost:3001/api/users/opportunities/opportunity/${userId}`, // Use deployed URL
         {
           method: "POST",
           headers: {
@@ -95,7 +95,7 @@ export default function NewOpportunityPage() {
       let fetchErrorMessage = "An unexpected error occurred. Please try again.";
       if (isClient && err instanceof TypeError && err.message.includes('fetch')) {
          // Updated error message to reflect deployed URL
-         fetchErrorMessage = `Error posting opportunity. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
+         fetchErrorMessage = `Error posting opportunity. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and CORS is configured correctly.`;
        }
       setError(fetchErrorMessage);
     } finally {

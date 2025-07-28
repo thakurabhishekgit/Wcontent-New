@@ -47,7 +47,7 @@ export default function MyOpportunitiesPage() {
       setError(null);
       try {
         const response = await fetch(
-          `https://wcontent-app-latest.onrender.com/api/users/opportunities/getMyOpportunities/${userId}`,
+          `http://localhost:3001/api/users/opportunities/getMyOpportunities/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -66,7 +66,7 @@ export default function MyOpportunitiesPage() {
         console.error("Error fetching opportunities:", error);
          let fetchErrorMessage = "Error fetching opportunities. Please try again.";
          if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
-             fetchErrorMessage = `Error fetching opportunities. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
+             fetchErrorMessage = `Error fetching opportunities. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and CORS is configured correctly.`;
          }
          setError(fetchErrorMessage);
          setOpportunities([]);
@@ -88,7 +88,7 @@ export default function MyOpportunitiesPage() {
     try {
        // Use the correct ID field (dbId which is mapped from id or _id)
       const response = await fetch(
-        `https://wcontent-app-latest.onrender.com/api/users/application/opportunity/${oppDbId}/applicants`,
+        `http://localhost:3001/api/users/application/opportunity/${oppDbId}/applicants`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -107,7 +107,7 @@ export default function MyOpportunitiesPage() {
       console.error("Error fetching applications:", error);
       let fetchErrorMessage = "Error fetching applications. Please try again.";
        if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
-           fetchErrorMessage = `Error fetching applications. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
+           fetchErrorMessage = `Error fetching applications. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and CORS is configured correctly.`;
        }
        setError(fetchErrorMessage); // Set specific error
        setApplications([]);

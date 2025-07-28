@@ -40,7 +40,7 @@ export default function TrendDetailPage() {
         const userId = localStorage.getItem("id");
         async function fetchUserChannel() {
             try {
-                const res = await fetch(`https://wcontent-app-latest.onrender.com/api/users/getUser/${userId}`, { headers: { Authorization: `Bearer ${token}` }});
+                const res = await fetch(`http://localhost:3001/api/users/getUser/${userId}`, { headers: { Authorization: `Bearer ${token}` }});
                 if (res.ok) {
                     const userData = await res.json();
                     if (userData.userType === 'ChannelOwner' && (userData.channelId || userData.channelHandle)) {

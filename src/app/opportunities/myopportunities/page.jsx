@@ -32,7 +32,7 @@ const MyOpportunities = () => {
     const fetchOpportunities = async () => {
       try {
         const response = await fetch(
-          `https://wcontent-app-latest.onrender.com/api/users/opportunities/getMyOpportunities/${userId}`,
+          `http://localhost:3001/api/users/opportunities/getMyOpportunities/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -64,7 +64,7 @@ const MyOpportunities = () => {
      }
     try {
       const response = await fetch(
-        `https://wcontent-app-latest.onrender.com/api/users/application/opportunity/${oppId}/applicants`,
+        `http://localhost:3001/api/users/application/opportunity/${oppId}/applicants`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

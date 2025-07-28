@@ -97,7 +97,7 @@ function Ml() {
   const fetchAndSetChannelId = async (userId, token) => {
     if (!userId || !token) return;
     try {
-        const response = await fetch(`https://wcontent-app-latest.onrender.com/api/users/getUser/${userId}`, {
+        const response = await fetch(`http://localhost:3001/api/users/getUser/${userId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         if (response.ok) {

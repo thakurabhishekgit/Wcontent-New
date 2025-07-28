@@ -47,7 +47,7 @@ export default function MyCollabsPage() {
     setError(null);
     try {
       const response = await fetch(
-        `https://wcontent-app-latest.onrender.com/api/users/collabration/getCollabOfUser/${userId}`,
+        `http://localhost:3001/api/users/collabration/getCollabOfUser/${userId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -66,7 +66,7 @@ export default function MyCollabsPage() {
       console.error("Error fetching collaborations:", error);
       let fetchErrorMessage = "Error fetching collaborations. Please try again.";
       if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
-          fetchErrorMessage = `Error fetching collaborations. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
+          fetchErrorMessage = `Error fetching collaborations. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and CORS is configured correctly.`;
       }
       setError(fetchErrorMessage);
        setCollaborations([]);
@@ -87,7 +87,7 @@ export default function MyCollabsPage() {
 
     try {
       const response = await fetch(
-        `https://wcontent-app-latest.onrender.com/api/users/collabration/getCollabRequests/${collabId}`,
+        `http://localhost:3001/api/users/collabration/getCollabRequests/${collabId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -106,7 +106,7 @@ export default function MyCollabsPage() {
       console.error("Error fetching collaboration requests:", error);
       let fetchErrorMessage = "Error fetching collaboration requests. Please try again.";
       if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
-          fetchErrorMessage = `Error fetching collaboration requests. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
+          fetchErrorMessage = `Error fetching collaboration requests. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and CORS is configured correctly.`;
       }
       setError(fetchErrorMessage); // Set specific error
        setCollabRequests([]);

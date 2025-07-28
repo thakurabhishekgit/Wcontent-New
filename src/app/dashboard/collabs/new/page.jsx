@@ -66,7 +66,7 @@ export default function PostCollabPage() {
     try {
       // Updated endpoint: use deployed URL
       const response = await fetch(
-        `https://wcontent-app-latest.onrender.com/api/users/collabration/addCollab/${userId}`,
+        `http://localhost:3001/api/users/collabration/addCollab/${userId}`,
         {
           method: "POST",
           headers: {
@@ -92,7 +92,7 @@ export default function PostCollabPage() {
       let fetchErrorMessage = "An unexpected error occurred. Please try again.";
       if (isClient && err instanceof TypeError && err.message.includes('fetch')) {
          // Updated error message to reflect deployed URL
-         fetchErrorMessage = `Error posting collaboration. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
+         fetchErrorMessage = `Error posting collaboration. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and CORS is configured correctly.`;
       }
       setError(fetchErrorMessage);
     } finally {

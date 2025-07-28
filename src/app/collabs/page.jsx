@@ -257,7 +257,7 @@ export default function CollaborationsPage() {
     try {
        if (loggedIn) {
           const response = await axios.get(
-            "https://wcontent-app-latest.onrender.com/api/users/collabration/getCollabOfAllUsers"
+            "http://localhost:3001/api/users/collabration/getCollabOfAllUsers"
           );
           if (Array.isArray(response.data)) {
              const collaborationsWithId = response.data.map(collab => ({
@@ -370,7 +370,7 @@ export default function CollaborationsPage() {
        };
 
       const response = await axios.post(
-        `https://wcontent-app-latest.onrender.com/api/users/collabration/applyForCollab/${collabIdToUse}`,
+        `http://localhost:3001/api/users/collabration/applyForCollab/${collabIdToUse}`,
         payload,
         {
             headers: {
