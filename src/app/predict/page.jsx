@@ -46,11 +46,6 @@ const FeatureCard = ({ icon: Icon, title, description, img, hint }) => (
    </Card>
  );
 
-// IMPORTANT: Storing API keys in frontend code is insecure.
-// This should be handled via a backend proxy in a production environment.
-const YOUTUBE_API_KEY = "AIzaSyDEqYeUl6kQpslAsKKa-6D6uqxOKjp_lT4"; // Replace with your actual API key
-
-
 function Ml() {
   const [url, setUrl] = useState("");
   const [summary, setSummary] = useState("");
@@ -191,137 +186,13 @@ function Ml() {
     }
   };
 
-  // Handlers for Audience Growth & Retention Predictor
-  const handleAudienceGrowthInputChange = (e) => {
-    const { name, value } = e.target;
-    setAudienceGrowthInputs(prev => ({ ...prev, [name]: value }));
-    setGrowthRetentionError("");
-  };
-
-  const fetchChannelIdByHandle = async (handle) => {
-    // Remove "@" if present
-    const cleanHandle = handle.startsWith('@') ? handle.substring(1) : handle;
-    const url = `https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${cleanHandle}&key=${YOUTUBE_API_KEY}`;
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data.items && data.items.length > 0) {
-        return data.items[0].id;
-      } else {
-        throw new Error("Channel handle not found or invalid.");
-      }
-    } catch (error) {
-      console.error("Error fetching channel ID by handle:", error);
-      throw error; // Re-throw to be caught by caller
-    }
-  };
-
-  const fetchChannelStatistics = async (channelId) => {
-    const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics,contentDetails,topicDetails&id=${channelId}&key=${YOUTUBE_API_KEY}`;
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data.items && data.items.length > 0) {
-        return data.items[0];
-      } else {
-        throw new Error("Channel statistics not found.");
-      }
-    } catch (error) {
-      console.error("Error fetching channel statistics:", error);
-      throw error;
-    }
-  };
-  
-  const simulateGrowthAndRetention = (stats, contentType, ideaDescription) => {
-    // Basic simulation - replace with more sophisticated logic or ML model call
-    const currentSubs = parseInt(stats.statistics.subscriberCount, 10);
-    const currentVideos = parseInt(stats.statistics.videoCount, 10);
-    
-    // Subscriber Growth Simulation (e.g., next 3 months)
-    const monthlyGrowthRate = 0.02 + (Math.random() * 0.03); // 2-5% monthly
-    const predictedSubscribersNextMonth = Math.floor(currentSubs * (1 + monthlyGrowthRate));
-    const predictedSubscribersThreeMonths = Math.floor(currentSubs * Math.pow((1 + monthlyGrowthRate), 3));
-
-    // Audience Retention Simulation (qualitative)
-    let retentionFactors = [];
-    if (contentType.toLowerCase().includes("tutorial") || ideaDescription.toLowerCase().includes("how to")) {
-      retentionFactors.push("clear, step-by-step instructions");
-    }
-    if (stats.topicDetails?.topicCategories?.some(cat => cat.toLowerCase().includes(contentType.toLowerCase()))) {
-      retentionFactors.push("alignment with channel's core topics");
-    } else {
-      retentionFactors.push("exploring new niches (monitor retention closely)");
-    }
-    retentionFactors.push("engaging intro and consistent value delivery");
-
-    let retentionOutlook = "Medium";
-    if (retentionFactors.length >=2 && stats.statistics.viewCount > 100000) retentionOutlook = "High";
-    if (retentionFactors.length <=1 && currentVideos < 20) retentionOutlook = "Low to Medium";
-
-
-    return {
-      currentStats: {
-        subscribers: currentSubs.toLocaleString(),
-        videos: currentVideos.toLocaleString(),
-        views: parseInt(stats.statistics.viewCount, 10).toLocaleString(),
-        topics: stats.topicDetails?.topicCategories?.map(tc => tc.split('/').pop().replace(/_/g, ' ')) || ["N/A"],
-      },
-      predictedGrowth: {
-        nextMonth: predictedSubscribersNextMonth.toLocaleString(),
-        threeMonths: predictedSubscribersThreeMonths.toLocaleString(),
-      },
-      predictedRetention: {
-        outlook: retentionOutlook,
-        keyFactors: retentionFactors,
-        summary: `For content on "${contentType}" described as "${ideaDescription.substring(0,50)}...", focus on ${retentionFactors.join(', ')} to maximize audience retention. The outlook is currently ${retentionOutlook}.`
-      },
-      improvementTips: [
-        `Consistently upload high-quality content related to "${contentType}".`,
-        "Engage with your audience in comments and community posts.",
-        "Promote your new videos across other social media platforms.",
-        "Analyze your YouTube Analytics to understand what works best for your audience.",
-        `Collaborate with other creators in the "${contentType}" niche.`
-      ]
-    };
-  };
-
-
   const handlePredictAudienceGrowth = async () => {
-    if (checkPredictionLimit()) return;
-
-    const { channelHandle, contentType, ideaDescription } = audienceGrowthInputs;
-    if (!channelHandle || !contentType || !ideaDescription) {
-      setGrowthRetentionError("Please fill in Channel Handle/ID, Content Type, and Description.");
-      return;
-    }
-
+    // This is a placeholder function as the backend for this is not implemented.
     setGrowthRetentionLoading(true);
     setGrowthRetentionError("");
-    setChannelStats(null);
-    setGrowthRetentionPrediction(null);
-
-    try {
-       let channelIdToUse = channelHandle;
-
-       // If the input doesn't start with 'UC' (a common channel ID prefix),
-       // assume it's a handle and try to resolve it.
-       if (!channelHandle.startsWith('UC')) {
-           channelIdToUse = await fetchChannelIdByHandle(channelHandle);
-       }
-       
-      const stats = await fetchChannelStatistics(channelIdToUse);
-      setChannelStats(stats); 
-
-      const prediction = simulateGrowthAndRetention(stats, contentType, ideaDescription);
-      setGrowthRetentionPrediction(prediction);
-      if(!isLoggedIn) incrementPredictionCount();
-
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to predict audience growth. Ensure the handle or ID is correct.";
-      setGrowthRetentionError(message);
-    } finally {
-      setGrowthRetentionLoading(false);
-    }
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setGrowthRetentionError("This feature is currently under development and not yet available. Please check back later.");
+    setGrowthRetentionLoading(false);
   };
 
    const growthChartData = growthRetentionPrediction ? [

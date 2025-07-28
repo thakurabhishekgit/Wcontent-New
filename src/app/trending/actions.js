@@ -206,12 +206,8 @@ export async function fetchTrendDetails(videoId) {
 }
 
 // --- New logic for Trend-Channel Fit Analysis ---
-
-// IMPORTANT: Storing API keys in code is insecure for production.
-// This should be an environment variable. Using it here for project consistency.
-const YOUTUBE_API_KEY = "AIzaSyAFXOKE8qMD6tECr9A9JT9OMPKFcrQIvp4";
-
 async function fetchChannelIdByHandle(handle) {
+  const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
   const cleanHandle = handle.startsWith('@') ? handle.substring(1) : handle;
   const url = `https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${cleanHandle}&key=${YOUTUBE_API_KEY}`;
   const response = await axios.get(url);
@@ -222,6 +218,7 @@ async function fetchChannelIdByHandle(handle) {
 }
 
 async function fetchChannelStatistics(channelId) {
+  const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
   const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics,topicDetails,brandingSettings&id=${channelId}&key=${YOUTUBE_API_KEY}`;
   const response = await axios.get(url);
   if (response.data.items && response.data.items.length > 0) {
@@ -232,8 +229,9 @@ async function fetchChannelStatistics(channelId) {
 
 
 export async function analyzeChannelTrendFit(channelHandleOrId, trend) {
-  if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY.includes("YOUR_API_KEY")) {
-    throw new Error("YouTube API Key is not configured correctly.");
+  const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+  if (!YOUTUBE_API_KEY) {
+    throw new Error("YouTube API Key is not configured correctly on the server.");
   }
   if (!channelHandleOrId || !trend) {
       throw new Error("Channel information and trend data are required for analysis.");
