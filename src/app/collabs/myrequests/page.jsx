@@ -29,7 +29,7 @@ const ApplcationOfCollab = () => {
     const fetchCollaborations = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3001/api/users/collabration/getCollabOfUser/${userId}`,
+          `https://wcontent-app-latest.onrender.com/api/users/collabration/getCollabOfUser/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -61,7 +61,7 @@ const ApplcationOfCollab = () => {
     }
     try {
       const response = await fetch(
-        `http://localhost:3001/api/users/collabration/getCollabRequests/${collabId}`, // Added api/users path based on previous patterns
+        `https://wcontent-app-latest.onrender.com/api/users/collabration/getCollabRequests/${collabId}`, // Added api/users path based on previous patterns
         {
           headers: {
             Authorization: `Bearer ${token}`,

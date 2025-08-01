@@ -18,7 +18,7 @@ export default function LoginRegisterPage() {
   const handleLogin = async () => {
     try {
       const response = await fetch(
-        "http://localhost:3001/api/v1/auth/login",
+        "https://wcontent-app-latest.onrender.com/api/v1/auth/login",
         {
           method: "POST",
           headers: {
@@ -46,7 +46,7 @@ export default function LoginRegisterPage() {
   const handleRegister = async () => {
     try {
       const response = await fetch(
-        "http://localhost:3001/api/v1/auth/register",
+        "https://wcontent-app-latest.onrender.com/api/v1/auth/register",
         {
           method: "POST",
           headers: {

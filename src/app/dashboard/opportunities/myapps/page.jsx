@@ -35,7 +35,7 @@ export default function MyApplicationsPage() {
                 setError(null);
                 try {
                     // Adjust the endpoint if necessary - assuming an endpoint exists to get applications by applicant ID
-                    const response = await fetch(`http://localhost:3001/api/users/application/myApplications/${userId}`, {
+                    const response = await fetch(`https://wcontent-app-latest.onrender.com/api/users/application/myApplications/${userId}`, {
                         headers: { Authorization: `Bearer ${token}` },
                     });
 
@@ -53,7 +53,7 @@ export default function MyApplicationsPage() {
                     console.error("Error fetching applications:", err);
                     let fetchErrorMessage = "Error fetching your applications. Please try again.";
                     if (isClient && err instanceof TypeError && err.message.includes('fetch')) {
-                        fetchErrorMessage = `Error fetching applications. Could not connect to the server at http://localhost:3001. Please ensure the backend is running and CORS is configured correctly.`;
+                        fetchErrorMessage = `Error fetching applications. Could not connect to the server at https://wcontent-app-latest.onrender.com. Please ensure the backend is running and CORS is configured correctly.`;
                     }
                     setError(fetchErrorMessage);
                     setApplications([]);

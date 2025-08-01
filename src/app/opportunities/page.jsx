@@ -242,7 +242,7 @@ export default function OpportunitiesPage() {
      try {
         if (loggedIn) {
            const response = await axios.get(
-             "http://localhost:3001/api/users/opportunities/opportunitiesGetAll"
+             "https://wcontent-app-latest.onrender.com/api/users/opportunities/opportunitiesGetAll"
            );
            if (Array.isArray(response.data)) {
              const opportunitiesWithId = response.data.map((opp, index) => ({
@@ -350,7 +350,7 @@ export default function OpportunitiesPage() {
        const token = localStorage.getItem('token');
 
       const response = await axios.post(
-        `http://localhost:3001/api/users/application/opportunity/${oppIdToUse}/apply`,
+        `https://wcontent-app-latest.onrender.com/api/users/application/opportunity/${oppIdToUse}/apply`,
         application,
         {
           headers: {

@@ -61,7 +61,7 @@ const UpdateProfile = () => {
     setMessage(null);
     try {
       const response = await fetch(
-        `http://localhost:3001/api/users/getUser/${userId}`,
+        `https://wcontent-app-latest.onrender.com/api/users/getUser/${userId}`,
         {
           method: "GET",
           headers: {
@@ -93,7 +93,7 @@ const UpdateProfile = () => {
        console.error("Fetch User Data Error:", error);
        let fetchErrorMessage = "Error fetching profile data. Please check your connection.";
        if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
-         fetchErrorMessage = `Error fetching profile. Could not connect to the server at http://localhost:3001. Ensure the backend is running and CORS is configured.`;
+         fetchErrorMessage = `Error fetching profile. Could not connect to the server at https://wcontent-app-latest.onrender.com. Ensure the backend is running and CORS is configured.`;
        }
       setError(fetchErrorMessage);
     } finally {
@@ -176,7 +176,7 @@ const UpdateProfile = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/users/update/${userId}`,
+        `https://wcontent-app-latest.onrender.com/api/users/update/${userId}`,
         {
           method: "PUT",
           headers: {
@@ -210,7 +210,7 @@ const UpdateProfile = () => {
       console.error("Update Profile Error:", error);
       let updateErrorMessage = "Error updating profile. Please try again.";
        if (isClient && error instanceof TypeError && error.message.includes('fetch')) {
-         updateErrorMessage = `Error updating profile. Could not connect to the server at http://localhost:3001. Ensure the backend is running and CORS is configured.`;
+         updateErrorMessage = `Error updating profile. Could not connect to the server at https://wcontent-app-latest.onrender.com. Ensure the backend is running and CORS is configured.`;
        }
       setError(updateErrorMessage);
     } finally {

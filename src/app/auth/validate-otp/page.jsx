@@ -50,7 +50,7 @@ export default function ValidateOtpPage() {
 
     try {
        // Updated endpoint
-       const backendUrl = `http://localhost:3001/api/users/verify-otp?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`;
+       const backendUrl = `https://wcontent-app-latest.onrender.com/api/users/verify-otp?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`;
       const response = await fetch(backendUrl, {
           method: "POST", // Method should match backend expectation (likely POST)
           headers: {
@@ -78,7 +78,7 @@ export default function ValidateOtpPage() {
        console.error("OTP Validation Error:", err);
        let networkErrorMessage = "Error validating OTP. Please check your connection.";
        if (err instanceof TypeError && err.message.includes('fetch')) {
-          networkErrorMessage = `Error validating OTP. Could not connect to the server at http://localhost:3001. Check backend status and CORS configuration.`;
+          networkErrorMessage = `Error validating OTP. Could not connect to the server at https://wcontent-app-latest.onrender.com. Check backend status and CORS configuration.`;
        }
        setError(networkErrorMessage);
     }
