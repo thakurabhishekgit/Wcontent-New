@@ -92,7 +92,7 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
         throw new Error("Could not extract a valid YouTube Video ID from the URL.");
     }
     
-    const YOUTUBE_API_KEY = "AIzaSyDEqYeUl6kQpslAsKKa-6D6uqxOKjp_lT4";
+    const YOUTUBE_API_KEY = "AIzaSyCoPHVrt3lWUR_cbbRINh91GHzBFgcKl78";
     if (!YOUTUBE_API_KEY) {
         throw new Error("YouTube API Key is not configured on the server.");
     }
