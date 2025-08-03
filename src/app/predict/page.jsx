@@ -472,7 +472,7 @@ function Ml() {
 
                     <div>
                         <h4 className="text-md font-semibold mb-2 text-foreground/80">Audience Retention Outlook:</h4>
-                        <p className="text-sm mt-1"><strong>Outlook:</strong> <Badge variant={growthRetentionPrediction.predictedRetention.outlook === 'High' ? 'default' : growthRetentionPrediction.predictedRetention.outlook === 'Medium' ? 'secondary' : 'destructive'}>{growthRetentionPrediction.predictedRetention.outlook}</Badge></p>
+                        <div className="text-sm mt-1"><strong>Outlook:</strong> <Badge variant={growthRetentionPrediction.predictedRetention.outlook === 'High' ? 'default' : growthRetentionPrediction.predictedRetention.outlook === 'Medium' ? 'secondary' : 'destructive'}>{growthRetentionPrediction.predictedRetention.outlook}</Badge></div>
                         <p className="text-sm text-foreground/90 mt-2">{growthRetentionPrediction.predictedRetention.summary}</p>
                         <p className="text-sm mt-1"><strong>Key Factors:</strong> {growthRetentionPrediction.predictedRetention.keyFactors.join(', ')}.</p>
                     </div>
