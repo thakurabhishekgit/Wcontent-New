@@ -44,7 +44,6 @@ export const AnalyzeYoutubeCommentsOutputSchema = z.object({
     negativePoints: z.array(z.string()).describe("A list of key negative points, critiques, or complaints from the comments."),
     improvementSuggestions: z.array(z.string()).describe("A list of actionable suggestions for the creator based on the feedback."),
 });
-export type AnalyzeYoutubeCommentsOutput = z.infer<typeof AnalyzeYoutubeCommentsOutputSchema>;
 
 
 export async function analyzeYoutubeComments(input) {
