@@ -207,7 +207,7 @@ export async function fetchTrendDetails(videoId) {
 
 // --- New logic for Trend-Channel Fit Analysis ---
 async function fetchChannelIdByHandle(handle) {
-  const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+  const YOUTUBE_API_KEY = "AIzaSyCoPHVrt3lWUR_cbbRINh91GHzBFgcKl78";
   const cleanHandle = handle.startsWith('@') ? handle.substring(1) : handle;
   const url = `https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${cleanHandle}&key=${YOUTUBE_API_KEY}`;
   const response = await axios.get(url);
@@ -218,7 +218,7 @@ async function fetchChannelIdByHandle(handle) {
 }
 
 async function fetchChannelStatistics(channelId) {
-  const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+  const YOUTUBE_API_KEY = "AIzaSyCoPHVrt3lWUR_cbbRINh91GHzBFgcKl78";
   const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics,topicDetails,brandingSettings&id=${channelId}&key=${YOUTUBE_API_KEY}`;
   const response = await axios.get(url);
   if (response.data.items && response.data.items.length > 0) {
@@ -229,7 +229,7 @@ async function fetchChannelStatistics(channelId) {
 
 
 export async function analyzeChannelTrendFit(channelHandleOrId, trend) {
-  const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+  const YOUTUBE_API_KEY = "AIzaSyCoPHVrt3lWUR_cbbRINh91GHzBFgcKl78";
   if (!YOUTUBE_API_KEY) {
     throw new Error("YouTube API Key is not configured correctly on the server.");
   }
@@ -275,3 +275,4 @@ export async function analyzeChannelTrendFit(channelHandleOrId, trend) {
     throw new Error(`Analysis failed: ${error.message}. Please check if the channel handle/ID is correct and public.`);
   }
 }
+
