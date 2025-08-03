@@ -18,6 +18,7 @@ function getYouTubeVideoId(url) {
     /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^&]+)/,
     /(?:https?:\/\/)?youtu\.be\/([^?]+)/,
     /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([^?]+)/,
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/([^?]+)/,
   ];
 
   for (const pattern of patterns) {
@@ -25,13 +26,6 @@ function getYouTubeVideoId(url) {
     if (match && match[1]) {
       videoId = match[1];
       break;
-    }
-  }
-  // This part handles short URLs like /shorts/VIDEO_ID
-  if (!videoId && url.includes('/shorts/')) {
-    const parts = url.split('/shorts/');
-    if (parts.length > 1) {
-        videoId = parts[1].split('?')[0];
     }
   }
   return videoId;
@@ -94,7 +88,7 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
                 part: 'snippet',
                 videoId: videoId,
                 key: YOUTUBE_API_KEY,
-                maxResults: 50, // Fetch up to 50 top-level comments
+                maxResults: 100, // Fetch up to 100 top-level comments
                 order: 'relevance', // Fetch most relevant comments
             },
         });
