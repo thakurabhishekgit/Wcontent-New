@@ -1,8 +1,9 @@
+
 'use server';
 /**
- * @fileOverview An AI agent for analyzing YouTube video comments.
+ * @fileOverview An AI agent for analyzing YouTube video comments by fetching them directly from the YouTube API.
  *
- * - analyzeYoutubeComments - A function that takes a video URL and returns a sentiment analysis.
+ * - analyzeYoutubeComments - A function that takes a video URL, fetches its comments, and returns an AI-generated summary.
  * - AnalyzeYoutubeCommentsInput - The input type for the function.
  * - AnalyzeYoutubeCommentsOutput - The return type for the function.
  */
@@ -36,10 +37,8 @@ const AnalyzeYoutubeCommentsInputSchema = z.object({
   videoUrl: z.string().url().describe("The URL of the YouTube video to analyze."),
 });
 
-
-// SIMPLIFIED: The output is now just a single string.
+// The output is now just a single string.
 const AnalyzeYoutubeCommentsOutputSchema = z.string().describe("A concise text summary of the YouTube comments.");
-
 
 export async function analyzeYoutubeComments(input) {
   return analyzeYoutubeCommentsFlow(input);
@@ -47,10 +46,9 @@ export async function analyzeYoutubeComments(input) {
 
 const prompt = ai.definePrompt({
   name: 'youtubeCommentAnalysisPrompt',
-  // Using a structured object for input is more robust
   input: { schema: z.object({ comments: z.string() }) }, 
   output: { schema: AnalyzeYoutubeCommentsOutputSchema },
-  // SIMPLIFIED: The prompt now asks for a simple summary.
+  // The prompt is simplified to just ask for a direct summary, as per the Python example.
   prompt: `You are a YouTube content strategy expert. Your task is to analyze a list of real comments from a YouTube video and provide a concise, insightful summary in 3-4 sentences.
 
 Here are the comments:
@@ -75,7 +73,7 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
         throw new Error("Could not extract a valid YouTube Video ID from the URL.");
     }
     
-    // Using the key you provided directly in the code.
+    // Using the valid key you provided directly in the code.
     const YOUTUBE_API_KEY = "AIzaSyCoPHVrt3lWUR_cbbRINh91GHzBFgcKl78";
     if (!YOUTUBE_API_KEY) {
         throw new Error("YouTube API Key is not configured on the server.");
@@ -93,6 +91,7 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
             },
         });
 
+        // **FIXED**: Correctly parse the nested JSON from the YouTube API response
         if (response.data.items) {
             comments = response.data.items.map(item => 
                 item.snippet.topLevelComment.snippet.textDisplay
@@ -100,17 +99,22 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
         }
 
     } catch (error) {
+        // Handle specific API errors, like when comments are disabled
         console.error("Error fetching YouTube comments:", error.response?.data?.error || error.message);
+        if (error.response?.data?.error?.errors?.[0]?.reason === 'commentsDisabled') {
+             throw new Error(`Comments are disabled for this video. Unable to generate a summary.`);
+        }
         if (error.response && error.response.status === 403) {
-             throw new Error(`Permission error fetching comments. The video may have comments disabled or your API key may have issues.`);
+             throw new Error(`Permission error fetching comments. The video may be private or your API key may have issues.`);
         }
         throw new Error(`Failed to fetch comments from YouTube. Please check the video URL and API key. Details: ${error.message}`);
     }
 
     if (comments.length === 0) {
-        return "No comments were found for this video, or comments are disabled. Unable to generate a summary.";
+        return "No comments were found for this video. Unable to generate a summary.";
     }
 
+    // Join the array of comments into a single string for the AI
     const commentsText = comments.join('\n---\n');
     
     // Pass the comments as an object matching the prompt's input schema
@@ -120,7 +124,6 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
       throw new Error("AI failed to generate a valid summary from the comments. The model returned null.");
     }
 
-    // The output is now just a string.
     return output;
   }
 );
