@@ -300,27 +300,10 @@ function Ml() {
                 <Card className="bg-muted/30">
                    <CardHeader>
                         <CardTitle className="text-xl">AI Analysis Summary</CardTitle>
-                        <CardDescription>Overall sentiment: <span className="font-semibold text-primary">{analysisResult.overallSentiment}</span></CardDescription>
                    </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div>
-                        <h3 className="text-lg font-semibold mb-2">Key Positive Points:</h3>
-                        <ul className="list-disc pl-5 space-y-1 text-sm text-foreground/90">
-                           {analysisResult.positivePoints.map((point, index) => <li key={`pos-${index}`}>{point}</li>)}
-                        </ul>
-                    </div>
-                     <div>
-                        <h3 className="text-lg font-semibold mb-2">Key Negative Points / Critiques:</h3>
-                        <ul className="list-disc pl-5 space-y-1 text-sm text-foreground/90">
-                           {analysisResult.negativePoints.map((point, index) => <li key={`neg-${index}`}>{point}</li>)}
-                        </ul>
-                    </div>
-                     <div>
-                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2"><Lightbulb className="h-5 w-5 text-primary"/> Improvement Suggestions</h3>
-                        <ul className="list-disc pl-5 space-y-1 text-sm text-foreground/90">
-                           {analysisResult.suggestions.map((suggestion, index) => <li key={`sug-${index}`}>{suggestion}</li>)}
-                        </ul>
-                    </div>
+                  <CardContent>
+                    {/* UPDATED: Display the single summary string */}
+                    <p className="text-sm text-foreground/90 whitespace-pre-line">{analysisResult}</p>
                   </CardContent>
                 </Card>
               )}

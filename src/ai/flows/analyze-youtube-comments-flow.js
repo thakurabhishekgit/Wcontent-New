@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI agent for analyzing YouTube video comments.
@@ -44,12 +43,8 @@ const AnalyzeYoutubeCommentsInputSchema = z.object({
 });
 
 
-const AnalyzeYoutubeCommentsOutputSchema = z.object({
-  overallSentiment: z.string().describe("A single word describing the overall sentiment (e.g., Positive, Mixed, Negative)."),
-  positivePoints: z.array(z.string()).describe("A list of key positive points or compliments from the comments."),
-  negativePoints: z.array(z.string()).describe("A list of key negative points, critiques, or questions from the comments."),
-  suggestions: z.array(z.string()).describe("A list of actionable suggestions for the creator based on the comment analysis."),
-});
+// SIMPLIFIED: The output is now just a single string.
+const AnalyzeYoutubeCommentsOutputSchema = z.string().describe("A concise text summary of the YouTube comments.");
 
 
 export async function analyzeYoutubeComments(input) {
@@ -58,24 +53,17 @@ export async function analyzeYoutubeComments(input) {
 
 const prompt = ai.definePrompt({
   name: 'youtubeCommentAnalysisPrompt',
-  // The prompt now takes a string of concatenated comments
   input: { schema: z.string() }, 
   output: { schema: AnalyzeYoutubeCommentsOutputSchema },
-  prompt: `You are a YouTube content strategy expert. Your task is to analyze a list of real comments from a YouTube video and provide a concise, insightful summary.
+  // SIMPLIFIED: The prompt now asks for a simple summary.
+  prompt: `You are a YouTube content strategy expert. Your task is to analyze a list of real comments from a YouTube video and provide a concise, insightful summary in 3-4 sentences.
 
 Here are the comments:
 ---
 {{{input}}}
 ---
 
-Based on these comments, perform the following actions:
-
-1.  **Determine the overallSentiment**: Characterize the general feeling from the comments in a single word (e.g., 'Positive', 'Mostly Positive', 'Mixed', 'Negative').
-2.  **Identify positivePoints**: Extract 2-3 key positive themes or specific compliments from the comments.
-3.  **Identify negativePoints**: Extract 2-3 key negative points, constructive critiques, or common questions from the comments.
-4.  **Provide actionable suggestions**: Based on the identified points, create a list of 2-3 concrete, actionable recommendations for the creator's future content.
-
-Return your response ONLY in the specified JSON format. The analysis should be based *only* on the provided comments.
+Based on these comments, please write a brief summary of the overall audience reaction and key discussion points.
 `,
 });
 
@@ -92,6 +80,7 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
         throw new Error("Could not extract a valid YouTube Video ID from the URL.");
     }
     
+    // Using the key you provided directly in the code.
     const YOUTUBE_API_KEY = "AIzaSyCoPHVrt3lWUR_cbbRINh91GHzBFgcKl78";
     if (!YOUTUBE_API_KEY) {
         throw new Error("YouTube API Key is not configured on the server.");
@@ -124,25 +113,18 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
     }
 
     if (comments.length === 0) {
-        // Return a specific structure if no comments are found, so the UI can handle it
-        return {
-            overallSentiment: "N/A",
-            positivePoints: ["No comments found or comments are disabled for this video."],
-            negativePoints: [],
-            suggestions: ["Enable comments or promote engagement to get feedback."],
-        };
+        return "No comments were found for this video, or comments are disabled. Unable to generate a summary.";
     }
 
-    // Join comments into a single string for the AI prompt
     const commentsText = comments.join('\n---\n');
     
-    // Pass the real comments to the AI for analysis
     const { output } = await prompt(commentsText);
     
     if (!output) {
-      throw new Error("AI failed to generate a valid analysis from the comments.");
+      throw new Error("AI failed to generate a valid summary from the comments.");
     }
 
+    // The output is now just a string.
     return output;
   }
 );
