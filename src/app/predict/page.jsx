@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { analyzeYoutubeComments } from "@/ai/flows/analyze-youtube-comments-flow";
 import { predictAudienceGrowth } from "@/ai/flows/predict-audience-growth-flow";
+import { Badge } from "@/components/ui/badge";
 
 const FeatureCard = ({ icon: Icon, title, description, img, hint }) => (
    <Card className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300">
