@@ -37,8 +37,15 @@ const AnalyzeYoutubeCommentsInputSchema = z.object({
   videoUrl: z.string().url().describe("The URL of the YouTube video to analyze."),
 });
 
-// The output is just a single string.
-const AnalyzeYoutubeCommentsOutputSchema = z.string().describe("A concise text summary of the YouTube comments.");
+export const AnalyzeYoutubeCommentsOutputSchema = z.object({
+    summary: z.string().describe("A concise 2-3 sentence summary of the overall audience reaction and key discussion points."),
+    overallSentiment: z.string().describe("The overall sentiment of the comments (e.g., 'Positive', 'Mostly Positive', 'Neutral', 'Mixed', 'Negative')."),
+    positivePoints: z.array(z.string()).describe("A list of key positive points or compliments mentioned in the comments."),
+    negativePoints: z.array(z.string()).describe("A list of key negative points, critiques, or complaints from the comments."),
+    improvementSuggestions: z.array(z.string()).describe("A list of actionable suggestions for the creator based on the feedback."),
+});
+export type AnalyzeYoutubeCommentsOutput = z.infer<typeof AnalyzeYoutubeCommentsOutputSchema>;
+
 
 export async function analyzeYoutubeComments(input) {
   return analyzeYoutubeCommentsFlow(input);
@@ -93,29 +100,41 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
     }
 
     if (comments.length === 0) {
-        return "No comments were found for this video. Unable to generate a summary.";
+        return {
+            summary: "No comments were found for this video, so an analysis could not be performed.",
+            overallSentiment: "N/A",
+            positivePoints: [],
+            negativePoints: [],
+            improvementSuggestions: [],
+        };
     }
 
     const commentsText = comments.join('\n---\n');
     
-    // **FIX**: Using ai.generate() for a more direct text-to-text generation without strict output schema validation issues.
     const llmResponse = await ai.generate({
-        prompt: `You are a YouTube content strategy expert. Your task is to analyze a list of real comments from a YouTube video and provide a concise, insightful summary in 3-4 sentences.
+        prompt: `You are a YouTube content strategy expert. Your task is to analyze the following list of real comments from a YouTube video and provide a structured analysis in JSON format.
 
 Here are the comments:
 ---
 ${commentsText}
 ---
 
-Based on these comments, please write a brief summary of the overall audience reaction and key discussion points.`
+Based on these comments, please perform the following analysis and provide the output in the specified JSON format.
+1.  **summary**: Write a brief 2-3 sentence summary of the overall audience reaction and key discussion points.
+2.  **overallSentiment**: State the overall sentiment. Use one of these terms: 'Positive', 'Mostly Positive', 'Neutral', 'Mixed', 'Negative'.
+3.  **positivePoints**: List 2-4 key positive points, compliments, or things viewers liked.
+4.  **negativePoints**: List 2-4 key negative points, critiques, or things viewers disliked.
+5.  **improvementSuggestions**: Based on the critiques, provide 2-3 actionable suggestions for the creator.
+`,
+        output: { schema: AnalyzeYoutubeCommentsOutputSchema },
     });
     
-    const summary = llmResponse.text;
+    const analysis = llmResponse.output;
 
-    if (!summary) {
-      throw new Error("AI failed to generate a valid summary from the comments. The model returned an empty response.");
+    if (!analysis) {
+      throw new Error("AI failed to generate a valid analysis from the comments. The model returned an empty response.");
     }
 
-    return summary;
+    return analysis;
   }
 );

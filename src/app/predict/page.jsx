@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, Youtube, Lightbulb, Loader2, LogIn, Search, TrendingUp, UserCheck, LineChart } from "lucide-react";
+import { Terminal, Youtube, Lightbulb, Loader2, LogIn, Search, TrendingUp, UserCheck, LineChart, CheckCircle, ThumbsUp, ThumbsDown, Wand2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +23,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { Label } from "@/components/ui/label";
 import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
-import { analyzeYoutubeComments } from "@/ai/flows/analyze-youtube-comments-flow"; // Import the server action
+import { analyzeYoutubeComments } from "@/ai/flows/analyze-youtube-comments-flow";
 
 const FeatureCard = ({ icon: Icon, title, description, img, hint }) => (
    <Card className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -299,11 +299,38 @@ function Ml() {
               {analysisResult && !loading && (
                 <Card className="bg-muted/30">
                    <CardHeader>
-                        <CardTitle className="text-xl">AI Analysis Summary</CardTitle>
+                        <CardTitle className="text-xl flex items-center gap-2"><CheckCircle className="h-5 w-5 text-primary"/> AI Analysis Complete</CardTitle>
+                        <CardDescription>Overall Sentiment: <span className="font-semibold text-primary">{analysisResult.overallSentiment}</span></CardDescription>
                    </CardHeader>
-                  <CardContent>
-                    {/* UPDATED: Display the single summary string */}
-                    <p className="text-sm text-foreground/90 whitespace-pre-line">{analysisResult}</p>
+                  <CardContent className="space-y-4">
+                     <div>
+                        <h4 className="font-semibold text-foreground/90 mb-2">Summary</h4>
+                        <p className="text-sm text-foreground/80">{analysisResult.summary}</p>
+                     </div>
+                     {analysisResult.positivePoints?.length > 0 && (
+                        <div>
+                            <h4 className="font-semibold text-foreground/90 mb-2 flex items-center gap-1.5"><ThumbsUp className="h-4 w-4 text-green-500"/> Positive Points</h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80">
+                                {analysisResult.positivePoints.map((point, i) => <li key={`pos-${i}`}>{point}</li>)}
+                            </ul>
+                        </div>
+                     )}
+                      {analysisResult.negativePoints?.length > 0 && (
+                        <div>
+                            <h4 className="font-semibold text-foreground/90 mb-2 flex items-center gap-1.5"><ThumbsDown className="h-4 w-4 text-red-500"/> Critiques & Concerns</h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80">
+                                {analysisResult.negativePoints.map((point, i) => <li key={`neg-${i}`}>{point}</li>)}
+                            </ul>
+                        </div>
+                     )}
+                     {analysisResult.improvementSuggestions?.length > 0 && (
+                        <div>
+                            <h4 className="font-semibold text-foreground/90 mb-2 flex items-center gap-1.5"><Wand2 className="h-4 w-4 text-purple-500"/> Improvement Suggestions</h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-foreground/80">
+                                {analysisResult.improvementSuggestions.map((point, i) => <li key={`sug-${i}`}>{point}</li>)}
+                            </ul>
+                        </div>
+                     )}
                   </CardContent>
                 </Card>
               )}
