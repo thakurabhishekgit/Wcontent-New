@@ -37,28 +37,13 @@ const AnalyzeYoutubeCommentsInputSchema = z.object({
   videoUrl: z.string().url().describe("The URL of the YouTube video to analyze."),
 });
 
-// The output is now just a single string.
+// The output is just a single string.
 const AnalyzeYoutubeCommentsOutputSchema = z.string().describe("A concise text summary of the YouTube comments.");
 
 export async function analyzeYoutubeComments(input) {
   return analyzeYoutubeCommentsFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'youtubeCommentAnalysisPrompt',
-  input: { schema: z.object({ comments: z.string() }) }, 
-  output: { schema: AnalyzeYoutubeCommentsOutputSchema },
-  // The prompt is simplified to just ask for a direct summary, as per the Python example.
-  prompt: `You are a YouTube content strategy expert. Your task is to analyze a list of real comments from a YouTube video and provide a concise, insightful summary in 3-4 sentences.
-
-Here are the comments:
----
-{{{comments}}}
----
-
-Based on these comments, please write a brief summary of the overall audience reaction and key discussion points.
-`,
-});
 
 const analyzeYoutubeCommentsFlow = ai.defineFlow(
   {
@@ -73,7 +58,6 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
         throw new Error("Could not extract a valid YouTube Video ID from the URL.");
     }
     
-    // Using the valid key you provided directly in the code.
     const YOUTUBE_API_KEY = "AIzaSyCoPHVrt3lWUR_cbbRINh91GHzBFgcKl78";
     if (!YOUTUBE_API_KEY) {
         throw new Error("YouTube API Key is not configured on the server.");
@@ -91,7 +75,6 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
             },
         });
 
-        // **FIXED**: Correctly parse the nested JSON from the YouTube API response
         if (response.data.items) {
             comments = response.data.items.map(item => 
                 item.snippet.topLevelComment.snippet.textDisplay
@@ -99,7 +82,6 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
         }
 
     } catch (error) {
-        // Handle specific API errors, like when comments are disabled
         console.error("Error fetching YouTube comments:", error.response?.data?.error || error.message);
         if (error.response?.data?.error?.errors?.[0]?.reason === 'commentsDisabled') {
              throw new Error(`Comments are disabled for this video. Unable to generate a summary.`);
@@ -114,16 +96,26 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
         return "No comments were found for this video. Unable to generate a summary.";
     }
 
-    // Join the array of comments into a single string for the AI
     const commentsText = comments.join('\n---\n');
     
-    // Pass the comments as an object matching the prompt's input schema
-    const { output } = await prompt({ comments: commentsText });
+    // **FIX**: Using ai.generate() for a more direct text-to-text generation without strict output schema validation issues.
+    const llmResponse = await ai.generate({
+        prompt: `You are a YouTube content strategy expert. Your task is to analyze a list of real comments from a YouTube video and provide a concise, insightful summary in 3-4 sentences.
+
+Here are the comments:
+---
+${commentsText}
+---
+
+Based on these comments, please write a brief summary of the overall audience reaction and key discussion points.`
+    });
     
-    if (!output) {
-      throw new Error("AI failed to generate a valid summary from the comments. The model returned null.");
+    const summary = llmResponse.text;
+
+    if (!summary) {
+      throw new Error("AI failed to generate a valid summary from the comments. The model returned an empty response.");
     }
 
-    return output;
+    return summary;
   }
 );
