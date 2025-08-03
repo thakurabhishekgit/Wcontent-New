@@ -53,14 +53,15 @@ export async function analyzeYoutubeComments(input) {
 
 const prompt = ai.definePrompt({
   name: 'youtubeCommentAnalysisPrompt',
-  input: { schema: z.string() }, 
+  // Using a structured object for input is more robust
+  input: { schema: z.object({ comments: z.string() }) }, 
   output: { schema: AnalyzeYoutubeCommentsOutputSchema },
   // SIMPLIFIED: The prompt now asks for a simple summary.
   prompt: `You are a YouTube content strategy expert. Your task is to analyze a list of real comments from a YouTube video and provide a concise, insightful summary in 3-4 sentences.
 
 Here are the comments:
 ---
-{{{input}}}
+{{{comments}}}
 ---
 
 Based on these comments, please write a brief summary of the overall audience reaction and key discussion points.
@@ -118,10 +119,11 @@ const analyzeYoutubeCommentsFlow = ai.defineFlow(
 
     const commentsText = comments.join('\n---\n');
     
-    const { output } = await prompt(commentsText);
+    // Pass the comments as an object matching the prompt's input schema
+    const { output } = await prompt({ comments: commentsText });
     
     if (!output) {
-      throw new Error("AI failed to generate a valid summary from the comments.");
+      throw new Error("AI failed to generate a valid summary from the comments. The model returned null.");
     }
 
     // The output is now just a string.
