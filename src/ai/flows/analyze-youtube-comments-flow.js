@@ -37,7 +37,7 @@ const AnalyzeYoutubeCommentsInputSchema = z.object({
   videoUrl: z.string().url().describe("The URL of the YouTube video to analyze."),
 });
 
-export const AnalyzeYoutubeCommentsOutputSchema = z.object({
+const AnalyzeYoutubeCommentsOutputSchema = z.object({
     summary: z.string().describe("A concise 2-3 sentence summary of the overall audience reaction and key discussion points."),
     overallSentiment: z.string().describe("The overall sentiment of the comments (e.g., 'Positive', 'Mostly Positive', 'Neutral', 'Mixed', 'Negative')."),
     positivePoints: z.array(z.string()).describe("A list of key positive points or compliments mentioned in the comments."),
