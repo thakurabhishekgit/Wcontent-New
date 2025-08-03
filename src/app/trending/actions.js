@@ -2,6 +2,7 @@
 'use server';
 import axios from 'axios';
 import { generateTrendArticle } from '@/ai/flows/generate-trend-article-flow';
+import { ai } from '@/ai/ai-instance'; // Import the AI instance
 
 // --- Static Fallback Data ---
 // Expanded and more diverse fallback data to be used if the live API fails.
@@ -209,17 +210,26 @@ export async function fetchTrendDetails(videoId) {
 async function fetchChannelIdByHandle(handle) {
   const YOUTUBE_API_KEY = "AIzaSyCoPHVrt3lWUR_cbbRINh91GHzBFgcKl78";
   const cleanHandle = handle.startsWith('@') ? handle.substring(1) : handle;
-  const url = `https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${cleanHandle}&key=${YOUTUBE_API_KEY}`;
+  // Note: forHandle is deprecated. A more modern approach uses the Search API.
+  // Using forUsername as a more common, albeit also older, alternative.
+  const url = `https://www.googleapis.com/youtube/v3/channels?part=id&forUsername=${cleanHandle}&key=${YOUTUBE_API_KEY}`;
   const response = await axios.get(url);
   if (response.data.items && response.data.items.length > 0) {
     return response.data.items[0].id;
   }
+   // Fallback search by ID if handle search fails
+   const searchByIdUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${cleanHandle}&type=channel&key=${YOUTUBE_API_KEY}`;
+   const searchResponse = await axios.get(searchByIdUrl);
+   if (searchResponse.data.items && searchResponse.data.items.length > 0) {
+     return searchResponse.data.items[0].snippet.channelId;
+   }
+
   throw new Error("Channel handle not found or invalid.");
 }
 
 async function fetchChannelStatistics(channelId) {
   const YOUTUBE_API_KEY = "AIzaSyCoPHVrt3lWUR_cbbRINh91GHzBFgcKl78";
-  const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics,topicDetails,brandingSettings&id=${channelId}&key=${YOUTUBE_API_KEY}`;
+  const url = `https://www.googleapis.com/youtube/v3/channels?part=statistics,topicDetails,brandingSettings,snippet&id=${channelId}&key=${YOUTUBE_API_KEY}`;
   const response = await axios.get(url);
   if (response.data.items && response.data.items.length > 0) {
     return response.data.items[0];
@@ -241,32 +251,51 @@ export async function analyzeChannelTrendFit(channelHandleOrId, trend) {
       let channelId = channelHandleOrId.startsWith('UC') ? channelHandleOrId : await fetchChannelIdByHandle(channelHandleOrId);
       const stats = await fetchChannelStatistics(channelId);
 
-      const channelTopics = stats.topicDetails?.topicCategories
-          ?.map(tc => tc.split('/').pop().replace(/_/g, ' ')) || [];
-      const channelTitle = stats.brandingSettings?.channel?.title || "The channel";
-      
-      let summary = `**Channel Analysis for "${channelTitle}":** \n`;
-      if (channelTopics.length > 0) {
-        summary += `The channel's main topics appear to be **${channelTopics.join(', ')}**. `;
-      } else {
-        summary += `The channel does not have specific topics listed, so we'll analyze based on the trend itself. `;
-      }
-      
-      summary += `\n\n**Trend Fit for "${trend.title}":**\nThis trend is in the **${trend.category}** category. `;
+      const channelInfo = {
+          title: stats.brandingSettings?.channel?.title || 'The channel',
+          description: stats.snippet?.description || 'No description provided.',
+          subscriberCount: stats.statistics?.subscriberCount || 'N/A',
+          videoCount: stats.statistics?.videoCount || 'N/A',
+          topics: stats.topicDetails?.topicCategories?.map(tc => tc.split('/').pop().replace(/_/g, ' ')) || []
+      };
 
-      const isDirectFit = channelTopics.some(topic => topic.toLowerCase().includes(trend.category.toLowerCase()));
+      const prompt = `
+        You are a YouTube content strategy expert. Analyze the fit between a creator's channel and a specific content trend.
 
-      if (isDirectFit) {
-          summary += `This is a **Strong Fit**. It aligns perfectly with your existing content themes.`;
-          summary += `\n\n**Recommendation:** Adopting this trend could lead to **high engagement** from your core subscribers and reinforce your channel's authority. Focus on integrating your unique voice and style to stand out.`;
-      } else {
-          summary += `This is a **Potential Growth Opportunity**. It differs from your primary topics.`;
-          summary += `\n\n**Recommendation:** Adopting this trend could attract a **new audience segment**. We recommend introducing it as a special episode or a short series to gauge interest from both your current and potential new viewers before committing fully. Monitor your analytics closely for audience retention on this content.`;
+        **Creator's Channel Profile:**
+        - **Channel Name:** ${channelInfo.title}
+        - **Subscribers:** ${channelInfo.subscriberCount}
+        - **Total Videos:** ${channelInfo.videoCount}
+        - **Channel Description:** "${channelInfo.description}"
+        - **Identified Topics:** ${channelInfo.topics.join(', ') || 'General'}
+
+        **Content Trend to Analyze:**
+        - **Trend Title:** "${trend.title}"
+        - **Trend Category:** ${trend.category}
+        - **Trend Description:** "${trend.excerpt}"
+
+        **Your Task:**
+        Provide a detailed analysis in the following format. Use Markdown for formatting.
+
+        **Fit Score:** [Give a score out of 10, where 1 is a terrible fit and 10 is a perfect match.]
+
+        **Reasoning:** [Write a 2-3 sentence paragraph explaining your score. Consider the alignment of the trend's category with the channel's identified topics and description. Mention if it's a natural fit or a pivot.]
+
+        **Actionable Suggestions:** [Provide a bulleted list of 2-3 specific, actionable tips for this creator to successfully adapt this trend for their channel. Be creative and strategic.]
+        - **Tip 1:** ...
+        - **Tip 2:** ...
+        - **Tip 3:** ...
+      `;
+      
+      const llmResponse = await ai.generate({ prompt });
+
+      if (!llmResponse.text) {
+          throw new Error("The AI failed to generate an analysis.");
       }
 
       return {
           success: true,
-          analysis: summary,
+          analysis: llmResponse.text,
       };
 
   } catch (error) {
@@ -275,4 +304,3 @@ export async function analyzeChannelTrendFit(channelHandleOrId, trend) {
     throw new Error(`Analysis failed: ${error.message}. Please check if the channel handle/ID is correct and public.`);
   }
 }
-
