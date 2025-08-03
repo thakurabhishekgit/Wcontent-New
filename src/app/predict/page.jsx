@@ -24,6 +24,7 @@ import { useRouter } from 'next/navigation';
 import { Label } from "@/components/ui/label";
 import { Bar, CartesianGrid, XAxis, YAxis, BarChart as RechartsBarChart, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { analyzeYoutubeComments } from "@/ai/flows/analyze-youtube-comments-flow";
+import { predictAudienceGrowth } from "@/ai/flows/predict-audience-growth-flow";
 
 const FeatureCard = ({ icon: Icon, title, description, img, hint }) => (
    <Card className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -62,7 +63,6 @@ function Ml() {
     contentType: "",
     ideaDescription: ""
   });
-  const [channelStats, setChannelStats] = useState(null);
   const [growthRetentionPrediction, setGrowthRetentionPrediction] = useState(null);
   const [growthRetentionLoading, setGrowthRetentionLoading] = useState(false);
   const [growthRetentionError, setGrowthRetentionError] = useState("");
@@ -94,8 +94,8 @@ function Ml() {
         });
         if (response.ok) {
             const userData = await response.json();
-            if (userData.userType === 'ChannelOwner' && userData.channelId) {
-                setAudienceGrowthInputs(prev => ({ ...prev, channelHandle: userData.channelId }));
+            if (userData.userType === 'ChannelOwner' && (userData.channelId || userData.username)) {
+                setAudienceGrowthInputs(prev => ({ ...prev, channelHandle: userData.channelId || userData.username }));
                 setIsChannelIdPrefilled(true);
             }
         }
@@ -138,7 +138,6 @@ function Ml() {
     setAnalysisResult(null);
 
     try {
-      // Call the imported server action
       const result = await analyzeYoutubeComments({ videoUrl: url });
       setAnalysisResult(result);
       if(!isLoggedIn) incrementPredictionCount();
@@ -170,12 +169,21 @@ function Ml() {
   };
 
   const handlePredictAudienceGrowth = async () => {
-    // This is a placeholder function as the backend for this is not implemented.
+    if (checkPredictionLimit()) return;
+    
     setGrowthRetentionLoading(true);
     setGrowthRetentionError("");
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setGrowthRetentionError("This feature is currently under development and not yet available. Please check back later.");
-    setGrowthRetentionLoading(false);
+    setGrowthRetentionPrediction(null);
+    try {
+      const result = await predictAudienceGrowth(audienceGrowthInputs);
+      setGrowthRetentionPrediction(result);
+      if(!isLoggedIn) incrementPredictionCount();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An error occurred during prediction.";
+      setGrowthRetentionError(message);
+    } finally {
+      setGrowthRetentionLoading(false);
+    }
   };
 
    const growthChartData = growthRetentionPrediction ? [
@@ -241,7 +249,6 @@ function Ml() {
               <CardTitle className="text-2xl font-bold">Analyze Audience Feedback</CardTitle>
               <CardDescription className="text-md text-muted-foreground">
                 Paste a YouTube video URL to get an AI-powered summary of the comments.
-                {!isLoggedIn && predictionCount < 1 && <span className="text-sm block text-primary">(First analysis is free!)</span>}
               </CardDescription>
             </CardHeader>
             <CardContent className="max-w-2xl mx-auto space-y-6">
@@ -348,7 +355,6 @@ function Ml() {
               <CardTitle className="text-2xl font-bold">Predict Your Channel's Trajectory</CardTitle>
               <CardDescription className="text-md text-muted-foreground">
                 Input your YouTube channel handle and planned content details to get an AI-simulated forecast for subscriber growth and audience retention.
-                {!isLoggedIn && predictionCount < 1 && <span className="text-sm block text-primary">(First forecast is free!)</span>}
               </CardDescription>
             </CardHeader>
             <CardContent className="max-w-3xl mx-auto space-y-6">
@@ -402,7 +408,7 @@ function Ml() {
               <Button
                 onClick={handlePredictAudienceGrowth}
                 className="w-full"
-                disabled={growthRetentionLoading || (!isLoggedIn && predictionCount >=1)}
+                disabled={growthRetentionLoading || (!isLoggedIn && predictionCount >=1) || !audienceGrowthInputs.channelHandle || !audienceGrowthInputs.contentType || !audienceGrowthInputs.ideaDescription}
               >
                 {growthRetentionLoading ? (
                   <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Forecasting... </>
@@ -410,11 +416,22 @@ function Ml() {
                 {!isLoggedIn && predictionCount >= 1 && <span className="ml-2 text-xs">(Login Required)</span>}
               </Button>
 
-              {growthRetentionLoading && !channelStats && ( // Show skeleton while fetching initial stats
+              {growthRetentionLoading && (
                 <div className="space-y-4 pt-4 border-t mt-6">
-                  <Skeleton className="h-6 w-1/2 mb-2" />
-                  <div className="grid grid-cols-3 gap-4"> <Skeleton className="h-10 w-full" /> <Skeleton className="h-10 w-full" /> <Skeleton className="h-10 w-full" /> </div>
-                  <Skeleton className="h-4 w-full mt-2" /> <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-6 w-1/2 mb-4" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                           <Skeleton className="h-5 w-1/3 mb-2" />
+                           <Skeleton className="h-4 w-full" />
+                           <Skeleton className="h-4 w-3/4" />
+                        </div>
+                         <div className="space-y-2">
+                           <Skeleton className="h-5 w-1/3 mb-2" />
+                           <Skeleton className="h-4 w-full" />
+                           <Skeleton className="h-4 w-3/4" />
+                        </div>
+                    </div>
+                    <Skeleton className="h-48 w-full mt-4" />
                 </div>
               )}
 
@@ -437,13 +454,13 @@ function Ml() {
                     </div>
                      <div>
                         <h4 className="text-md font-semibold mb-2 text-foreground/80">Simulated Subscriber Growth:</h4>
-                        <div className="h-[200px] mt-2">
+                        <div className="h-[250px] w-full mt-2">
                             <ResponsiveContainer width="100%" height="100%">
-                                <RechartsBarChart data={growthChartData} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
+                                <RechartsBarChart data={growthChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="name" fontSize={12} />
-                                    <YAxis fontSize={12} />
-                                    <RechartsTooltip contentStyle={{backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))'}}/>
+                                    <YAxis fontSize={12} tickFormatter={(value) => new Intl.NumberFormat('en-US', { notation: 'compact', compactDisplay: 'short' }).format(value)} />
+                                    <RechartsTooltip contentStyle={{backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))'}} formatter={(value) => new Intl.NumberFormat('en').format(value)} />
                                     <Legend wrapperStyle={{fontSize: "12px"}}/>
                                     <Bar dataKey="value" fill="hsl(var(--primary))" name="Subscribers" radius={[4, 4, 0, 0]} />
                                 </RechartsBarChart>
@@ -454,8 +471,9 @@ function Ml() {
 
                     <div>
                         <h4 className="text-md font-semibold mb-2 text-foreground/80">Audience Retention Outlook:</h4>
-                        <p className="text-sm text-foreground/90">{growthRetentionPrediction.predictedRetention.summary}</p>
-                        <p className="text-sm mt-1"><strong className="text-primary">{growthRetentionPrediction.predictedRetention.outlook} Potential.</strong> Focus on: {growthRetentionPrediction.predictedRetention.keyFactors.join(', ')}.</p>
+                        <p className="text-sm mt-1"><strong>Outlook:</strong> <Badge variant={growthRetentionPrediction.predictedRetention.outlook === 'High' ? 'default' : growthRetentionPrediction.predictedRetention.outlook === 'Medium' ? 'secondary' : 'destructive'}>{growthRetentionPrediction.predictedRetention.outlook}</Badge></p>
+                        <p className="text-sm text-foreground/90 mt-2">{growthRetentionPrediction.predictedRetention.summary}</p>
+                        <p className="text-sm mt-1"><strong>Key Factors:</strong> {growthRetentionPrediction.predictedRetention.keyFactors.join(', ')}.</p>
                     </div>
                      <div>
                         <h4 className="text-md font-semibold mb-2 text-foreground/80">Improvement Tips:</h4>
